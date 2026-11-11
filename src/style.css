@@ -1,0 +1,1680 @@
+:root {
+  --topbar-height: 52px;
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --muted: #6b6b70;
+  --border: #e2e2de;
+  --accent: #3b5bcc;
+  --accent-text: #ffffff;
+  --danger: #b3261e;
+  --good: #2f7d4f;
+  --on-heat: #ffffff;
+  --row-hover: #f1f1ed;
+  --focus: #3b5bcc55;
+  /* Chart series, in fixed order (validated for colour-blind separation on this surface). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #6e396a;
+  /* 7 to 10 only where a chart follows up to ten habits (Over the years). */
+  --series-7: #6250d6;
+  --series-8: #e34948;
+  --series-9: #0aa5c9;
+  --series-10: #86a800;
+  --series-other: #a3a29c;
+  --chart-grid: #ecebe6;
+  --chart-axis: #c3c2b7;
+  --heat: 42, 120, 214; /* sequential hue (blue) as r, g, b for the heatmaps */
+  --heat-empty: #ebebe6;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: light;
+}
+
+/* Dark mode: src/theme.ts sets data-theme from the Settings choice, or from the device. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #161617;
+  --surface: #1f1f21;
+  --text: #ececec;
+  --muted: #9a9aa0;
+  --border: #333336;
+  --accent: #8ea6f2;
+  --accent-text: #10172e;
+  --danger: #f2827a;
+  --good: #6fcf97;
+  --on-heat: #ffffff;
+  --row-hover: #26262a;
+  --focus: #8ea6f266;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #9d42b7;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+  --series-9: #0f9cc2;
+  --series-10: #7f9e10;
+  --series-other: #6b6a66;
+  --chart-grid: #2c2c2e;
+  --chart-axis: #3a3a3d;
+  --heat: 57, 135, 229;
+  --heat-empty: #2a2a2d;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+/* Rows scrolled into view stop below the sticky top bar. */
+html {
+  scroll-padding-top: calc(var(--topbar-height) + 40px);
+}
+
+a {
+  color: var(--accent);
+}
+
+/* Stays at the top while the page scrolls; above the page, and above open dropdown lists. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: var(--topbar-height);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar h1 {
+  font-size: 17px;
+  margin: 0 24px 0 0;
+}
+
+/* The title links home without looking like a link. */
+.home-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.topbar .version {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.topbar nav {
+  display: flex;
+  gap: 4px;
+}
+
+.topbar nav a {
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.topbar nav a:hover {
+  color: var(--text);
+}
+
+.topbar nav a.active {
+  color: var(--text);
+  background: var(--bg);
+  font-weight: 600;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backup-nag {
+  color: var(--danger);
+  border-color: var(--danger);
+  font-size: 13px;
+  padding: 4px 10px;
+}
+
+/* Green like the backup buttons on the Settings page, until a backup is due. The icon is for phones. */
+.backup-btn {
+  --kind: var(--good);
+  color: var(--kind);
+  background: color-mix(in srgb, var(--kind) 7%, var(--surface));
+  border-color: color-mix(in srgb, var(--kind) 35%, var(--surface));
+  font-size: 13px;
+  padding: 4px 10px;
+}
+
+.backup-btn:hover {
+  filter: none;
+  background: color-mix(in srgb, var(--kind) 14%, var(--surface));
+}
+
+.backup-btn.backup-nag {
+  --kind: var(--danger);
+  border-color: var(--danger);
+}
+
+.backup-btn .icon {
+  display: none;
+}
+
+.menu-btn {
+  display: none;
+}
+
+/* The reminders shorten to "Backup" and "Reload" (their tooltips keep the rest), so the links stay on one line. */
+@media (max-width: 1199px) {
+  .topbar-right .long {
+    display: none;
+  }
+}
+
+/* Phones, tablets and narrow windows: the links don't fit in a row, so they fold into a menu under ☰. */
+@media (max-width: 1049px) {
+  .topbar {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .topbar h1 {
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .topbar-right {
+    gap: 8px;
+  }
+
+  .menu-btn {
+    display: block;
+    padding: 4px 10px;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .topbar nav {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 16px;
+    flex-direction: column;
+    min-width: 180px;
+    padding: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .topbar nav.open {
+    display: flex;
+  }
+
+  .topbar nav a {
+    padding: 10px 12px;
+  }
+
+  main {
+    margin: 16px auto;
+    padding: 0 16px;
+  }
+
+  .status-strip p {
+    padding: 4px 16px;
+  }
+}
+
+/* Phones: the version goes under the title, small, and Backup is just its icon,
+   to leave the bar room for its buttons. */
+@media (max-width: 600px) {
+  .topbar h1 {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .topbar .version {
+    font-size: 11px;
+  }
+
+  .backup-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+  }
+
+  .backup-btn .icon {
+    display: block;
+  }
+
+  .backup-label {
+    display: none;
+  }
+}
+
+/* A column as tall as the window, so the footer sits at the bottom even on a short page. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* A thin strip under the top bar: when the open year last changed. Its text lines up with main's. */
+.status-strip {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.status-strip p {
+  box-sizing: border-box;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 4px 24px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--muted);
+}
+
+main {
+  flex: 1 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 1280px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+
+.footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer p + p {
+  margin-top: 8px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.muted {
+  color: var(--muted);
+}
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  background: var(--border);
+  color: var(--muted);
+}
+
+button,
+.button {
+  display: inline-block;
+  font: inherit;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.button {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+button:hover,
+.button:hover {
+  filter: brightness(0.95);
+}
+
+.errors {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+input,
+select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  min-width: 0;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible,
+tr:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+button.danger {
+  color: var(--danger);
+}
+
+button.link {
+  border: none;
+  background: none;
+  color: var(--accent);
+  padding: 4px;
+}
+
+kbd {
+  font: 11px ui-monospace, monospace;
+  padding: 0 4px;
+  margin-left: 4px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--muted);
+}
+
+
+
+/* --- Shared --- */
+
+h2, h3 {
+  font-weight: 600;
+}
+
+.stack {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  min-width: 0;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.card-title {
+  margin-bottom: 12px !important;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.card-head p {
+  margin: 4px 0 0;
+}
+
+.small {
+  font-size: 13px;
+}
+
+.empty-state {
+  max-width: 720px;
+  line-height: 1.5;
+}
+
+.empty-state h2 {
+  margin-top: 0;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+  filter: none;
+}
+
+button.danger-solid {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--surface);
+}
+
+.danger-zone {
+  border-left: 4px solid var(--danger);
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 14px;
+  margin: 8px 0 0;
+}
+
+.warn {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.saved {
+  color: var(--good);
+  font-size: 14px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.field-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.setting-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border: none;
+  border-radius: 0;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--border);
+}
+
+.segmented button.active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.row-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.row-actions.asking {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.row-actions.asking span {
+  font-size: 14px;
+}
+
+button.icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--muted);
+  flex: none;
+}
+
+button.icon-action:hover:not(:disabled) {
+  filter: none;
+  color: var(--text);
+  background: var(--row-hover);
+}
+
+button.icon-action.danger { --kind: var(--danger); }
+button.icon-action.icon-export { --kind: var(--good); }
+
+button.icon-action.danger,
+button.icon-action.icon-export {
+  color: var(--kind);
+  background: color-mix(in srgb, var(--kind) 7%, var(--surface));
+  border-color: color-mix(in srgb, var(--kind) 35%, var(--surface));
+}
+
+.pill {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  background: var(--row-hover);
+  color: var(--muted);
+}
+
+/* A thin bar filled to a score. */
+.score-bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--heat-empty);
+  overflow: hidden;
+}
+
+.score-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: rgb(var(--heat));
+}
+
+/* --- Tables --- */
+
+.data-table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data-table thead th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.data-table tbody th {
+  font-weight: 500;
+}
+
+.data-table tr.total td,
+.data-table tr.total th {
+  font-weight: 600;
+  border-bottom: none;
+}
+
+.data-table.all-figures {
+  width: 100%;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.table-view {
+  margin-top: 8px;
+}
+
+.table-view summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+/* --- Today --- */
+
+.day-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.day-title {
+  margin: 0 4px;
+  font-size: 20px;
+  min-width: 13ch;
+  text-align: center;
+}
+
+.today-badge {
+  vertical-align: 3px;
+}
+
+.badge {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--border);
+  color: var(--muted);
+}
+
+.today-badge,
+.open-badge {
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  color: var(--accent);
+}
+
+.perfect-badge {
+  background: color-mix(in srgb, var(--good) 15%, var(--surface));
+  color: var(--good);
+}
+
+.view-mode {
+  margin-left: auto;
+}
+
+.week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border-radius: 8px;
+}
+
+.week-day.chosen {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.week-day.is-today .wd-num {
+  color: var(--accent);
+}
+
+.wd-name {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.wd-num {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.wd-dot {
+  width: 18px;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.day-card {
+  display: grid;
+  gap: 12px;
+}
+
+.day-score {
+  padding: 14px 20px;
+}
+
+.day-score-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+
+.day-score-value {
+  font-size: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.locked {
+  margin: 8px 0 0;
+}
+
+.habit-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 10px;
+}
+
+.habit-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 60px;
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.habit-card.check {
+  cursor: pointer;
+}
+
+.habit-card.met {
+  border-color: color-mix(in srgb, rgb(var(--heat)) 55%, var(--surface));
+  background: color-mix(in srgb, rgb(var(--heat)) 10%, var(--surface));
+}
+
+.habit-card.missed {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--surface));
+}
+
+.hc-emoji {
+  font-size: 22px;
+  min-width: 30px;
+  text-align: center;
+  white-space: nowrap;
+  flex: none;
+}
+
+.hc-name {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  min-width: 0;
+}
+
+.hc-goal {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.streak {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.habit-card kbd {
+  margin: 0;
+}
+
+/* The tick: an empty ring, filled when met. */
+.hc-tick {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.habit-card.met .hc-tick {
+  background: rgb(var(--heat));
+  border-color: rgb(var(--heat));
+  color: var(--on-heat);
+}
+
+.habit-card.missed .hc-tick {
+  border-color: color-mix(in srgb, var(--danger) 50%, var(--surface));
+  color: var(--danger);
+}
+
+.value-input {
+  width: 72px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.value-input.invalid {
+  border-color: var(--danger);
+  outline-color: var(--danger);
+}
+
+.note-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.week-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+
+.week-table th,
+.week-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.week-table thead th {
+  vertical-align: bottom;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.week-table thead th span {
+  display: block;
+}
+
+.wt-emoji {
+  font-size: 18px;
+}
+
+.wt-name {
+  max-width: 10ch;
+  margin: 0 auto;
+  line-height: 1.25;
+}
+
+.week-table tbody th {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.week-table tr.is-today th button {
+  font-weight: 700;
+}
+
+.week-table td.met {
+  background: color-mix(in srgb, rgb(var(--heat)) 10%, var(--surface));
+}
+
+.week-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: rgb(var(--heat));
+}
+
+.week-table .value-input {
+  width: 60px;
+  padding: 3px 4px;
+}
+
+.week-table td.num {
+  min-width: 90px;
+}
+
+.wt-score {
+  display: block;
+  margin-bottom: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wt-off {
+  color: var(--muted);
+}
+
+.wt-note {
+  margin-left: 4px;
+  font-size: 12px;
+}
+
+/* --- Dashboard --- */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  font: inherit;
+}
+
+button.tile-link:hover {
+  filter: none;
+  border-color: var(--accent);
+}
+
+.tile-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.tile-value {
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-unit {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.tile-detail {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.streak-table {
+  width: 100%;
+}
+
+.hbars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.hbars li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.hbar-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hbar-track {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--heat-empty);
+}
+
+.hbar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: rgb(var(--heat));
+}
+
+/* The year's share: a tick across the bar, ringed in the surface colour so it shows on the fill too. */
+.hbar-mark {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 16px;
+  margin-left: -1.5px;
+  border-radius: 1px;
+  background: var(--text);
+  box-shadow: 0 0 0 1px var(--surface);
+}
+
+.hbar-share {
+  font-size: 13px;
+  color: var(--muted);
+  min-width: 48px;
+}
+
+/* --- Heatmaps --- */
+
+.heatmap-scroll {
+  overflow-x: auto;
+}
+
+.heatmap svg {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  height: auto;
+}
+
+.heatmap.compact svg {
+  min-width: 520px;
+}
+
+.hm-label {
+  font-size: 9px;
+  fill: var(--muted);
+}
+
+/* A small map is drawn smaller, so its labels are set larger to read the same. */
+.heatmap.compact .hm-label {
+  font-size: 12px;
+}
+
+.hm-cell {
+  cursor: pointer;
+  stroke: transparent;
+  stroke-width: 1.5;
+}
+
+.hm-cell:hover,
+.hm-cell:focus {
+  stroke: var(--text);
+  outline: none;
+}
+
+.hm-cell.hm-today {
+  stroke: var(--accent);
+}
+
+.hm-off {
+  fill: transparent;
+  stroke: var(--border);
+  stroke-width: 0.5;
+  cursor: default;
+}
+
+.hm-off:hover {
+  stroke: var(--border);
+}
+
+/* Sequential, one hue: pale for nothing met, the full hue for a perfect day. Nothing logged is
+   the empty grey. Used as fills in the maps and as backgrounds in the keys and the week strip. */
+.hm-none { fill: var(--heat-empty); background: var(--heat-empty); }
+.hm-0 { fill: rgba(var(--heat), 0.1); background: rgba(var(--heat), 0.1); }
+.hm-1 { fill: rgba(var(--heat), 0.25); background: rgba(var(--heat), 0.25); }
+.hm-2 { fill: rgba(var(--heat), 0.45); background: rgba(var(--heat), 0.45); }
+.hm-3 { fill: rgba(var(--heat), 0.65); background: rgba(var(--heat), 0.65); }
+.hm-4 { fill: rgba(var(--heat), 0.82); background: rgba(var(--heat), 0.82); }
+.hm-5 { fill: rgb(var(--heat)); background: rgb(var(--heat)); }
+
+.heatmap-detail {
+  margin: 6px 0 4px;
+  min-height: 18px;
+}
+
+.heat-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.heat-legend span:not(.hm-key) {
+  margin: 0 4px;
+}
+
+.hm-key {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.habit-maps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1100px) {
+  .habit-maps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Reports --- */
+
+.reports .tab-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  box-shadow: inset 0 -1px 0 var(--border);
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.tab-bar button {
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 6px 6px 0 0;
+  background: none;
+  color: var(--muted);
+  padding: 8px 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tab-bar button:hover {
+  color: var(--text);
+  filter: none;
+}
+
+.tab-bar button.active {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+}
+
+.wide-chart {
+  overflow-x: auto;
+}
+
+.wide-chart .chart {
+  min-width: 640px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+
+.chart-legend {
+  gap: 4px 14px;
+}
+
+.chart-legend button {
+  border: none;
+  background: none;
+  padding: 2px 0;
+  font: inherit;
+  color: inherit;
+}
+
+.chart-legend button[aria-pressed="false"] {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.chart-legend .swatch {
+  background: var(--c);
+}
+
+.chart-legend .swatch.dashed {
+  background: repeating-linear-gradient(90deg, var(--c) 0 3px, transparent 3px 5px);
+}
+
+.report-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.report-cards.one {
+  grid-template-columns: minmax(0, 640px);
+}
+
+.report-lines {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  line-height: 1.45;
+}
+
+.rl-sub {
+  display: block;
+  font-size: 12px;
+}
+
+.report-card p {
+  margin: 8px 0;
+}
+
+.report-score {
+  font-size: 15px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-bottom: 0 !important;
+}
+
+.month-grid td {
+  min-width: 40px;
+}
+
+/* --- Habits --- */
+
+.habit-list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+}
+
+.habit-list > li {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+
+.habit-list > li.stopped .hr-name {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.habit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hr-emoji {
+  font-size: 22px;
+  min-width: 30px;
+  white-space: nowrap;
+  text-align: center;
+  flex: none;
+}
+
+.hr-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hr-name {
+  font-weight: 500;
+}
+
+.habit-form {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
+
+.w-emoji input {
+  width: 56px;
+  text-align: center;
+  font-size: 18px;
+  padding: 3px 4px;
+}
+
+.w-name {
+  flex: 1 1 200px;
+}
+
+.w-goal input {
+  width: 80px;
+}
+
+.w-unit input {
+  width: 100px;
+}
+
+.emoji-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 10px 0 4px;
+}
+
+.emoji-picks button {
+  padding: 2px 6px;
+  font-size: 18px;
+  line-height: 1.3;
+  border-color: transparent;
+  background: none;
+}
+
+.emoji-picks button.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+/* --- Settings --- */
+
+table.years {
+  width: 100%;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.file-button {
+  cursor: pointer;
+}
+
+.file-button:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.close-panel {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px 20px 16px;
+  margin: 8px 0 16px;
+}
+
+.close-panel h3 {
+  margin: 4px 0 8px;
+}
+
+.close-panel ol {
+  margin: 0 0 8px;
+  padding-left: 20px;
+  line-height: 1.6;
+}
+
+.choices {
+  border: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 6px;
+}
+
+.choice,
+.check-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.starter-picks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px 12px;
+  padding-left: 24px;
+}
+
+.facts {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 560px;
+}
+
+.facts > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.facts dt {
+  flex: 1;
+  color: var(--muted);
+}
+
+.facts dd {
+  margin: 0;
+  text-align: right;
+}
+
+.facts dd a {
+  text-decoration: none;
+}
+
+button.fact-open {
+  padding: 0;
+  font: inherit;
+}
+
+dialog.guide {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+dialog.guide::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+
+.guide-body {
+  padding: 20px 24px;
+  line-height: 1.5;
+}
+
+.guide-body h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.guide-body h2:focus {
+  outline: none;
+}
+
+.guide-body h3 {
+  margin: 16px 0 4px;
+  font-size: 15px;
+}
+
+.guide-body ol,
+.guide-body ul {
+  padding-left: 20px;
+}
+
+.errors {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+/* --- Phones --- */
+
+@media (max-width: 600px) {
+  /* The day and its arrows fill the first line; the date box, Today and Day / Week wrap below. */
+  .day-title {
+    flex: 1 1 auto;
+    font-size: 16px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .day-nav input[type="date"] {
+    flex: 1 1 140px;
+  }
+
+  .view-mode {
+    margin-left: 0;
+  }
+
+  .habit-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .habit-card kbd {
+    display: none;
+  }
+
+  .card {
+    padding: 14px 14px;
+  }
+
+  .habit-row {
+    flex-wrap: wrap;
+  }
+
+  .habit-row .row-actions {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 42px;
+  }
+
+  .report-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  table.years thead {
+    display: none;
+  }
+
+  table.years,
+  table.years tbody {
+    display: block;
+  }
+
+  table.years tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table.years td {
+    padding: 0;
+    border: none;
+  }
+
+  table.years .y-year {
+    flex: 1 1 auto;
+    font-weight: 600;
+  }
+
+  table.years .y-count::before {
+    content: attr(data-label) ": ";
+    color: var(--muted);
+  }
+
+  table.years .y-actions {
+    flex: 1 1 100%;
+  }
+
+  table.years .row-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* The Week table scrolls sideways on a narrow screen; the day column stays put. */
+.week-table tbody th,
+.week-table thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+}
