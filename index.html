@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Habit Tracker: a private, offline daily habit tracker</title>
+    <meta name="description" content="Tick off your daily habits, log sleep and screen time, and see scores, streaks, heatmaps and monthly reports. Free, no sign-up: your log stays in your browser and works offline." />
+    <meta name="theme-color" content="#3b5bcc" />
+    <link rel="canonical" href="https://arindambose.com/personal-habit-tracker/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Habit Tracker" />
+    <meta property="og:title" content="Habit Tracker: a private, offline daily habit tracker" />
+    <meta property="og:description" content="Daily habits, streaks, heatmaps and monthly reports. Free, no sign-up, and your log never leaves your browser." />
+    <meta property="og:url" content="https://arindambose.com/personal-habit-tracker/" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Habit Tracker",
+        "url": "https://arindambose.com/personal-habit-tracker/",
+        "description": "Tick off your daily habits and see scores, streaks, heatmaps and monthly reports. Your log stays in your browser and works offline.",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Person", "name": "Arindam Bose", "url": "https://arindambose.com/" }
+      }
+    </script>
+    <script>
+      // Light or dark before the first paint, so the page never flashes the wrong one.
+      // src/theme.ts takes over once the app loads; the key is shared with it.
+      try {
+        var t = localStorage.getItem("habit-tracker-theme");
+        if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+    <!-- On the home screen: see src/install.ts. -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Habit Tracker" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%233b5bcc'/><path d='M9 16.5l4.5 4.5L23 11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/></svg>"
+    />
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>
+      <h1>Habit Tracker</h1>
+      <p>Tick off your daily habits and see scores, streaks, heatmaps and monthly reports.
+        Free, with no sign-up: your log stays in your browser and works offline.</p>
+      <p>Habit Tracker needs JavaScript. Turn it on to use the tracker.</p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
