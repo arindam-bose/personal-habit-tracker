@@ -1431,6 +1431,12 @@ button.tile-link:hover {
 
 /* --- Settings --- */
 
+/* Settings' card titles, all one size, as on the Money Tracker's Settings page. */
+.settings > .card > h3,
+.settings > .card > .card-head h3 {
+  font-size: 18px;
+}
+
 table.years {
   width: 100%;
   margin-bottom: 12px;

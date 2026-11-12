@@ -1,6 +1,6 @@
 // Settings: your years (back up, close, reopen, delete; the year picker in the top bar opens
 // one), importing a backup, starting a year, a demo file, the first day of the week, light or
-// dark, the offline copy, the home screen, erasing everything, and About.
+// dark, the offline copy, erasing everything, the home screen, and About.
 
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
@@ -115,16 +115,8 @@ export function SettingsView() {
       </section>
 
       <OfflineCard />
-      <InstallCard />
-
-      <section class="card">
-        <h3 class="card-title">Keeping your data</h3>
-        <p class="small">
-          Everything you log stays in this browser, on this device. <b>Backup</b> in the top bar downloads the open year; import it here on a new device to carry on.
-        </p>
-      </section>
-
       <EraseCard />
+      <InstallCard />
       <AboutCard />
     </div>
   );
@@ -404,14 +396,14 @@ function InstallCard() {
   return (
     <section class="card">
       <h3 class="card-title">On your home screen</h3>
-      {state === "running" ? <p class="small">You're using the installed app.</p>
-        : state === "installed" ? <p class="small">Installed. Open it from your home screen or app list.</p>
+      {state === "running" ? <p class="muted">You're using the installed app.</p>
+        : state === "installed" ? <p class="muted">Installed. Open it from your home screen or app list.</p>
         : state === "prompt" ? (
           <div class="setting-row">
             <button type="button" class="primary" onClick={() => promptInstall()}>Install Habit Tracker</button>
             <span class="small muted">It opens in its own window and works offline.</span>
           </div>
-        ) : <p class="small">{steps.map((s) => (typeof s === "string" ? s : <b>{s.b}</b>))}</p>}
+        ) : <p class="muted">{steps.map((s) => (typeof s === "string" ? s : <b>{s.b}</b>))}</p>}
     </section>
   );
 }
@@ -421,6 +413,10 @@ function EraseCard() {
   return (
     <section class="card danger-zone">
       <h3 class="card-title">Erase everything</h3>
+      <p class="muted">
+        Removes every habit entry you have, with every year's data and settings. This cannot be undone -
+        download a copy first.
+      </p>
       <div class="setting-row">
         {asking.value ? (
           <>
