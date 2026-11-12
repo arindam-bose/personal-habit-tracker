@@ -18,7 +18,7 @@ import { Chart, OUTSIDE_LABEL_ROOM, axisStyle, barLabels, levelLine, baseOption,
 import { NoYear, openDay, plural, refDay } from "./common";
 
 type Tab = "overview" | "months" | "habits";
-const TABS: [Tab, string][] = [["overview", "Overview"], ["months", "Monthly reports"], ["habits", "Habits by month"]];
+const TABS: [Tab, string][] = [["overview", "Overview"], ["months", "Monthly reports"], ["habits", "More on this"]];
 
 export function ReportsView() {
   const tab = useSignal<Tab>("overview");
