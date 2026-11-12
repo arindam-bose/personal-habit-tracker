@@ -72,7 +72,32 @@ export function barLabel(format: (value: number) => string) {
   return {
     show: true, position: "top" as const, color: token("--muted"),
     fontSize: matchMedia("(max-width: 600px)").matches ? 9 : 12,
+    // A halo of the card's own colour, so a level line passing behind a label doesn't strike it through.
+    textBorderColor: token("--surface"), textBorderWidth: 3,
     formatter: (p: { value: number }) => format(p.value),
+  };
+}
+
+/** The room at a chart's right for a level line named outside it ("Average" over its value). */
+export const OUTSIDE_LABEL_ROOM = 56;
+
+/**
+ * A dashed level across a chart, named at its right end: a habit's goal, or the year's average.
+ * Silent, so hovering it doesn't hide the bars' tooltip. `outside` names it past the plot's right
+ * edge instead, for a chart whose bars carry labels the name would land on; that chart leaves room
+ * for it with OUTSIDE_LABEL_ROOM.
+ */
+export function levelLine(value: number, name: string, outside = false) {
+  return {
+    symbol: "none", silent: true,
+    lineStyle: { type: "dashed" as const, color: token("--text"), width: 1 },
+    // Named outside, it is drawn under the bars and their labels, as the gridlines are, so it never
+    // strikes a value through.
+    ...(outside ? { z: 1 } : {}),
+    label: outside
+      ? { formatter: name, color: token("--muted"), position: "end" as const, fontSize: 11, lineHeight: 13 }
+      : { formatter: name, color: token("--muted"), position: "insideEndTop" as const },
+    data: [{ yAxis: value }],
   };
 }
 
