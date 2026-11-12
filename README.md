@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 1.0.2** ·
+**Version 1.0.3** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -79,7 +79,6 @@ still counting on December 31 and the streaks running then. Add more habits ther
 |---|---|
 | <kbd>←</kbd> / <kbd>→</kbd> | The day before or after |
 | <kbd>T</kbd> | Today |
-| <kbd>1</kbd> to <kbd>9</kbd> | Tick a habit, or go to its box |
 | <kbd>Enter</kbd> | Save a time or number |
 | <kbd>Esc</kbd> | Undo what's typed in a box |
 

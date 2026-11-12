@@ -29,7 +29,7 @@ export function TodayView() {
   const data = current.value;
   const t = tracked.value;
 
-  // Keys: ← → move a day, T goes to today, 1 to 9 tick (or go to) a habit.
+  // Keys: ← → move a day, T goes to today.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || mode.value !== "day") return;
@@ -43,14 +43,6 @@ export function TodayView() {
         e.preventDefault();
       } else if (e.key === "t" || e.key === "T") {
         if (today.value.startsWith(`${t.year}-`)) selectedDay.value = today.value;
-      } else if (/^[1-9]$/.test(e.key)) {
-        const habits = t.habits.filter((h) => isActive(h, selectedDay.value));
-        const h = habits[Number(e.key) - 1];
-        if (!h) return;
-        const target = document.querySelector<HTMLElement>(`[data-habit="${h.id}"]`);
-        if (h.kind === "check") target?.click();
-        else target?.focus();
-        e.preventDefault();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -145,8 +137,8 @@ function DayCard({ date }: { date: IsoDate }) {
       {/* The day's score is the first tile below the separator. */}
       {locked && <p class="muted small locked">{locked}</p>}
       <ul class="habit-cards">
-        {habits.map((h, i) => (
-          <HabitCard key={`${date}-${h.id}`} habit={h} date={date} index={i} value={day?.values[h.id]} locked={!!locked}
+        {habits.map((h) => (
+          <HabitCard key={`${date}-${h.id}`} habit={h} date={date} value={day?.values[h.id]} locked={!!locked}
             streak={isToday ? habitStreak(t, h, date).current : null} />
         ))}
       </ul>
@@ -155,19 +147,16 @@ function DayCard({ date }: { date: IsoDate }) {
   );
 }
 
-function HabitCard(props: { habit: Habit; date: IsoDate; index: number; value: true | number | undefined; locked: boolean; streak: number | null }) {
+function HabitCard(props: { habit: Habit; date: IsoDate; value: true | number | undefined; locked: boolean; streak: number | null }) {
   const { habit, date, value, locked } = props;
   const met = meets(habit, value);
   const streak = props.streak ? <span class="streak" title={`${props.streak} days in a row`}>🔥 {props.streak}</span> : null;
-  // The key that ticks it (or goes to its box): only where there's a keyboard, so not on phones.
-  const key = props.index < 9 ? <kbd aria-hidden="true">{props.index + 1}</kbd> : null;
 
   if (habit.kind === "check") {
     return (
       <li>
-        <button type="button" class={`habit-card check ${met ? "met" : ""}`} aria-pressed={met} disabled={locked} data-habit={habit.id}
+        <button type="button" class={`habit-card check ${met ? "met" : ""}`} aria-pressed={met} disabled={locked}
           onClick={() => setValue(date, habit.id, met ? null : true).catch(failed)}>
-          {key}
           <span class="hc-emoji" aria-hidden="true">{habit.emoji}</span>
           <span class="hc-name">{habit.name}</span>
           {streak}
@@ -179,7 +168,6 @@ function HabitCard(props: { habit: Habit; date: IsoDate; index: number; value: t
   return (
     <li>
       <div class={`habit-card measure ${met ? "met" : value !== undefined ? "missed" : ""}`}>
-        {key}
         <span class="hc-emoji" aria-hidden="true">{habit.emoji}</span>
         <span class="hc-name">
           {habit.name}
@@ -220,7 +208,7 @@ function ValueInput(props: { habit: Habit; date: IsoDate; value: true | number |
   const hint = habit.kind === "duration" ? "h:mm" : habit.unit ?? "";
   return (
     <input type="text" inputMode={habit.kind === "duration" ? "text" : "decimal"} class={`value-input ${bad.value ? "invalid" : ""}`}
-      data-habit={habit.id} aria-label={`${label(habit)}${habit.goal ? `, ${goalText(habit)}` : ""}`} aria-invalid={bad.value}
+      aria-label={`${label(habit)}${habit.goal ? `, ${goalText(habit)}` : ""}`} aria-invalid={bad.value}
       title={bad.value ? (habit.kind === "duration" ? "Type a time like 7:45, 7h45 or 7.75" : "Type a number") : undefined}
       placeholder={props.compact ? "" : hint} value={text.value} disabled={props.locked}
       onInput={(e) => (text.value = e.currentTarget.value)} onBlur={save}

@@ -113,7 +113,6 @@ export function AboutCard() {
             <tbody>
               <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>The day before or after</td></tr>
               <tr><td><kbd>T</kbd></td><td>Today</td></tr>
-              <tr><td><kbd>1</kbd> to <kbd>9</kbd></td><td>Tick a habit, or go to its box</td></tr>
               <tr><td><kbd>Enter</kbd></td><td>Save a time or number</td></tr>
               <tr><td><kbd>Esc</kbd></td><td>Undo what's typed in a box</td></tr>
             </tbody>
