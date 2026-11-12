@@ -1301,7 +1301,7 @@ button.tile-link:hover {
   grid-template-columns: minmax(0, 640px);
 }
 
-/* A report card's rows: names left, values right-aligned in two columns (count, then share). */
+/* A report card's rows: names left, values right-aligned in two columns (share, then count). */
 .report-table {
   width: 100%;
   border-collapse: collapse;

@@ -142,7 +142,7 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
 
 /**
  * One row of a report card: the name on the left, its values right-aligned in two columns (the
- * count, then its share), so the numbers line up down the card. `sub` is a muted line under it,
+ * share, then the count at the far right), so the numbers line up down the card. `sub` is a muted line under it,
  * right-aligned with the values.
  */
 function ReportRow(props: { name: preact.ComponentChildren; value: preact.ComponentChildren; share?: number | null; sub?: string; class?: string }) {
@@ -150,15 +150,15 @@ function ReportRow(props: { name: preact.ComponentChildren; value: preact.Compon
     <>
       <tr class={`${props.class ?? ""}${props.sub ? " rt-has-sub" : ""}`}>
         <th scope="row">{props.name}</th>
-        <td class="num"><b>{props.value}</b></td>
         <td class="num">{props.share !== undefined && <span class="pill">{percent(props.share)}</span>}</td>
+        <td class="num"><b>{props.value}</b></td>
       </tr>
       {props.sub && <tr class="rt-sub"><td colSpan={3} class="muted">{props.sub}</td></tr>}
     </>
   );
 }
 
-/** A habit's row: "🧘 Meditation · 17 days · 55%", or for a time or number, the days its goal was met. */
+/** A habit's row: "🧘 Meditation · 55% · 17 days", or for a time or number, the days its goal was met. */
 function HabitRow({ h, of }: { h: HabitStats; of: number }) {
   const { habit } = h;
   if (!h.days) return null;
