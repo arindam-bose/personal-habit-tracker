@@ -108,7 +108,7 @@ export function SettingsView() {
       <section class="card">
         <h3 class="card-title">Appearance</h3>
         <div class="segmented" role="group" aria-label="Appearance">
-          {([["system", "As your device"], ["light", "Light"], ["dark", "Dark"]] as [ThemeChoice, string][]).map(([v, name]) => (
+          {([["system", "System"], ["light", "Light"], ["dark", "Dark"]] as [ThemeChoice, string][]).map(([v, name]) => (
             <button type="button" class={themeChoice.value === v ? "active" : ""} aria-pressed={themeChoice.value === v} onClick={() => setTheme(v)}>{name}</button>
           ))}
         </div>
