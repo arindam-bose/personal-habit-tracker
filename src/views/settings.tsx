@@ -483,20 +483,41 @@ function OfflineCard() {
   );
 }
 
+/**
+ * On the home screen: a real Install button where the browser lends its prompt, and that
+ * browser's own steps where it doesn't. The prompt can arrive after the page is drawn, so the
+ * card follows installState. As in the Money Tracker.
+ */
 function InstallCard() {
-  const state = installState.value;
-  const steps = installSteps(detectDevice());
+  const note = useSignal<string | null>(null);
+  const now = installState.value;
+
+  async function onInstall() {
+    const outcome = await promptInstall();
+    note.value = outcome === "dismissed" ? "Not installed. The steps are here if you change your mind."
+      : outcome === "unavailable" ? "The browser wouldn't install it from here. Try the steps instead."
+      : null;
+  }
+
   return (
     <section class="card">
       <h3 class="card-title">On your home screen</h3>
-      {state === "running" ? <p class="muted">You're using the installed app.</p>
-        : state === "installed" ? <p class="muted">Installed. Open it from your home screen or app list.</p>
-        : state === "prompt" ? (
-          <div class="setting-row">
-            <button type="button" class="primary" onClick={() => promptInstall()}>Install Habit Tracker</button>
-            <span class="small muted">It opens in its own window and works offline.</span>
-          </div>
-        ) : <p class="muted">{steps.map((s) => (typeof s === "string" ? s : <b>{s.b}</b>))}</p>}
+      <p class="muted">
+        Installed, it opens from its own icon in a window of its own, with or without a signal,
+        with no address to type.
+      </p>
+      <p class="muted">
+        {now === "running" ? "You are using the installed tracker."
+          : now === "installed" ? "Installed. From now on, open it from its icon."
+          : now === "prompt" ? "This browser can install it in one tap."
+          : installSteps(detectDevice()).map((s) => (typeof s === "string" ? s : <b>{s.b}</b>))}
+      </p>
+      {(now === "prompt" || note.value) && (
+        <div class="setting-row">
+          {now === "prompt" && <button type="button" class="primary" onClick={onInstall}>Install</button>}
+          {note.value && <span class="muted" role="status">{note.value}</span>}
+        </div>
+      )}
     </section>
   );
 }
