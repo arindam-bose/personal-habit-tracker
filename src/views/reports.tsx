@@ -5,7 +5,7 @@
 
 import { useSignal } from "@preact/signals";
 import { MONTHS, MONTHS_SHORT, WEEKDAYS, WEEKDAYS_SHORT, longDate } from "../dates";
-import { durationWords, formatMinutes, goalText, label } from "../habits";
+import { durationWords, formatMinutes, goalShort, goalText, label } from "../habits";
 import {
   bestAndHardest, dailyScores, habitStreak, monthStats, percent, perfectStreak, points, rollingAverage, weekdayScores, weekdayStats, yearStats,
   type HabitStats, type PeriodStats, type Tracked,
@@ -318,11 +318,13 @@ function MeasureChart(props: { habit: Habit; index: number; along: Along }) {
         : { max: (e: { max: number }) => (goalValue > e.max ? Math.ceil(goalValue * 1.1) : null) }),
     },
     series: [{
-      name: `Average ${habit.name}`, type: "bar", data: values.map((v) => (v === null ? null : Math.round(v * 10) / 10)), barMaxWidth: weekly ? 36 : 32,
+      // Unrounded: `show` rounds once, so a bar, its tooltip, the line under the chart and the table
+      // all read the same (rounding here too turned 6:44.45 into 6:45 on the bar alone).
+      name: `Average ${habit.name}`, type: "bar", data: values, barMaxWidth: weekly ? 36 : 32,
       // Each bar's average on top, as on the Overview's bars; so the goal is named past the line's
       // end, where it can't land on one.
       itemStyle: { color, borderRadius: [4, 4, 0, 0] }, ...barLabels(show, true),
-      ...(habit.goal ? { markLine: levelLine(habit.goal.value, `Goal\n${show(habit.goal.value)}`, true) } : {}),
+      ...(habit.goal ? { markLine: levelLine(habit.goal.value, `Goal\n${goalShort(habit)}`, true) } : {}),
     }],
   };
   // The best weekday is the one nearest the goal's side: the most sleep, the least screen time.
