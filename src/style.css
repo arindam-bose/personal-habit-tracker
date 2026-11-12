@@ -458,8 +458,8 @@ h2, h3 {
   position: relative;
 }
 
-/* Room for the ? beside a head's own buttons (+ Add, Include loans). */
-.card:has(.card-help) .card-head {
+/* Room for the ?, so a long title (September by habit) never runs under it. */
+.card:has(.card-help) > .card-title {
   padding-right: 28px;
 }
 
