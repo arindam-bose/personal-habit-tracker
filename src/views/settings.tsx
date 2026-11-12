@@ -84,7 +84,7 @@ export function SettingsView() {
         {years.value.length ? <YearsTable /> : <p class="muted">Nothing stored yet. Start a year below, or import a backup.</p>}
         <div class="setting-row">
           <label class="button file-button">
-            Import a backup (.json)
+            Import JSON
             <input type="file" accept=".json,application/json" multiple class="sr-only" onChange={onImport} />
           </label>
         </div>
