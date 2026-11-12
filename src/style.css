@@ -1301,29 +1301,47 @@ button.tile-link:hover {
   grid-template-columns: minmax(0, 640px);
 }
 
-.report-lines {
-  list-style: none;
-  margin: 8px 0;
-  padding: 0;
-  display: grid;
-  gap: 4px;
-  line-height: 1.45;
-}
-
 .rl-sub {
   display: block;
   font-size: 12px;
 }
 
-.report-card p {
-  margin: 8px 0;
+/* A report card's rows: names left, values right-aligned in two columns (count, then share). */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 4px;
 }
 
-.report-score {
-  font-size: 15px;
-  border-top: 1px solid var(--border);
+.report-table th,
+.report-table td {
+  padding: 3px 0;
+  vertical-align: top;
+  line-height: 1.45;
+}
+
+.report-table th {
+  text-align: left;
+  font-weight: 400;
+}
+
+.report-table td {
+  padding-left: 12px;
+  white-space: nowrap;
+}
+
+.report-table tr.rt-gap > * {
+  padding-top: 12px;
+}
+
+.report-table tr.rt-head th {
+  font-weight: 600;
+}
+
+.report-table tr.rt-score > * {
   padding-top: 8px;
-  margin-bottom: 0 !important;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
 }
 
 .month-grid td {
