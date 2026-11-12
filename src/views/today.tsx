@@ -167,7 +167,7 @@ function HabitCard(props: { habit: Habit; date: IsoDate; value: true | number | 
   }
   return (
     <li>
-      <div class={`habit-card measure ${met ? "met" : value !== undefined ? "missed" : ""}`}>
+      <div class={`habit-card measure ${met ? "met" : value !== undefined ? "missed" : ""} ${locked ? "locked" : ""}`} aria-disabled={locked || undefined}>
         <span class="hc-emoji" aria-hidden="true">{habit.emoji}</span>
         <span class="hc-name">
           {habit.name}

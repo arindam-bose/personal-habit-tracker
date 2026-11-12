@@ -817,6 +817,13 @@ button.icon-action.icon-export {
   cursor: pointer;
 }
 
+/* A day that can't be logged (still to come, before tracking starts, or in a closed year): the
+   time and number cards and the note dim like the disabled check cards. */
+.habit-card.measure.locked,
+.note-field textarea:disabled {
+  opacity: 0.5;
+}
+
 .habit-card.met {
   border-color: color-mix(in srgb, rgb(var(--heat)) 55%, var(--surface));
   background: color-mix(in srgb, rgb(var(--heat)) 10%, var(--surface));
