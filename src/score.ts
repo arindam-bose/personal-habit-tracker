@@ -6,7 +6,7 @@
 // meets every habit. These are the Notion tracker's own rules, so imported years score the same.
 
 import { activeOn, isActive, metOn } from "./habits";
-import { addDays, dateRange, daysInMonth, weekday } from "./dates";
+import { dateRange, daysInMonth, weekday } from "./dates";
 import type { DayLog, Habit, IsoDate, YearSetup } from "./types";
 
 /** A year as the calculations take it: its setup and its days by date. */
@@ -138,8 +138,12 @@ export interface Streak {
   today: boolean;
 }
 
-/** What a streak counts in one year: the days it applies to, and whether each was a success. Null: it doesn't exist that year. */
-type StreakTest = { applies: (d: IsoDate) => boolean; passed: (d: IsoDate) => boolean; carried: number } | null;
+/**
+ * What a streak counts in one year: the days it applies to, whether each was a success, and whether
+ * a run can come in from the year before (the habit counts from the year's first day). Null: it
+ * doesn't exist that year.
+ */
+type StreakTest = { applies: (d: IsoDate) => boolean; passed: (d: IsoDate) => boolean; carries: boolean; carried: number } | null;
 
 /**
  * Days in a row a test was passed, through a run of years, oldest first. Days the test doesn't
@@ -160,8 +164,8 @@ function chainRun(chain: Tracked[], today: IsoDate, testOf: (t: Tracked) => Stre
       run = current = 0;
       return;
     }
-    const joined = prev !== undefined && prev.year === t.year - 1 && firstDay(t) === `${t.year}-01-01` && testOf(prev) !== null;
-    if (!joined) run = test.carried;
+    const joined = test.carries && prev !== undefined && prev.year === t.year - 1 && firstDay(t) === `${t.year}-01-01` && testOf(prev) !== null;
+    if (!joined) run = test.carries ? test.carried : 0;
     if (run > best) best = run;
     let beforeToday = run;
     const dates = countedDays(t, today);
@@ -185,14 +189,14 @@ function habitTest(id: string): (t: Tracked) => StreakTest {
   return (t) => {
     const habit = t.habits.find((h) => h.id === id);
     if (!habit) return null;
-    // A carried streak goes on only if the habit counts from the year's first day.
-    const carried = habit.from === undefined || habit.from <= firstDay(t) ? t.streaksIn?.[id] ?? 0 : 0;
-    return { applies: (d) => isActive(habit, d), passed: (d) => metOn(habit, t.days.get(d)), carried };
+    // A streak goes on from the year before only if the habit counts from the year's first day.
+    const carries = habit.from === undefined || habit.from <= firstDay(t);
+    return { applies: (d) => isActive(habit, d), passed: (d) => metOn(habit, t.days.get(d)), carries, carried: t.streaksIn?.[id] ?? 0 };
   };
 }
 
 function perfectTest(t: Tracked): StreakTest {
-  return { applies: (d) => activeOn(t.habits, d).length > 0, passed: (d) => isPerfect(dayScore(t, d)), carried: t.streaksIn?.perfect ?? 0 };
+  return { applies: (d) => activeOn(t.habits, d).length > 0, passed: (d) => isPerfect(dayScore(t, d)), carries: true, carried: t.streaksIn?.perfect ?? 0 };
 }
 
 /** A habit's streak in one year: days in a row it was met. */
@@ -281,12 +285,3 @@ export function percent(score: number | null, digits = 2): string {
 export function points(score: number | null): string {
   return score === null ? "–" : String(Math.round(score));
 }
-
-/** The day after the last day in a log: where to pick up when catching up. */
-export function nextUnlogged(t: Tracked, today: IsoDate): IsoDate | null {
-  for (const d of countedDays(t, today)) if (!t.days.has(d)) return d;
-  return null;
-}
-
-/** Yesterday, for "carry on from yesterday" checks. */
-export const yesterday = (today: IsoDate) => addDays(today, -1);

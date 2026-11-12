@@ -12,7 +12,7 @@ import { STARTER_HABITS, label } from "../habits";
 import { installState, installSteps, promptInstall } from "../install";
 import { checkForUpdates, offlineChanged, offlineStatus, updateReady } from "../offline";
 import {
-  backUpYear, closeYear, current, eraseEverything, openYear, persistState, refreshYears, removeYear, reopenYear,
+  backUpYear, closeYear, current, eraseEverything, openYear, persistState, removeYear, reopenYear,
   saveWeekStart, startYear, today, weekStart, years, type YearSummary,
 } from "../state";
 import { backupText, lastUpdatedAt, requestPersistence } from "../storage";
@@ -230,7 +230,12 @@ function ClosePanel(props: { year: number; onDone: () => void }) {
             : `${year + 1} starts with the habits still counting on December 31, and the streaks running then carry on into it. Add more habits there on the Habits page.`}
         </li>
       </ol>
-      {early && <p class="warn">{year} isn't over yet: days after today can't be logged once it's closed.</p>}
+      {early && (
+        <p class="warn">
+          {year} isn't over yet: days after today can't be logged once it's closed, so they count as missed,
+          and no streak carries into {year + 1}.
+        </p>
+      )}
       {error.value && <p class="form-error" role="alert">{error.value}</p>}
       <div class="form-actions">
         <button type="button" class="primary" disabled={busy.value} onClick={close}>Back up and close {year}</button>
@@ -431,7 +436,7 @@ function EraseCard() {
         {asking.value ? (
           <>
             <span class="small">Erase every year, every day logged and every setting from this browser? Only a backup can bring them back.</span>
-            <button type="button" class="danger-solid" onClick={async () => { asking.value = false; await eraseEverything(); await refreshYears(); }}>Erase everything</button>
+            <button type="button" class="danger-solid" onClick={async () => { asking.value = false; await eraseEverything(); }}>Erase everything</button>
             <button type="button" onClick={() => (asking.value = false)}>Cancel</button>
           </>
         ) : (

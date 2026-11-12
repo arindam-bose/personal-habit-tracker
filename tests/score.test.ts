@@ -101,6 +101,13 @@ describe("streaks across years", () => {
     expect(habitStreakAcross([y2025(lastWeek2025), late], "h_med", "2026-01-02").current).toBe(1);
   });
 
+  it("doesn't run on into a year where the habit starts later", () => {
+    const later = t(firstDays2026, { habits: [{ ...HABITS[0]!, from: "2026-01-02" }, ...HABITS.slice(1)], streaksIn: { h_med: 6 } });
+    // The same with last year stored as without it: the run starts again.
+    expect(habitStreakAcross([y2025(lastWeek2025), later], "h_med", "2026-01-02").current).toBe(1);
+    expect(habitStreakAcross([later], "h_med", "2026-01-02").current).toBe(1);
+  });
+
   it("runs the perfect-day streak over New Year too, and hands it on when closing", () => {
     const chain = [y2025(lastWeek2025), t(firstDays2026)];
     expect(perfectStreakAcross(chain, "2026-01-02").current).toBe(8);

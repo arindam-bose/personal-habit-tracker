@@ -250,6 +250,7 @@ function MeasureChart(props: { habit: Habit; index: number; months: number[]; st
   const values = stats.map((s) => s.habits[props.index]!.average);
   const show = (v: unknown) => (v === null || v === undefined ? "–" : duration ? formatMinutes(Number(v)) : Number(v).toFixed(1).replace(/\.0$/, ""));
   const color = token("--series-1");
+  const goalValue = habit.goal?.value ?? 0;
   const option: ChartOption = {
     ...baseOption(),
     legend: { show: false },
@@ -258,7 +259,10 @@ function MeasureChart(props: { habit: Habit; index: number; months: number[]; st
     yAxis: {
       type: "value", ...axisStyle(), axisLine: { show: false }, min: 0,
       // Whole hours: the top rounds up to the next hour, so every label is one.
-      ...(duration ? { interval: 60, max: (e: { max: number }) => Math.ceil(e.max / 60) * 60, axisLabel: { color: token("--muted"), formatter: (v: number) => `${v / 60}h` } } : {}),
+      // Tall enough for the goal line too, even when every month falls short of it.
+      ...(duration
+        ? { interval: 60, max: (e: { max: number }) => Math.ceil(Math.max(e.max, goalValue) / 60) * 60, axisLabel: { color: token("--muted"), formatter: (v: number) => `${v / 60}h` } }
+        : { max: (e: { max: number }) => (goalValue > e.max ? Math.ceil(goalValue * 1.1) : null) }),
     },
     series: [{
       name: `Average ${habit.name}`, type: "bar", data: values.map((v) => (v === null ? null : Math.round(v * 10) / 10)), barMaxWidth: 32,

@@ -1,7 +1,7 @@
 // What a habit is and how its values read: when a day's value meets its goal, how a time is
 // typed and shown, and the habits a year can start with.
 
-import type { DayLog, Goal, Habit, IsoDate } from "./types";
+import type { DayLog, Habit, IsoDate } from "./types";
 
 /** Whether the habit counts on this day: on or after its first day, and on or before its last. */
 export function isActive(habit: Pick<Habit, "from" | "to">, date: IsoDate): boolean {
@@ -59,9 +59,14 @@ export function parseDuration(text: string): number | null {
   return minutes !== null && minutes <= 1440 ? minutes : null;
 }
 
-/** A number typed in a number habit's box, or null. Whole or decimal, not negative. */
+/**
+ * A number typed in a number habit's box, or null. Whole or decimal, not negative. A comma is a
+ * decimal point ("1,5" is 1.5, as many keyboards type it), unless it groups thousands ("1,000").
+ */
 export function parseCount(text: string): number | null {
-  const s = text.trim().replace(/,/g, "");
+  let s = text.trim();
+  if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, "");
+  else if (/^\d+,\d+$/.test(s)) s = s.replace(",", ".");
   if (!/^\d+(\.\d+)?$/.test(s)) return null;
   return Number(s);
 }
@@ -114,7 +119,3 @@ export const STARTER_HABITS: Habit[] = [
   { id: "h_sleep-time", name: "Sleep Time", emoji: "💤", kind: "duration", goal: { op: "atLeast", value: 450 } },
   { id: "h_screen-time", name: "Screen Time", emoji: "📱", kind: "duration", goal: { op: "atMost", value: 360 } },
 ];
-
-export function sameGoal(a: Goal | undefined, b: Goal | undefined): boolean {
-  return a?.op === b?.op && a?.value === b?.value;
-}

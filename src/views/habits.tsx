@@ -225,12 +225,14 @@ function StartCard() {
         <input type="date" aria-label="Tracking starts on" value={firstDay(setup)} min={`${setup.year}-01-01`} max={`${setup.year}-12-31`}
           disabled={readOnly.value}
           onChange={async (e) => {
+            // Kept now: after the await, the event no longer knows its element.
+            const input = e.currentTarget;
             try {
               error.value = null;
-              await setStart(e.currentTarget.value || null);
+              await setStart(input.value || null);
             } catch (err) {
               error.value = err instanceof Error ? err.message : String(err);
-              e.currentTarget.value = firstDay(current.value!.setup);
+              input.value = firstDay(current.value!.setup);
             }
           }} />
         {setup.start && !readOnly.value && <button type="button" onClick={() => setStart(null)}>From January 1</button>}

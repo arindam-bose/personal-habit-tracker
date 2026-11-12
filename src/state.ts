@@ -34,10 +34,13 @@ export const tracked = computed<Tracked | null>(() => (current.value ? trackedOf
 /** The stored years before the open one, oldest first, for streaks that run on from year to year. */
 export const earlier = signal<YearData[]>([]);
 
+/** The earlier years as score.ts takes them: worked out once per opening, not on every tick. */
+const earlierTracked = computed(() => earlier.value.map(trackedOf));
+
 /** Every stored year up to the open one, oldest first: what the streaks count through. */
 export const chain = computed<Tracked[]>(() => {
   const open = tracked.value;
-  return open ? [...earlier.value.map(trackedOf), open] : [];
+  return open ? [...earlierTracked.value, open] : [];
 });
 
 /** Today, on the reader's clock. Moves on at midnight while the page stays open. */
@@ -120,7 +123,15 @@ async function saveDays(data: YearData, put: DayLog[], remove: IsoDate[], setup:
   await putChange(setup, put, remove);
   const gone = new Set([...remove, ...put.map((d) => d.date)]);
   const days = [...data.days.filter((d) => !gone.has(d.date)), ...put].sort((a, b) => (a.date < b.date ? -1 : 1));
-  current.value = { setup, days };
+  show({ setup, days });
+}
+
+/**
+ * Show a saved change, if its year is still the one open. The year picker can switch years while
+ * a save is on its way; the save is stored either way, but mustn't put the old year back on screen.
+ */
+function show(data: YearData): void {
+  if (current.value?.setup.year === data.setup.year) current.value = data;
 }
 
 /** Change one day's log with `edit`. A day left with nothing is removed. */
@@ -157,7 +168,7 @@ async function saveSetup(data: YearData, change: YearSetup): Promise<void> {
   if (JSON.stringify(change) === JSON.stringify(data.setup)) return;
   const setup = { ...change, setupChangedAt: stamp() };
   await putChange(setup);
-  current.value = { ...data, setup };
+  show({ ...data, setup });
 }
 
 /** Add a habit, or save changes to one. Throws a SetupError when it can't be saved. */

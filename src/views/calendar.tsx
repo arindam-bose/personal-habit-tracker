@@ -2,9 +2,9 @@
 // days it was met. Click a day to open it in the Dashboard's day log.
 
 import { formatValue, goalText, isActive, label, meets } from "../habits";
-import { dayScore, level, percent, yearStats } from "../score";
+import { percent, yearStats } from "../score";
 import { tracked, weekStart } from "../state";
-import { HeatLegend, Heatmap, NoYear, plural, refDay } from "./common";
+import { HeatLegend, Heatmap, dayCell, NoYear, plural, refDay } from "./common";
 
 export function CalendarView() {
   const t = tracked.value;
@@ -15,11 +15,7 @@ export function CalendarView() {
     <div class="stack">
       <section class="card">
         <h3 class="card-title">📈 Day score</h3>
-        <Heatmap t={t} weekStart={weekStart.value} label={`Day scores in ${t.year}`} cell={(d) => {
-          const s = dayScore(t, d);
-          if (!t.days.has(d)) return { level: null, text: "nothing logged" };
-          return { level: level(s?.score ?? null), text: s ? `${percent(s.score)} (${s.met} of ${s.total})` : "no habits" };
-        }} />
+        <Heatmap t={t} weekStart={weekStart.value} label={`Day scores in ${t.year}`} cell={dayCell(t)} />
         <HeatLegend />
       </section>
       <div class="habit-maps">

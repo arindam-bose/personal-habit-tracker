@@ -1,10 +1,23 @@
-import { beforeEach, expect, it } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { exportYear, importYear } from "../src/backup";
 import { closeDb, eraseAll, loadYear } from "../src/db";
 import { habitStreakAcross } from "../src/score";
 import { chain, closeYear, current, removeHabit, saveHabit, setNote, setValue, today, openYear, readOnly } from "../src/state";
 import { SetupError } from "../src/setup";
 import { HABITS, yearFile } from "./helpers";
+
+// A save can be made slow, to see what happens when something else finishes first.
+const slow = vi.hoisted(() => ({ on: false }));
+vi.mock("../src/db", async (load) => {
+  const db = await load<typeof import("../src/db")>();
+  return {
+    ...db,
+    putChange: async (...args: Parameters<typeof db.putChange>) => {
+      if (slow.on) await new Promise((r) => setTimeout(r, 100));
+      return db.putChange(...args);
+    },
+  };
+});
 
 beforeEach(async () => {
   await eraseAll();
@@ -47,6 +60,19 @@ it("counts streaks through earlier stored years, closed or not", async () => {
   await openYear(2026);
   expect(chain.value.map((t) => t.year)).toEqual([2025, 2026]);
   expect(habitStreakAcross(chain.value, "h_med", today.value).current).toBe(3);
+});
+
+it("doesn't put back a year switched away from while a save was on its way", async () => {
+  await importYear(yearFile([], { year: 2025 }));
+  await importYear(yearFile([]));
+  await openYear(2026);
+  slow.on = true;
+  const saving = setValue("2026-03-01", "h_med", true);
+  await openYear(2025);
+  await saving;
+  slow.on = false;
+  expect(current.value!.setup.year).toBe(2025);
+  expect((await loadYear(2026))!.days).toEqual([{ date: "2026-03-01", values: { h_med: true } }]);
 });
 
 it("closes a year into the next with its habits and running streaks", async () => {

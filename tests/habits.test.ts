@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMinutes, goalText, habitId, meets, parseDuration } from "../src/habits";
+import { formatMinutes, goalText, habitId, meets, parseCount, parseDuration } from "../src/habits";
 
 describe("times", () => {
   it("reads what people type", () => {
@@ -19,6 +19,17 @@ describe("times", () => {
     expect(formatMinutes(465)).toBe("7:45");
     expect(formatMinutes(5)).toBe("0:05");
   });
+});
+
+it("reads numbers with a decimal comma or a thousands comma", () => {
+  expect(parseCount("8")).toBe(8);
+  expect(parseCount("1.5")).toBe(1.5);
+  expect(parseCount("1,5")).toBe(1.5);
+  expect(parseCount("12,25")).toBe(12.25);
+  expect(parseCount("1,000")).toBe(1000);
+  expect(parseCount("12,000.5")).toBe(12000.5);
+  expect(parseCount("-3")).toBeNull();
+  expect(parseCount("1,2,3")).toBeNull();
 });
 
 describe("goals", () => {

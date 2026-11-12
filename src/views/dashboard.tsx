@@ -4,9 +4,9 @@
 
 import { MONTHS, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
 import { formatValue, goalText, isActive, label, meets } from "../habits";
-import { dayScore, firstDay, habitStreakAcross, isPerfect, level, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats } from "../score";
+import { dayScore, firstDay, habitStreakAcross, isPerfect, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats } from "../score";
 import { chain, selectedDay, tracked, weekStart, today } from "../state";
-import { HeatLegend, Heatmap, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
+import { HeatLegend, Heatmap, dayCell, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
 import { TodayView } from "./today";
 
 export function DashboardView() {
@@ -74,11 +74,7 @@ function Overview() {
 
       <section class="card">
         <h3 class="card-title">{t.year}, day by day</h3>
-        <Heatmap t={t} weekStart={weekStart.value} label={`Day scores in ${t.year}`} cell={(d) => {
-          const s = dayScore(t, d);
-          if (!t.days.has(d)) return { level: null, text: "nothing logged" };
-          return { level: level(s?.score ?? null), text: s ? `${percent(s.score)} (${s.met} of ${s.total})` : "no habits" };
-        }} />
+        <Heatmap t={t} weekStart={weekStart.value} label={`Day scores in ${t.year}`} cell={dayCell(t)} />
         <HeatLegend />
       </section>
 

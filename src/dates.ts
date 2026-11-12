@@ -24,11 +24,6 @@ export function addDays(iso: IsoDate, n: number): IsoDate {
   return new Date(utc(iso).getTime() + n * DAY_MS).toISOString().slice(0, 10);
 }
 
-/** Whole days from a to b (b - a). */
-export function daysBetween(a: IsoDate, b: IsoDate): number {
-  return Math.round((utc(b).getTime() - utc(a).getTime()) / DAY_MS);
-}
-
 /** 0 for Sunday to 6 for Saturday. */
 export function weekday(iso: IsoDate): number {
   return utc(iso).getUTCDay();
@@ -41,10 +36,6 @@ export function monthOf(iso: IsoDate): number {
 
 export function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
-}
-
-export function isLeap(year: number): boolean {
-  return daysInMonth(year, 2) === 29;
 }
 
 /** Every date from a to b, both included. Empty if b is before a. */

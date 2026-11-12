@@ -6,7 +6,7 @@ import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import type { YearData } from "../db";
 import { label } from "../habits";
-import { habitStreak, percent, perfectStreak, points, trackedOf, yearStats } from "../score";
+import { firstDay, habitStreak, lastDay, percent, perfectStreak, points, trackedOf, yearStats } from "../score";
 import { loadAllYears, today, years } from "../state";
 import { theme } from "../theme";
 import type { Habit } from "../types";
@@ -22,7 +22,7 @@ export function YearsView() {
 
   const rows = all.value.map((d) => {
     const t = trackedOf(d);
-    const ref = today.value < `${t.year}-12-31` ? today.value : `${t.year}-12-31`;
+    const ref = lastDay(t, today.value) ?? firstDay(t);
     return { t, ref, stats: yearStats(t, ref), perfect: perfectStreak(t, ref), ongoing: ref < `${t.year}-12-31` };
   }).filter((r) => r.stats.days > 0);
   if (rows.length < 2) return <section class="panel empty-state"><p>Over the years compares two or more years. Import or start another year on the Settings page.</p></section>;

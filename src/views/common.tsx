@@ -4,7 +4,7 @@ import { signal, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import type { ComponentChildren } from "preact";
 import { MONTHS_SHORT, WEEKDAYS_SHORT, addDays, dateRange, longDate, weekOf } from "../dates";
-import { firstDay, lastDay, percent, type Tracked } from "../score";
+import { dayScore, firstDay, lastDay, level, percent, type Tracked } from "../score";
 import { selectedDay, today, years } from "../state";
 import type { IsoDate } from "../types";
 
@@ -107,7 +107,7 @@ export function Heatmap(props: { t: Tracked; weekStart: 0 | 1; cell: (date: IsoD
     for (let r = 0; r < 7; r++) {
       const date = addDays(gridStart, w * 7 + r);
       if (date < first || date > end) continue;
-      if (date.endsWith("-01") && r < 7) {
+      if (date.endsWith("-01")) {
         const m = Number(date.slice(5, 7)) - 1;
         // The label sits over the first full week of the month.
         const col = r === 0 ? w : w + 1;
@@ -150,6 +150,15 @@ export function Heatmap(props: { t: Tracked; weekStart: 0 | 1; cell: (date: IsoD
       <p class="heatmap-detail small muted" aria-live="polite">{hover.value ?? (props.compact ? "" : "Point at a day to see it; click it to open it.")}</p>
     </div>
   );
+}
+
+/** A day in the day-score heatmap: shaded by its score, or empty when nothing was logged. */
+export function dayCell(t: Tracked): (date: IsoDate) => Cell {
+  return (date) => {
+    if (!t.days.has(date)) return { level: null, text: "nothing logged" };
+    const s = dayScore(t, date);
+    return { level: level(s?.score ?? null), text: s ? `${percent(s.score)} (${s.met} of ${s.total})` : "no habits" };
+  };
 }
 
 /** The heatmap's key: what each shade means. */

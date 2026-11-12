@@ -4,7 +4,7 @@
 
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { WEEKDAYS_SHORT, addDays, longDate, shortDate, weekOf } from "../dates";
+import { WEEKDAYS_SHORT, addDays, longDate, shortDate, weekOf, weekday } from "../dates";
 import { formatMinutes, formatValue, goalShort, goalText, isActive, label, meets, parseCount, parseDuration } from "../habits";
 import { dayScore, firstDay, habitStreakAcross, level, percent } from "../score";
 import { chain, current, readOnly, selectedDay, setNote, setValue, today, tracked, weekStart } from "../state";
@@ -55,8 +55,9 @@ export function TodayView() {
   let date = selectedDay.value;
   if (!date.startsWith(`${year}-`)) date = today.value.startsWith(`${year}-`) ? today.value : `${year}-12-31`;
 
-  const go = (d: IsoDate) => (selectedDay.value = d);
   const inYear = (d: IsoDate) => d.startsWith(`${year}-`);
+  // A week that runs over New Year moves to the year's first or last day, not outside the year.
+  const go = (d: IsoDate) => (selectedDay.value = d < `${year}-01-01` ? `${year}-01-01` : d > `${year}-12-31` ? `${year}-12-31` : d);
   const week = weekOf(date, weekStart.value);
 
   return (
@@ -271,7 +272,7 @@ function WeekTable({ week }: { week: IsoDate }) {
                       selectedDay.value = d;
                       setMode("day");
                     }} title={day?.note ? `Note: ${day.note}` : "Open the day"}>
-                      {WEEKDAYS_SHORT[Number(new Date(`${d}T00:00:00Z`).getUTCDay())]} {Number(d.slice(8))}
+                      {WEEKDAYS_SHORT[weekday(d)]} {Number(d.slice(8))}
                     </button>
                     {day?.note && <span class="wt-note" title={day.note} aria-label={`Note: ${day.note}`}>📝</span>}
                   </th>
