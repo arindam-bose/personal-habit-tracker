@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, trackedOf, yearStats } from "../src/score";
+import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, points, trackedOf, yearStats } from "../src/score";
 import { HABITS, yearFile } from "./helpers";
 import type { DayLog } from "../src/types";
 
@@ -117,4 +117,24 @@ describe("streaks across years", () => {
 
 it("shades the heatmap in quarters", () => {
   expect([null, 0, 10, 25, 26, 66.67, 99, 100].map(level)).toEqual([null, 0, 1, 1, 2, 3, 4, 5]);
+});
+
+describe("formatting and comparing scores", () => {
+  it("rounds to the whole point by default, as Notion does, or to the places asked for", () => {
+    expect(points(69.6)).toBe("70");
+    expect(points(69.64, 1)).toBe("69.6");
+    expect(points(69.65, 1)).toBe("69.7");
+    expect(points(70, 1)).toBe("70.0");
+    expect(points(null, 1)).toBe("–");
+  });
+
+  it("finds the best and the hardest, skipping periods without a score", () => {
+    const scores: Record<string, number | null> = { Jan: 70.2, Feb: null, Mar: 64.1, Apr: 73.4 };
+    expect(bestAndHardest(Object.keys(scores), (k) => scores[k]!)).toEqual({ best: "Apr", hardest: "Mar" });
+  });
+
+  it("keeps the first of a tie, and says nothing with fewer than two scored", () => {
+    expect(bestAndHardest([0, 1, 2], (i) => [50, 50, 40][i]!)).toEqual({ best: 0, hardest: 2 });
+    expect(bestAndHardest([0, 1], (i) => [80, null][i]!)).toBeNull();
+  });
 });

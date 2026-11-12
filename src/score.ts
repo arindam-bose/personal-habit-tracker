@@ -281,7 +281,28 @@ export function percent(score: number | null, digits = 2): string {
   return score === null ? "–" : `${score.toFixed(digits).replace(/\.?0+$/, "")}%`;
 }
 
-/** The score out of 100, rounded: Notion's "Monthly score: 70". */
-export function points(score: number | null): string {
-  return score === null ? "–" : String(Math.round(score));
+/**
+ * The score out of 100, rounded: Notion's "Monthly score: 70". With `digits`, to that many places,
+ * kept even when they are zeros ("70.0"), so a row of them lines up.
+ */
+export function points(score: number | null, digits = 0): string {
+  if (score === null) return "–";
+  const scale = 10 ** digits;
+  return (Math.round(score * scale) / scale).toFixed(digits);
+}
+
+/**
+ * The best and the hardest of some periods (weekdays, months), by score: the first of them wins a tie.
+ * Null with fewer than two scored, when there is nothing to compare.
+ */
+export function bestAndHardest<K>(keys: K[], scoreOf: (key: K) => number | null): { best: K; hardest: K } | null {
+  const scored = keys.filter((k) => scoreOf(k) !== null);
+  if (scored.length < 2) return null;
+  let best = scored[0] as K;
+  let hardest = scored[0] as K;
+  for (const k of scored) {
+    if (scoreOf(k)! > scoreOf(best)!) best = k;
+    if (scoreOf(k)! < scoreOf(hardest)!) hardest = k;
+  }
+  return { best, hardest };
 }

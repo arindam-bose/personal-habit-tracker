@@ -7,7 +7,7 @@ import { useSignal } from "@preact/signals";
 import { MONTHS, MONTHS_SHORT, WEEKDAYS, WEEKDAYS_SHORT, longDate } from "../dates";
 import { durationWords, formatMinutes, goalText, label } from "../habits";
 import {
-  dailyScores, habitStreak, monthStats, percent, perfectStreak, points, rollingAverage, weekdayScores, yearStats,
+  bestAndHardest, dailyScores, habitStreak, monthStats, percent, perfectStreak, points, rollingAverage, weekdayScores, yearStats,
   type HabitStats, type PeriodStats, type Tracked,
 } from "../score";
 import { tracked, weekStart } from "../state";
@@ -91,12 +91,13 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
   const monthOption: ChartOption = {
     ...baseOption(),
     legend: { show: false },
-    tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: (v: unknown) => `${points(Number(v))} / 100` },
+    tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: (v: unknown) => `${points(Number(v), 1)} / 100` },
     xAxis: { type: "category", data: months.map((m) => MONTHS_SHORT[m - 1]), ...axisStyle(), splitLine: { show: false } },
     yAxis: { ...percentAxis(), axisLabel: { color: token("--muted") } },
     series: [{ name: "Monthly score", type: "bar", data: stats.map((s) => (s.score === null ? null : Math.round(s.score * 10) / 10)), barMaxWidth: 36,
-      itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] }, label: { show: true, position: "top", color: token("--muted"), formatter: (p: { value: number }) => points(p.value) } }],
+      itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] }, label: { show: true, position: "top", color: token("--muted"), formatter: (p: { value: number }) => points(p.value, 1) } }],
   };
+  const monthEnds = bestAndHardest(months.map((_, i) => i), (i) => stats[i]!.score);
 
   const wd = weekdayScores(t, ref_);
   const order = [0, 1, 2, 3, 4, 5, 6].map((i) => (i + weekStart.value) % 7);
@@ -108,7 +109,7 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
     yAxis: percentAxis(),
     series: [{ name: "Average day score", type: "bar", data: order.map((d) => wd[d]!.score), barMaxWidth: 36, itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] } }],
   };
-  const best = order.filter((d) => wd[d]!.score !== null).sort((a, b) => wd[b]!.score! - wd[a]!.score!);
+  const dayEnds = bestAndHardest(order, (d) => wd[d]!.score);
 
   return (
     <>
@@ -124,13 +125,16 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
         <section class="card">
           <h3 class="card-title">Monthly score</h3>
           <Chart option={monthOption} height={240} label="Each month's score out of 100" />
-          <TableView head={["Month", "Score", "Perfect days", "Days"]} rows={months.map((m, i) => [MONTHS[m - 1]!, points(stats[i]!.score), stats[i]!.perfect, stats[i]!.days])} />
+          {monthEnds && (
+            <p class="muted small">Best in {MONTHS[months[monthEnds.best]! - 1]} ({points(stats[monthEnds.best]!.score, 1)}), hardest in {MONTHS[months[monthEnds.hardest]! - 1]} ({points(stats[monthEnds.hardest]!.score, 1)}).</p>
+          )}
+          <TableView head={["Month", "Score", "Perfect days", "Days"]} rows={months.map((m, i) => [MONTHS[m - 1]!, points(stats[i]!.score, 1), stats[i]!.perfect, stats[i]!.days])} />
         </section>
         <section class="card">
           <h3 class="card-title">By weekday</h3>
           <Chart option={weekdayOption} height={240} label="The average day score for each weekday" />
-          {best.length > 1 && (
-            <p class="muted small">Best on {WEEKDAYS[best[0]!]}s ({percent(wd[best[0]!]!.score, 1)}), hardest on {WEEKDAYS[best[best.length - 1]!]}s ({percent(wd[best[best.length - 1]!]!.score, 1)}).</p>
+          {dayEnds && (
+            <p class="muted small">Best on {WEEKDAYS[dayEnds.best]}s ({percent(wd[dayEnds.best]!.score, 1)}), hardest on {WEEKDAYS[dayEnds.hardest]}s ({percent(wd[dayEnds.hardest]!.score, 1)}).</p>
           )}
           <TableView head={["Weekday", "Average score", "Days"]} rows={order.map((d) => [WEEKDAYS[d]!, percent(wd[d]!.score, 1), wd[d]!.days])} />
         </section>
