@@ -720,17 +720,6 @@ button.icon-action.icon-export {
   vertical-align: 3px;
 }
 
-.badge {
-  margin-left: 8px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--border);
-  color: var(--muted);
-}
-
-.open-badge,
 .today-badge {
   background: color-mix(in srgb, var(--accent) 15%, var(--surface));
   color: var(--accent);

@@ -160,8 +160,8 @@ function YearsTable() {
               <tr>
                 <td class="y-year">
                   {year}
-                  {closed && <span class="badge">Closed</span>}
-                  {year === open && <span class="badge open-badge">Open</span>}
+                  {closed && <span class="badge">closed</span>}
+                  {year === open && <span class="badge">open</span>}
                 </td>
                 <td class="y-count" data-label="Logged">{plural(y.days, "day")}</td>
                 <td class="y-count" data-label="Habits">{habits.length}</td>
