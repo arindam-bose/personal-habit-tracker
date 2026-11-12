@@ -248,7 +248,7 @@ page downloads the year's backup first. A closed year can be reopened.
 |---|---|---|
 | Dashboard | `views/dashboard.tsx`, `views/today.tsx` | The main page. The day log on top (Day or Week view), the year at a glance below. Old `#/today` links open it. |
 | Calendar | `views/calendar.tsx` | A heatmap of the day score, then one per habit. Clicking a day opens it on the Dashboard (`selectedDay`). |
-| Reports | `views/reports.tsx` | Loaded on demand (see Charts). Overview (ending with the year's report card), a report card for every month, habits month by month, times and numbers against their goals. |
+| Reports | `views/reports.tsx` | Loaded on demand (see Charts). Overview (ending with the year's report card), a report card for every month, and More on this: habits month by month, and times and numbers against their goals by month and by weekday (`weekdayStats`, counted as a month's are). |
 | Habits | `views/habits.tsx` | Add, change, reorder, stop and delete habits; the day tracking starts. |
 | Over the years | `views/years.tsx` | In the menu only with two or more years; the year picker shows "All years" there. Loads every year (`loadAllYears`). The year still under way is marked *. Loaded on demand with the charts. |
 | Settings | `views/settings.tsx`, `views/about.tsx` | Your data (back up, close, reopen, delete years), import, start a year, the demo file, the first day of the week, appearance, offline, the home screen, erase everything, Support the tracker, About. |

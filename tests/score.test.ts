@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, points, trackedOf, yearStats } from "../src/score";
+import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, points, trackedOf, weekdayScores, weekdayStats, yearStats } from "../src/score";
 import { HABITS, yearFile } from "./helpers";
 import type { DayLog } from "../src/types";
 
@@ -136,5 +136,37 @@ describe("formatting and comparing scores", () => {
   it("keeps the first of a tie, and says nothing with fewer than two scored", () => {
     expect(bestAndHardest([0, 1, 2], (i) => [50, 50, 40][i]!)).toEqual({ best: 0, hardest: 2 });
     expect(bestAndHardest([0, 1], (i) => [80, null][i]!)).toBeNull();
+  });
+});
+
+describe("weekday stats", () => {
+  // 2026-03-01 is a Sunday, so the 2nd and 9th are Mondays and the 3rd a Tuesday.
+  const tr = t([
+    { date: "2026-03-01", values: { h_sleep: 480 } },
+    { date: "2026-03-02", values: { h_sleep: 400, h_screen: 300 } },
+    { date: "2026-03-09", values: { h_sleep: 500, h_screen: 420 } },
+  ]);
+  const w = weekdayStats(tr, "2026-03-10");
+  const sleep = (d: number) => w[d]!.habits[1]!;
+  const screen = (d: number) => w[d]!.habits[2]!;
+
+  it("averages a time habit over the values logged on each weekday", () => {
+    expect(sleep(1)).toMatchObject({ logged: 2, total: 900, average: 450 });
+    expect(screen(1)).toMatchObject({ logged: 2, average: 360 });
+    expect(sleep(0)).toMatchObject({ logged: 1, average: 480 });
+  });
+
+  it("counts every Monday so far, and the goal met on those logged", () => {
+    // January 5 to March 9: ten Mondays; sleep met (at least 7:30) only on the 9th.
+    expect(sleep(1)).toMatchObject({ days: 10, met: 1 });
+    expect(screen(1)!.met).toBe(1); // 5:00 is under the 6:00 limit; 7:00 isn't
+  });
+
+  it("has no average on a weekday with nothing logged", () => {
+    expect(sleep(2)).toMatchObject({ logged: 0, average: null });
+  });
+
+  it("scores each weekday as weekdayScores does", () => {
+    expect(w.map((x) => x.score)).toEqual(weekdayScores(tr, "2026-03-10").map((x) => x.score));
   });
 });

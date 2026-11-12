@@ -7,7 +7,7 @@ import { useSignal } from "@preact/signals";
 import { MONTHS, MONTHS_SHORT, WEEKDAYS, WEEKDAYS_SHORT, longDate } from "../dates";
 import { durationWords, formatMinutes, goalText, label } from "../habits";
 import {
-  bestAndHardest, dailyScores, habitStreak, monthStats, percent, perfectStreak, points, rollingAverage, weekdayScores, yearStats,
+  bestAndHardest, dailyScores, habitStreak, monthStats, percent, perfectStreak, points, rollingAverage, weekdayScores, weekdayStats, yearStats,
   type HabitStats, type PeriodStats, type Tracked,
 } from "../score";
 import { tracked, weekStart } from "../state";
@@ -47,7 +47,7 @@ export function ReportsView() {
             })}
           </div>
         )}
-        {tab.value === "habits" && <HabitsByMonth t={t} months={months} stats={stats} />}
+        {tab.value === "habits" && <HabitsByMonth t={t} ref_={ref} months={months} stats={stats} />}
       </div>
     </div>
   );
@@ -227,9 +227,14 @@ function shade(rate: number | null): Record<string, string> {
   return { background: `rgba(var(--heat), ${(0.08 + (rate / 100) * 0.82).toFixed(2)})`, color: rate > 55 ? "var(--on-heat)" : "inherit" };
 }
 
-function HabitsByMonth(props: { t: Tracked; months: number[]; stats: PeriodStats[] }) {
-  const { t, months, stats } = props;
+function HabitsByMonth(props: { t: Tracked; ref_: string; months: number[]; stats: PeriodStats[] }) {
+  const { t, ref_, months, stats } = props;
   const measures = t.habits.filter((h) => h.kind !== "check");
+  const byMonth: Along = { by: "month", short: months.map((m) => MONTHS_SHORT[m - 1]!), long: months.map((m) => MONTHS[m - 1]!), stats };
+  // In the order the week starts on, as the Overview's By weekday is.
+  const order = [0, 1, 2, 3, 4, 5, 6].map((i) => (i + weekStart.value) % 7);
+  const w = weekdayStats(t, ref_);
+  const byWeekday: Along = { by: "weekday", short: order.map((d) => WEEKDAYS_SHORT[d]!), long: order.map((d) => WEEKDAYS[d]!), stats: order.map((d) => w[d]!) };
   return (
     <>
       <section class="card">
@@ -264,50 +269,78 @@ function HabitsByMonth(props: { t: Tracked; months: number[]; stats: PeriodStats
       </section>
       {measures.length > 0 && (
         <div class="columns">
-          {measures.map((h) => <MeasureChart habit={h} index={t.habits.indexOf(h)} months={months} stats={stats} />)}
+          {measures.map((h) => <MeasureChart habit={h} index={t.habits.indexOf(h)} along={byMonth} />)}
+        </div>
+      )}
+      {measures.length > 0 && (
+        <div class="columns">
+          {measures.map((h) => <MeasureChart habit={h} index={t.habits.indexOf(h)} along={byWeekday} />)}
         </div>
       )}
     </>
   );
 }
 
-/** A time or number habit's monthly average, with its goal as a dashed line. One axis, one series. */
-function MeasureChart(props: { habit: Habit; index: number; months: number[]; stats: PeriodStats[] }) {
-  const { habit, months, stats } = props;
+/** What a measure chart runs along: its bars' short names, their names in full, and their stats. */
+interface Along {
+  /** "month" or "weekday", for the title, the table and the screen reader's label. */
+  by: "month" | "weekday";
+  short: string[];
+  long: string[];
+  stats: PeriodStats[];
+}
+
+/**
+ * A time or number habit's average each month, or on each weekday, with its goal as a dashed line.
+ * One axis, one series. By weekday, it also names the best and hardest weekday, as the Overview does.
+ */
+function MeasureChart(props: { habit: Habit; index: number; along: Along }) {
+  const { habit, along } = props;
+  const { stats } = along;
   const duration = habit.kind === "duration";
   const values = stats.map((s) => s.habits[props.index]!.average);
   const show = (v: unknown) => (v === null || v === undefined ? "–" : duration ? formatMinutes(Number(v)) : Number(v).toFixed(1).replace(/\.0$/, ""));
   const color = token("--series-1");
   const goalValue = habit.goal?.value ?? 0;
+  const weekly = along.by === "weekday";
   const option: ChartOption = {
     ...baseOption(),
     legend: { show: false },
     ...(habit.goal ? { grid: { ...(baseOption().grid as object), right: OUTSIDE_LABEL_ROOM } } : {}),
     tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: show },
-    xAxis: { type: "category", data: months.map((m) => MONTHS_SHORT[m - 1]), ...axisStyle(), splitLine: { show: false } },
+    xAxis: { type: "category", data: along.short, ...axisStyle(), splitLine: { show: false } },
     yAxis: {
       type: "value", ...axisStyle(), axisLine: { show: false }, min: 0,
       // Whole hours: the top rounds up to the next hour, so every label is one.
-      // Tall enough for the goal line too, even when every month falls short of it.
+      // Tall enough for the goal line too, even when every bar falls short of it.
       ...(duration
         ? { interval: 60, max: (e: { max: number }) => Math.ceil(Math.max(e.max, goalValue) / 60) * 60, axisLabel: { color: token("--muted"), formatter: (v: number) => `${v / 60}h` } }
         : { max: (e: { max: number }) => (goalValue > e.max ? Math.ceil(goalValue * 1.1) : null) }),
     },
     series: [{
-      name: `Average ${habit.name}`, type: "bar", data: values.map((v) => (v === null ? null : Math.round(v * 10) / 10)), barMaxWidth: 32,
-      // Each month's average on top, as on the Overview's bars; so the goal is named past the line's
+      name: `Average ${habit.name}`, type: "bar", data: values.map((v) => (v === null ? null : Math.round(v * 10) / 10)), barMaxWidth: weekly ? 36 : 32,
+      // Each bar's average on top, as on the Overview's bars; so the goal is named past the line's
       // end, where it can't land on one.
       itemStyle: { color, borderRadius: [4, 4, 0, 0] }, ...barLabels(show, true),
       ...(habit.goal ? { markLine: levelLine(habit.goal.value, `Goal\n${show(habit.goal.value)}`, true) } : {}),
     }],
   };
+  // The best weekday is the one nearest the goal's side: the most sleep, the least screen time.
+  // Without a goal there is no better or worse, only the most and the least.
+  const sign = habit.goal?.op === "atMost" ? -1 : 1;
+  const ends = weekly ? bestAndHardest(values.map((_, i) => i), (i) => (values[i] === null ? null : sign * values[i]!)) : null;
+  const [high, low] = habit.goal ? ["Best", "hardest"] : ["Most", "least"];
+  const what = weekly ? "by weekday" : "monthly average";
   return (
     <section class="card">
-      <h3 class="card-title">{label(habit)}: monthly average{habit.goal ? <span class="muted small"> (goal: {goalText(habit)})</span> : null}</h3>
-      <Chart option={option} height={220} label={`${habit.name}'s average each month${habit.goal ? `, against its goal of ${goalText(habit)}` : ""}`} />
-      <TableView head={["Month", "Average", "Goal met"]} rows={months.map((m, i) => {
+      <h3 class="card-title">{label(habit)}: {what}{habit.goal ? <span class="muted small"> (goal: {goalText(habit)})</span> : null}</h3>
+      <Chart option={option} height={220} label={`${habit.name}'s average ${weekly ? "on each weekday" : "each month"}${habit.goal ? `, against its goal of ${goalText(habit)}` : ""}`} />
+      {ends && (
+        <p class="muted small">{high} on {along.long[ends.best]}s ({show(values[ends.best])}), {low} on {along.long[ends.hardest]}s ({show(values[ends.hardest])}).</p>
+      )}
+      <TableView head={[weekly ? "Weekday" : "Month", "Average", "Goal met"]} rows={along.long.map((name, i) => {
         const x = stats[i]!.habits[props.index]!;
-        return [MONTHS[m - 1]!, show(x.average), x.days ? `${x.met} of ${x.days} days` : "–"];
+        return [name, show(x.average), x.days ? `${x.met} of ${x.days} days` : "–"];
       })} />
     </section>
   );

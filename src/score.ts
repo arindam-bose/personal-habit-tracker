@@ -89,7 +89,11 @@ export interface PeriodStats {
 
 /** How the days from `from` to `to` (both included, only those come) went. */
 export function periodStats(t: Tracked, today: IsoDate, from?: IsoDate, to?: IsoDate): PeriodStats {
-  const dates = countedDays(t, today, from, to);
+  return statsOf(t, countedDays(t, today, from, to));
+}
+
+/** How some days went: a period's, or every Monday's. */
+function statsOf(t: Tracked, dates: IsoDate[]): PeriodStats {
   let sum = 0;
   let scored = 0;
   let perfect = 0;
@@ -237,6 +241,15 @@ export function closingStreaks(chain: Tracked[]): Record<string, number> {
   const p = perfectStreakAcross(chain, after);
   if (p.current) out.perfect = p.current;
   return out;
+}
+
+/**
+ * Each weekday's stats (0 Sunday to 6 Saturday) over the year so far, counted as a month's are:
+ * for a time or number habit, the average of the values logged on that weekday.
+ */
+export function weekdayStats(t: Tracked, today: IsoDate): PeriodStats[] {
+  const dates = countedDays(t, today);
+  return [0, 1, 2, 3, 4, 5, 6].map((w) => statsOf(t, dates.filter((d) => weekday(d) === w)));
 }
 
 /** The average day score for each weekday (0 Sunday to 6 Saturday), and how many days each averages. */
