@@ -13,7 +13,7 @@ import {
 import { tracked, weekStart } from "../state";
 import { theme } from "../theme";
 import type { Habit } from "../types";
-import { Chart, axisStyle, baseOption, percentAxis, token, type ChartOption } from "./chart";
+import { Chart, axisStyle, barLabel, baseOption, percentAxis, token, type ChartOption } from "./chart";
 import { NoYear, openDay, plural, refDay } from "./common";
 
 type Tab = "overview" | "months" | "habits";
@@ -95,7 +95,7 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
     xAxis: { type: "category", data: months.map((m) => MONTHS_SHORT[m - 1]), ...axisStyle(), splitLine: { show: false } },
     yAxis: { ...percentAxis(), axisLabel: { color: token("--muted") } },
     series: [{ name: "Monthly score", type: "bar", data: stats.map((s) => (s.score === null ? null : Math.round(s.score * 10) / 10)), barMaxWidth: 36,
-      itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] }, label: { show: true, position: "top", color: token("--muted"), formatter: (p: { value: number }) => points(p.value, 1) } }],
+      itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] }, label: barLabel((v) => points(v, 1)) }],
   };
   const monthEnds = bestAndHardest(months.map((_, i) => i), (i) => stats[i]!.score);
 
@@ -107,7 +107,9 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
     tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: (v: unknown) => percent(Number(v), 1) },
     xAxis: { type: "category", data: order.map((d) => WEEKDAYS_SHORT[d]), ...axisStyle(), splitLine: { show: false } },
     yAxis: percentAxis(),
-    series: [{ name: "Average day score", type: "bar", data: order.map((d) => wd[d]!.score), barMaxWidth: 36, itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] } }],
+    // Labelled on top, as the Monthly score bars are: to one place, so it reads as the line under it does.
+    series: [{ name: "Average day score", type: "bar", data: order.map((d) => wd[d]!.score), barMaxWidth: 36, itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] },
+      label: barLabel((v) => percent(v, 1)) }],
   };
   const dayEnds = bestAndHardest(order, (d) => wd[d]!.score);
 

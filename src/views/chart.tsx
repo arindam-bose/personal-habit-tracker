@@ -64,6 +64,18 @@ export function percentAxis() {
   return { type: "value" as const, min: 0, max: 100, ...axisStyle(), axisLine: { show: false }, axisLabel: { color: token("--muted"), formatter: "{value}%" } };
 }
 
+/**
+ * A bar's value on top of it, muted. Smaller on a phone, where a dozen bars share the width and the
+ * labels would run into each other; the size is picked when the chart's option is built.
+ */
+export function barLabel(format: (value: number) => string) {
+  return {
+    show: true, position: "top" as const, color: token("--muted"),
+    fontSize: matchMedia("(max-width: 600px)").matches ? 9 : 12,
+    formatter: (p: { value: number }) => format(p.value),
+  };
+}
+
 /** A tooltip's colour dot, faded to 40% for a lighter-shade series, as its bars are. */
 export const tooltipDot = (color: string, faded: boolean) =>
   `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;background:${color};opacity:${faded ? 0.4 : 1}"></span>`;
