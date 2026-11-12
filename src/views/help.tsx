@@ -1,4 +1,5 @@
-// A round ? that shows a description on hover or focus, in a card's top right corner (CardTitle).
+// A round ? that shows a description on hover or focus: in a card's top right corner (CardTitle),
+// or on its own, at the end of a row of controls (Help).
 // The same as the Money Tracker's.
 
 import type { ComponentChildren } from "preact";
@@ -8,7 +9,7 @@ import { useId } from "preact/hooks";
  * The ? and its tip. The tip is drawn by CSS on hover and on focus, so a keyboard (Tab) or a
  * tap shows it too; Esc hides it again. Screen readers hear it as the button's description.
  */
-function Help(props: { label: string; children: ComponentChildren }) {
+export function Help(props: { label: string; children: ComponentChildren }) {
   const id = useId();
   return (
     <span class="help">

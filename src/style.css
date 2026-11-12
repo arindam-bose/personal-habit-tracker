@@ -798,7 +798,10 @@ button.icon-action.icon-export {
   color: var(--accent);
 }
 
-.view-mode {
+.day-nav-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-left: auto;
 }
 
@@ -1735,7 +1738,10 @@ table.compare tr.differs td {
     flex: 1 1 140px;
   }
 
-  .view-mode {
+  /* On a phone the switch and its ? take the rest of their line, the ? at its right end. */
+  .day-nav-end {
+    flex: 1 0 auto;
+    justify-content: space-between;
     margin-left: 0;
   }
 
