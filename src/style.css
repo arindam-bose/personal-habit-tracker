@@ -561,7 +561,9 @@ button.help-btn:focus-visible {
   }
 }
 
-button:disabled {
+button:disabled,
+select:disabled,
+input[type="date"]:disabled {
   opacity: 0.5;
   cursor: default;
   filter: none;
