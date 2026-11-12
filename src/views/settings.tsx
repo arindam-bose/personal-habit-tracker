@@ -76,6 +76,9 @@ function ReplaceDialog(props: { pending: PendingReplace }) {
     answered.current = true;
     answer(replace);
   };
+  // Leaving the page with the question open removes the dialog without a close event: that
+  // counts as Cancel, or the import waiting on the answer would never go on.
+  useEffect(() => () => reply(false), []);
   return (
     <Modal dialogRef={dialog} title={`Replace your ${file.year} data?`} onClose={() => reply(false)}>
       <p>"{fileName}" holds {file.year} too. Importing it replaces everything the tracker has for {file.year}.</p>
@@ -122,9 +125,14 @@ export function SettingsView() {
   /** An import asking whether to replace a stored year. */
   const replacing = useSignal<PendingReplace | null>(null);
 
-  /** Ask in the dialog; resolves with the answer once it closes. */
+  /** Set when the page is left: an import still going stops asking, and stops. */
+  const left = useRef(false);
+  useEffect(() => () => void (left.current = true), []);
+
+  /** Ask in the dialog; resolves with the answer once it closes, or no once the page is left. */
   function askReplace(fileName: string, stored: YearSummary, file: YearFile): Promise<boolean> {
     return new Promise((resolve) => {
+      if (left.current) return resolve(false);
       replacing.value = { id: ++asked, fileName, stored, file, answer: (yes) => { replacing.value = null; resolve(yes); } };
     });
   }
@@ -137,6 +145,7 @@ export function SettingsView() {
     errors.value = [];
     const done: string[] = [];
     for (const f of files) {
+      if (left.current) break;
       try {
         const data = await readJsonFile(f);
         const check = validateYearFile(data);
