@@ -142,15 +142,19 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
 
 /**
  * One row of a report card: the name on the left, its values right-aligned in two columns (the
- * count, then its share), so the numbers line up down the card. `sub` is a muted line under the name.
+ * count, then its share), so the numbers line up down the card. `sub` is a muted line under it,
+ * right-aligned with the values.
  */
 function ReportRow(props: { name: preact.ComponentChildren; value: preact.ComponentChildren; share?: number | null; sub?: string; class?: string }) {
   return (
-    <tr class={props.class}>
-      <th scope="row">{props.name}{props.sub && <span class="muted rl-sub">{props.sub}</span>}</th>
-      <td class="num"><b>{props.value}</b></td>
-      <td class="num">{props.share !== undefined && <span class="pill">{percent(props.share)}</span>}</td>
-    </tr>
+    <>
+      <tr class={`${props.class ?? ""}${props.sub ? " rt-has-sub" : ""}`}>
+        <th scope="row">{props.name}</th>
+        <td class="num"><b>{props.value}</b></td>
+        <td class="num">{props.share !== undefined && <span class="pill">{percent(props.share)}</span>}</td>
+      </tr>
+      {props.sub && <tr class="rt-sub"><td colSpan={3} class="muted">{props.sub}</td></tr>}
+    </>
   );
 }
 
@@ -176,7 +180,7 @@ function ReportCard(props: { title: string; stats: PeriodStats; scoreName: strin
       <h3 class="card-title">{props.title}</h3>
       <table class="report-table small">
         <tbody>
-          <ReportRow name="📅 Days passed" value={s.days} />
+          <ReportRow class="rt-days" name="Days passed" value={s.days} />
           {s.habits.map((h) => <HabitRow h={h} of={s.days} />)}
           <ReportRow class="rt-gap" name={`${s.perfect ? "🎉" : "💔"} Perfect days`} value={s.perfect} share={s.days ? (s.perfect / s.days) * 100 : null} />
           {props.extra}

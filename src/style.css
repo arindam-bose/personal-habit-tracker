@@ -1301,11 +1301,6 @@ button.tile-link:hover {
   grid-template-columns: minmax(0, 640px);
 }
 
-.rl-sub {
-  display: block;
-  font-size: 12px;
-}
-
 /* A report card's rows: names left, values right-aligned in two columns (count, then share). */
 .report-table {
   width: 100%;
@@ -1336,6 +1331,28 @@ button.tile-link:hover {
 
 .report-table tr.rt-head th {
   font-weight: 600;
+}
+
+/* Days passed reads at the score's size, with a line under it. */
+.report-table tr.rt-days > * {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.report-table tr.rt-days + tr > * {
+  padding-top: 8px;
+}
+
+/* The muted line under a time or number habit, right-aligned with the values. */
+.report-table tr.rt-has-sub > * {
+  padding-bottom: 0;
+}
+
+.report-table tr.rt-sub td {
+  padding: 0 0 3px;
+  text-align: right;
+  font-size: 12px;
 }
 
 .report-table tr.rt-score > * {
