@@ -3,7 +3,7 @@
 // a heatmap, and how each habit is going this month.
 
 import { MONTHS, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
-import { formatValue, label, goalText } from "../habits";
+import { formatValue, goalText, isActive, label, meets } from "../habits";
 import { dayScore, firstDay, habitStreakAcross, isPerfect, level, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats } from "../score";
 import { chain, selectedDay, tracked, weekStart, today } from "../state";
 import { HeatLegend, Heatmap, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
@@ -31,7 +31,7 @@ function Overview() {
   if (!t.habits.length) return null;
   // The first tile is the day open in the log above: today, or another day picked there.
   const picked = selectedDay.value >= firstDay(t) && selectedDay.value <= ref ? selectedDay.value : ref;
-  const isToday = ref === today.value;
+  const pickedLabel = picked === today.value ? "Today" : shortDate(picked);
   const day = dayScore(t, picked);
   const week = weekOf(ref, weekStart.value);
   const weekStats = periodStats(t, ref, week, addDays(week, 6));
@@ -47,7 +47,7 @@ function Overview() {
     <div class="stack">
       <div class="tiles">
         <button type="button" class="card tile tile-link" onClick={() => openDay(picked)}>
-          <span class="tile-label">{picked === today.value ? "Today" : shortDate(picked)}</span>
+          <span class="tile-label">{pickedLabel}</span>
           <span class="tile-value">{day ? percent(day.score) : "–"}</span>
           <ScoreBar score={day?.score ?? null} />
           <span class="tile-detail">{day ? `${day.met} of ${plural(day.total, "habit")} met${isPerfect(day) ? " · Perfect day 🎉" : ""}` : ""}</span>
@@ -91,18 +91,24 @@ function Overview() {
                 <th scope="col">Habit</th>
                 <th scope="col" class="num">Now</th>
                 <th scope="col" class="num">Best</th>
-                <th scope="col" class="num">{isToday ? "Today" : shortDate(ref)}</th>
+                {/* The day open in the log above, like the first tile. */}
+                <th scope="col" class="num">{pickedLabel}</th>
               </tr>
             </thead>
             <tbody>
               {streaks.map(({ h, s }) => {
-                const v = t.days.get(ref)?.values[h.id];
+                const v = t.days.get(picked)?.values[h.id];
                 return (
                   <tr>
                     <td>{label(h)}</td>
                     <td class="num">{s.current ? `🔥 ${s.current}` : "0"}</td>
                     <td class="num">{s.best}</td>
-                    <td class="num">{s.today ? "✓" : v !== undefined && v !== true ? <span class="muted">{formatValue(h, v)}</span> : <span class="muted">–</span>}</td>
+                    <td class="num">
+                      {!isActive(h, picked) ? <span class="muted" title={`${h.name} didn't count that day`}>·</span>
+                        : meets(h, v) ? "✓"
+                        : v !== undefined && v !== true ? <span class="muted">{formatValue(h, v)}</span>
+                        : <span class="muted">–</span>}
+                    </td>
                   </tr>
                 );
               })}
@@ -110,7 +116,7 @@ function Overview() {
                 <td>🎉 Perfect days</td>
                 <td class="num">{perfect.current ? `🔥 ${perfect.current}` : "0"}</td>
                 <td class="num">{perfect.best}</td>
-                <td class="num">{perfect.today ? "✓" : <span class="muted">–</span>}</td>
+                <td class="num">{isPerfect(day) ? "✓" : <span class="muted">–</span>}</td>
               </tr>
             </tbody>
           </table>
