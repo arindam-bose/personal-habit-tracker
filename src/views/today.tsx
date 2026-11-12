@@ -35,7 +35,8 @@ export function TodayView() {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || mode.value !== "day") return;
       const el = e.target as HTMLElement;
-      if (el.closest("input, textarea, select, dialog")) return;
+      // Not while typing, in a dialog, on the cookie question or on a ?: the keys belong there.
+      if (el.closest("input, textarea, select, dialog, .consent, .help")) return;
       const t = tracked.value;
       if (!t) return;
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
