@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 1.0.19** ·
+**Version 1.0.20** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -109,3 +109,8 @@ npm run build   # type-checks, then builds into dist/
 ```
 
 The build is static: copy `dist/` to any web host, in any folder.
+
+---
+
+For how it's built, and how to run, test or change it, see the
+[extended README](EXTENDED_README.md).

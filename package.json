@@ -1,7 +1,7 @@
 {
   "name": "personal-habit-tracker",
   "private": true,
-  "version": "1.0.19",
+  "version": "1.0.20",
   "released": "2026-11-11",
   "type": "module",
   "scripts": {
