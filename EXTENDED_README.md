@@ -61,8 +61,9 @@ including `noUncheckedIndexedAccess`.
 | `src/theme.ts` | Light or dark: the Settings choice, or following the device. |
 | `src/offline.ts`, `src/service-worker.js` | The offline copy: registering it, its status, checking for updates. |
 | `src/install.ts` | Putting the tracker on the home screen. |
+| `src/share.ts` | Share the tracker: the share sheet on a phone, the link copied on a computer; the Buy me a coffee link. |
 | `src/analytics.ts` | Google Analytics, only with consent: the cookie banner's answer, loading and switching off GA. |
-| `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `modal.tsx` (the dialog every popup uses), `help.tsx` (a card's ? with its description, as in the Money Tracker), `about.tsx` (the About card) and `hooks.ts` (closing a menu). |
+| `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `modal.tsx` (the dialog every popup uses), `help.tsx` (a card's ? with its description, as in the Money Tracker), `about.tsx` (the About card), `support.tsx` (the Support card) and `hooks.ts` (closing a menu). |
 | `tools/notion_import.py` | Python: a Notion Habit Tracker export to a year file. |
 | `tests/` | Vitest. `helpers.ts` builds small synthetic years. |
 | `data/` | Your own Notion exports. Git-ignored; never commit it. |
@@ -250,7 +251,7 @@ page downloads the year's backup first. A closed year can be reopened.
 | Reports | `views/reports.tsx` | Loaded on demand (see Charts). Overview (ending with the year's report card), a report card for every month, habits month by month, times and numbers against their goals. |
 | Habits | `views/habits.tsx` | Add, change, reorder, stop and delete habits; the day tracking starts. |
 | Over the years | `views/years.tsx` | In the menu only with two or more years; the year picker shows "All years" there. Loads every year (`loadAllYears`). The year still under way is marked *. Loaded on demand with the charts. |
-| Settings | `views/settings.tsx`, `views/about.tsx` | Your data (back up, close, reopen, delete years), import, start a year, the demo file, the first day of the week, appearance, offline, the home screen, erase everything, About. |
+| Settings | `views/settings.tsx`, `views/about.tsx` | Your data (back up, close, reopen, delete years), import, start a year, the demo file, the first day of the week, appearance, offline, the home screen, erase everything, Support the tracker, About. |
 
 Routing is by URL hash (`#/reports`), which works on any static host.
 
@@ -313,6 +314,8 @@ their own `tests/tsconfig.json` so Node's types stay out of the app).
 - **Backup test** (`transfer.test.ts`): a year with every optional field survives a
   move to a clean device unchanged; a backup's settings never undo a device's own;
   importing over a year leaves none of the old days behind.
+- **Share test** (`share.test.ts`): a phone opens its share sheet, a computer copies the
+  link, closing the sheet says nothing, and a sheet that fails falls back to copying.
 - **README test**: the README names the version in `package.json`.
 - **Real-data tests** (`tests/real-data.test.ts`) run for each `data/notion/<year>/`
   present, and are skipped when there is none (as on GitHub): the importer's file is
@@ -336,3 +339,6 @@ export at test time, so the repository can be public.
   card asks again. It counts visits only; it never reads IndexedDB. The README promises
   users their data "is never sent anywhere"; anything that changes that (a font or
   script from another site, a sync feature) must update that promise too.
+- **Buy me a coffee** on the Support card is a plain link that opens buymeacoffee.com in a
+  new tab, not that site's widget or button image, which would load from its servers.
+  Nothing of it loads until it is followed.

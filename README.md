@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 2.0.1** ·
+**Version 2.0.2** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -74,7 +74,8 @@ they did there.
 - **Over the years**: once two or more years are stored, each year's score, perfect days and habits
   side by side. Habits are followed from year to year by their id.
 - **Settings**: start, import, back up, close, reopen and delete years; the first day of the week;
-  light or dark; the offline copy; putting it on your home screen; erasing everything; and About.
+  light or dark; the offline copy; putting it on your home screen; erasing everything; **Support the
+  tracker** (Buy me a coffee, or share the link); and About.
 
 Closing a year downloads its backup, makes it read-only, and starts the next year with the habits
 still counting on December 31 and the streaks running then. Add more habits there as you like.

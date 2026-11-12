@@ -25,6 +25,8 @@ const PATHS = {
   stop: <><circle cx="12" cy="12" r="10" /><path d="M10 15V9" /><path d="M14 15V9" /></>,
   /** Count a stopped habit again: a play. */
   resume: <><circle cx="12" cy="12" r="10" /><polygon points="10 8 16 12 10 16 10 8" /></>,
+  /** Buy me a coffee: a steaming cup. */
+  coffee: <><path d="M17 8h1a4 4 0 0 1 0 8h-1" /><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" /><path d="M6 2v2" /><path d="M10 2v2" /><path d="M14 2v2" /></>,
   delete: <><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></>,
 } satisfies Record<string, JSX.Element>;
 
