@@ -149,9 +149,9 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
 /**
  * One row of a report card: the name on the left, its values right-aligned in two columns (the
  * share, then the count at the far right), so the numbers line up down the card. `sub` is a muted line under it,
- * right-aligned with the values.
+ * right-aligned with the values, with its figures in bold.
  */
-function ReportRow(props: { name: preact.ComponentChildren; value: preact.ComponentChildren; share?: number | null; sub?: string; class?: string }) {
+function ReportRow(props: { name: preact.ComponentChildren; value: preact.ComponentChildren; share?: number | null; sub?: preact.ComponentChildren; class?: string }) {
   return (
     <>
       <tr class={`${props.class ?? ""}${props.sub ? " rt-has-sub" : ""}`}>
@@ -173,7 +173,7 @@ function HabitRow({ h, of }: { h: HabitStats; of: number }) {
   if (habit.kind === "check") return <ReportRow name={label(habit)} value={days(h.met)} share={h.rate} />;
   const avg = h.average === null ? "–" : habit.kind === "duration" ? formatMinutes(h.average) : h.average.toFixed(1).replace(/\.0$/, "");
   const total = habit.kind === "duration" ? durationWords(h.total) : `${h.total.toLocaleString()}${habit.unit ? ` ${habit.unit}` : ""}`;
-  const sub = h.logged > 0 ? `${total} in all, ${avg} a day on average` : undefined;
+  const sub = h.logged > 0 ? <><b>{total}</b> in all, <b>{avg}</b> a day on average</> : undefined;
   return habit.goal
     ? <ReportRow name={<>{label(habit)} <span class="muted">{goalText(habit)}</span></>} value={days(h.met)} share={h.rate} sub={sub} />
     : <ReportRow name={label(habit)} value={`${days(h.logged)} logged`} sub={sub} />;
