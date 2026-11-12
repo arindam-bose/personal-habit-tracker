@@ -13,6 +13,7 @@ import {
 import { tracked, weekStart } from "../state";
 import { theme } from "../theme";
 import type { Habit } from "../types";
+import { CardTitle } from "./help";
 import { Chart, axisStyle, barLabel, baseOption, percentAxis, token, type ChartOption } from "./chart";
 import { NoYear, openDay, plural, refDay } from "./common";
 
@@ -225,7 +226,9 @@ function HabitsByMonth(props: { t: Tracked; months: number[]; stats: PeriodStats
   return (
     <>
       <section class="card">
-        <h3 class="card-title">Share of days each habit was met</h3>
+        <CardTitle title="Share of days each habit was met">
+          Percent of the month's days; darker is more. A dot means the habit didn't count that month.
+        </CardTitle>
         <div class="table-scroll">
           <table class="data-table month-grid">
             <thead>
@@ -251,7 +254,6 @@ function HabitsByMonth(props: { t: Tracked; months: number[]; stats: PeriodStats
             </tbody>
           </table>
         </div>
-        <p class="muted small">Percent of the month's days; darker is more. A dot means the habit didn't count that month.</p>
       </section>
       {measures.length > 0 && (
         <div class="columns">
