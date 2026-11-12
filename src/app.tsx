@@ -2,7 +2,7 @@ import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import type { ComponentType } from "preact";
 import { version } from "../package.json";
-import { chooseConsent, consentAsked } from "./analytics";
+import { chooseConsent, consentAsked, type Consent } from "./analytics";
 import { dateTime } from "./dates";
 import { updateReady } from "./offline";
 import { backupDue, backupText, lastUpdatedAt, requestPersistence } from "./storage";
@@ -149,10 +149,19 @@ export function App() {
 /** The cookie question: on first visit, and again from Cookie settings in the About card. */
 function ConsentBanner() {
   const first = useRef<HTMLButtonElement>(null);
+  /** Cookie settings, when it opened the banner: focus goes back there once answered. */
+  const opener = useRef<HTMLElement | null>(null);
   // Opened from Cookie settings, focus follows it here; on a first visit it doesn't steal focus from the page.
   useEffect(() => {
-    if (document.activeElement?.closest(".facts")) first.current?.focus();
+    const from = document.activeElement as HTMLElement | null;
+    if (!from?.closest(".facts")) return;
+    opener.current = from;
+    first.current?.focus();
   }, []);
+  const answer = (value: Consent) => {
+    chooseConsent(value);
+    opener.current?.focus();
+  };
   return (
     <section class="consent" aria-label="Cookie consent">
       <p class="consent-text">
@@ -162,8 +171,8 @@ function ConsentBanner() {
         in the tool's Settings.
       </p>
       <div class="consent-actions">
-        <button type="button" ref={first} onClick={() => chooseConsent("denied")}>Decline</button>
-        <button type="button" class="primary" onClick={() => chooseConsent("granted")}>Accept</button>
+        <button type="button" ref={first} onClick={() => answer("denied")}>Decline</button>
+        <button type="button" class="primary" onClick={() => answer("granted")}>Accept</button>
       </div>
     </section>
   );
