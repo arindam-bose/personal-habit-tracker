@@ -216,7 +216,10 @@ A backup holds everything needed to rebuild the year on a clean device:
 - `settings.weekStart`, the first day of the week. It is app-wide, so importing
   applies it only to a device that has none saved yet.
 
-All of these are optional on import, so older backups still import. Left out on
+All of these are optional on import, so older backups still import.
+`tests/transfer.test.ts` moves a year that uses every optional field to a clean device
+and back, and checks the second backup is byte for byte the first; its file is typed
+`Required<YearFile>`, so a field added later must be added there too. Left out on
 purpose: `lastBackupAt` (an import counts as a backup at `exportedAt`), the year last
 opened, the theme and the Day or Week choice.
 
@@ -303,6 +306,9 @@ their own `tests/tsconfig.json` so Node's types stay out of the app).
   and clearing a day, quick changes made before the first is saved, refusing days to
   come, deleting a habit with its values, streaks across stored years, a save landing
   after the year switched, closing a year.
+- **Backup test** (`transfer.test.ts`): a year with every optional field survives a
+  move to a clean device unchanged; a backup's settings never undo a device's own;
+  importing over a year leaves none of the old days behind.
 - **README test**: the README names the version in `package.json`.
 - **Real-data tests** (`tests/real-data.test.ts`) run for each `data/notion/<year>/`
   present, and are skipped when there is none (as on GitHub): the importer's file is
