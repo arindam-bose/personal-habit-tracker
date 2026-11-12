@@ -111,13 +111,13 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
     ...baseOption(),
     legend: { show: false },
     ...(average === null ? {} : { grid: { ...(baseOption().grid as object), right: OUTSIDE_LABEL_ROOM } }),
-    tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: (v: unknown) => percent(Number(v), 1) },
+    tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: (v: unknown) => `${points(Number(v), 1)} / 100` },
     xAxis: { type: "category", data: order.map((d) => WEEKDAYS_SHORT[d]), ...axisStyle(), splitLine: { show: false } },
-    yAxis: percentAxis(),
-    // Labelled on top, as the Monthly score bars are: to one place, so it reads as the line under it does.
+    // Out of 100, to one place, as Monthly score is beside it: the axis, the labels, the tooltip and the table.
+    yAxis: { ...percentAxis(), axisLabel: { color: token("--muted") } },
     series: [{ name: "Average day score", type: "bar", data: order.map((d) => wd[d]!.score), barMaxWidth: 36, itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] },
-      label: barLabel((v) => percent(v, 1)),
-      ...(average === null ? {} : { markLine: levelLine(average, `Average\n${percent(average, 1)}`, true) }) }],
+      label: barLabel((v) => points(v, 1)),
+      ...(average === null ? {} : { markLine: levelLine(average, `Average\n${points(average, 1)}`, true) }) }],
   };
   const dayEnds = bestAndHardest(order, (d) => wd[d]!.score);
 
@@ -144,9 +144,9 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
           <h3 class="card-title">By weekday</h3>
           <Chart option={weekdayOption} height={240} label="The average day score for each weekday" />
           {dayEnds && (
-            <p class="muted small">Best on {WEEKDAYS[dayEnds.best]}s ({percent(wd[dayEnds.best]!.score, 1)}), hardest on {WEEKDAYS[dayEnds.hardest]}s ({percent(wd[dayEnds.hardest]!.score, 1)}).</p>
+            <p class="muted small">Best on {WEEKDAYS[dayEnds.best]}s ({points(wd[dayEnds.best]!.score, 1)}), hardest on {WEEKDAYS[dayEnds.hardest]}s ({points(wd[dayEnds.hardest]!.score, 1)}).</p>
           )}
-          <TableView head={["Weekday", "Average score", "Days"]} rows={order.map((d) => [WEEKDAYS[d]!, percent(wd[d]!.score, 1), wd[d]!.days])} />
+          <TableView head={["Weekday", "Average score", "Days"]} rows={order.map((d) => [WEEKDAYS[d]!, points(wd[d]!.score, 1), wd[d]!.days])} />
         </section>
       </div>
       <YearReport t={t} ref_={ref_} />
