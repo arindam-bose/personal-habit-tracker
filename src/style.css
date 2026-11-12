@@ -856,6 +856,7 @@ button.icon-action.icon-export {
 
 .habit-card kbd {
   margin: 0;
+  flex: none;
 }
 
 /* The tick: an empty ring, filled when met. */
@@ -1582,6 +1583,7 @@ dialog.guide::backdrop {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* The 1 to 9 keys need a keyboard. */
   .habit-card kbd {
     display: none;
   }

@@ -159,6 +159,7 @@ function HabitCard(props: { habit: Habit; date: IsoDate; index: number; value: t
   const { habit, date, value, locked } = props;
   const met = meets(habit, value);
   const streak = props.streak ? <span class="streak" title={`${props.streak} days in a row`}>🔥 {props.streak}</span> : null;
+  // The key that ticks it (or goes to its box): only where there's a keyboard, so not on phones.
   const key = props.index < 9 ? <kbd aria-hidden="true">{props.index + 1}</kbd> : null;
 
   if (habit.kind === "check") {
@@ -166,10 +167,10 @@ function HabitCard(props: { habit: Habit; date: IsoDate; index: number; value: t
       <li>
         <button type="button" class={`habit-card check ${met ? "met" : ""}`} aria-pressed={met} disabled={locked} data-habit={habit.id}
           onClick={() => setValue(date, habit.id, met ? null : true).catch(failed)}>
+          {key}
           <span class="hc-emoji" aria-hidden="true">{habit.emoji}</span>
           <span class="hc-name">{habit.name}</span>
           {streak}
-          {key}
           <span class="hc-tick" aria-hidden="true">{met ? "✓" : ""}</span>
         </button>
       </li>
@@ -178,13 +179,13 @@ function HabitCard(props: { habit: Habit; date: IsoDate; index: number; value: t
   return (
     <li>
       <div class={`habit-card measure ${met ? "met" : value !== undefined ? "missed" : ""}`}>
+        {key}
         <span class="hc-emoji" aria-hidden="true">{habit.emoji}</span>
         <span class="hc-name">
           {habit.name}
           {habit.goal && <span class="hc-goal">{goalText(habit)}</span>}
         </span>
         {streak}
-        {key}
         <ValueInput habit={habit} date={date} value={value} locked={locked} />
         <span class="hc-tick" aria-hidden="true">{met ? "✓" : value !== undefined ? "✗" : ""}</span>
       </div>
