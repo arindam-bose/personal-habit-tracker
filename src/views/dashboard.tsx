@@ -1,12 +1,13 @@
 // Dashboard, the main page. At the top, the day to log (see today.tsx); below it, the year at a
 // glance: scores for the day, the week, the month and the year, every habit's streak, the year as
-// a heatmap, and how each habit is going this month.
+// a heatmap, and how each habit went in the month of the day open above.
 
 import { MONTHS, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
 import { formatValue, goalText, isActive, label, meets } from "../habits";
 import { dayScore, firstDay, habitStreakAcross, isPerfect, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats } from "../score";
 import { chain, selectedDay, tracked, weekStart, today } from "../state";
 import { HeatLegend, Heatmap, dayCell, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
+import { CardTitle } from "./help";
 import { TodayView } from "./today";
 
 export function DashboardView() {
@@ -38,6 +39,10 @@ function Overview() {
   const month = monthOf(ref);
   const m = monthStats(t, month, ref);
   const y = yearStats(t, ref);
+  // By habit follows the month of the day open in the log above, like the first tile.
+  const shownMonth = monthOf(picked);
+  const shown = shownMonth === month ? m : monthStats(t, shownMonth, ref);
+  const shownName = MONTHS[shownMonth - 1];
   // Streaks run on from earlier stored years, and the best is the longest in any of them.
   const perfect = perfectStreakAcross(chain.value, ref);
   const streaks = t.habits.filter((h) => h.to === undefined || h.to >= ref).map((h) => ({ h, s: habitStreakAcross(chain.value, h.id, ref) }));
@@ -80,7 +85,10 @@ function Overview() {
 
       <div class="columns">
         <section class="card">
-          <h3 class="card-title">Streaks</h3>
+          <CardTitle title="Streaks">
+            Days in a row each habit was met{since < t.year ? `, counting every year stored from ${since}: a streak carries on over New Year` : ""}.
+            Today doesn't break a streak until it's over.
+          </CardTitle>
           <table class="data-table streak-table">
             <thead>
               <tr>
@@ -116,21 +124,19 @@ function Overview() {
               </tr>
             </tbody>
           </table>
-          <p class="muted small">
-            Days in a row each habit was met{since < t.year ? `, counting every year stored from ${since}: a streak carries on over New Year` : ""}.
-            Today doesn't break a streak until it's over.
-          </p>
         </section>
 
         <section class="card">
-          <h3 class="card-title">{MONTHS[month - 1]} by habit</h3>
+          <CardTitle title={`${shownName} by habit`}>
+            Days met in {shownName}{shownMonth === monthOf(ref) && ref === today.value ? " so far" : ""}; the mark is the share for the whole year.
+          </CardTitle>
           <ul class="hbars">
-            {m.habits.filter((x) => x.days > 0).map((x) => {
+            {shown.habits.filter((x) => x.days > 0).map((x) => {
               const yearRate = y.habits.find((yh) => yh.habit.id === x.habit.id)?.rate ?? null;
               return (
                 <li>
                   <span class="hbar-name">{label(x.habit)}{x.habit.goal ? <span class="muted small"> {goalText(x.habit)}</span> : null}</span>
-                  <span class="hbar-track" title={`${MONTHS[month - 1]}: ${percent(x.rate)} · ${t.year}: ${percent(yearRate)}`}>
+                  <span class="hbar-track" title={`${shownName}: ${percent(x.rate)} · ${t.year}: ${percent(yearRate)}`}>
                     <span class="hbar-fill" style={{ width: `${x.rate ?? 0}%` }} />
                     {yearRate !== null && <span class="hbar-mark" style={{ left: `${yearRate}%` }} />}
                   </span>
@@ -139,7 +145,6 @@ function Overview() {
               );
             })}
           </ul>
-          <p class="muted small">Days met this month; the mark is the share for the whole year.</p>
         </section>
       </div>
     </div>

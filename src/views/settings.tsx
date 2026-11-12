@@ -3,7 +3,7 @@
 // light or dark, the offline copy, erasing everything, the home screen, and About.
 
 import { useSignal } from "@preact/signals";
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import { importYear, readJsonFile, saveYearFile } from "../backup";
 import { dateTime } from "../dates";
 import { demoFileName, demoYear } from "../demo";
@@ -22,6 +22,7 @@ import { validateYearFile } from "../validate";
 import { AboutCard } from "./about";
 import { plural } from "./common";
 import { IconButton } from "./icons";
+import { Modal } from "./modal";
 
 const MAY_CLEAR = "This browser may clear your data on its own - if the site goes unvisited for a while, or space runs low - so keep a backup.";
 const PERSIST_TEXT = {
@@ -30,25 +31,111 @@ const PERSIST_TEXT = {
   unsupported: MAY_CLEAR,
 };
 
-/** The question before an import replaces a stored year. */
-function replaceQuestion(fileName: string, stored: YearSummary, file: YearFile): string {
+/** An import waiting on "Replace?": the file, as read and checked, the year it would replace, and the answer to give. */
+interface PendingReplace {
+  /** Counts the questions, so each one gets a dialog of its own. */
+  id: number;
+  fileName: string;
+  file: YearFile;
+  stored: YearSummary;
+  answer: (replace: boolean) => void;
+}
+
+/**
+ * The question before an import replaces a stored year: what is here now and what the file holds,
+ * side by side, with the rows that differ highlighted. Esc, Cancel or a click on the backdrop keeps
+ * the stored year. As in the Money Tracker.
+ */
+function ReplaceDialog(props: { pending: PendingReplace }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    dialog.current?.showModal();
+  }, []);
+  const { fileName, file, stored, answer } = props.pending;
+  const at = new Date(file.exportedAt);
+  const exported = Number.isNaN(at.getTime())
+    ? "No export date"
+    : `Exported ${at.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}`;
+  // The latest change of either kind, days or setup, as the strip under the top bar shows it.
+  // A file without one was saved before any change, so anything changed here is newer.
   const here = lastUpdatedAt(stored.setup);
   const there = lastUpdatedAt(file);
-  const newerHere = here !== undefined && (there === undefined || Date.parse(here) > Date.parse(there));
-  return [
-    `Replace all your ${file.year} data with "${fileName}"?`,
-    "",
-    `In the tracker now: ${plural(stored.days, "day")} logged, ${plural(stored.setup.habits.length, "habit")}. ${here ? `Last updated ${dateTime(here, true)}` : "No last-updated time"}.`,
-    `In the file: ${plural(file.days.length, "day")} logged, ${plural(file.habits.length, "habit")}. ${there ? `Last updated ${dateTime(there, true)}` : "No last-updated time"}.`,
-    ...(newerHere ? ["", "The tracker has newer changes than this file: replacing it loses them."] : []),
-    "",
-    "This can't be undone.",
-  ].join("\n");
+  // To the second, as the table shows them: a warning under a row that reads the same would confuse.
+  const newerHere = here !== undefined && (there === undefined || toSecond(here) > toSecond(there));
+  const rows: { label: string; now: string; inFile: string; compare: boolean }[] = [
+    { label: "Days logged", now: stored.days.toLocaleString(), inFile: file.days.length.toLocaleString(), compare: true },
+    { label: "Habits", now: stored.setup.habits.length.toLocaleString(), inFile: file.habits.length.toLocaleString(), compare: true },
+    { label: "Last updated", now: updatedText(here), inFile: updatedText(there), compare: true },
+    // A backup and an export are different events, so this row is context, never a difference.
+    { label: "Backup", now: backupText(stored.setup.lastBackupAt), inFile: exported, compare: false },
+  ];
+  // Answered once, however the dialog closes: Replace answers yes, and the close that follows is ignored.
+  const answered = useRef(false);
+  const reply = (replace: boolean) => {
+    if (answered.current) return;
+    answered.current = true;
+    answer(replace);
+  };
+  // Leaving the page with the question open removes the dialog without a close event: that
+  // counts as Cancel, or the import waiting on the answer would never go on.
+  useEffect(() => () => reply(false), []);
+  return (
+    <Modal dialogRef={dialog} title={`Replace your ${file.year} data?`} onClose={() => reply(false)}>
+      <p>"{fileName}" holds {file.year} too. Importing it replaces everything the tracker has for {file.year}.</p>
+      <table class="compare">
+        <thead>
+          <tr>
+            <th></th>
+            <th>In the tracker</th>
+            <th>In the file</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.label} class={r.compare && r.now !== r.inFile ? "differs" : undefined}>
+              <th scope="row">{r.label}</th>
+              <td>{r.now}</td>
+              <td>{r.inFile}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {newerHere && <p class="warn">The tracker has newer changes than this file: replacing it loses them.</p>}
+      <p class="muted">This can't be undone.</p>
+      <div class="form-actions">
+        <button type="button" onClick={() => dialog.current?.close()}>Cancel</button>
+        <button type="button" class="danger-solid" onClick={() => reply(true)}>Replace {file.year}</button>
+      </div>
+    </Modal>
+  );
+}
+
+let asked = 0;
+
+const toSecond = (iso: string) => Math.floor(Date.parse(iso) / 1000);
+
+/** With seconds: two backups taken minutes apart must still read differently. */
+function updatedText(iso: string | undefined): string {
+  return iso ? dateTime(iso, true) : "Unknown";
 }
 
 export function SettingsView() {
   const message = useSignal<string | null>(null);
   const errors = useSignal<string[]>([]);
+  /** An import asking whether to replace a stored year. */
+  const replacing = useSignal<PendingReplace | null>(null);
+
+  /** Set when the page is left: an import still going stops asking, and stops. */
+  const left = useRef(false);
+  useEffect(() => () => void (left.current = true), []);
+
+  /** Ask in the dialog; resolves with the answer once it closes, or no once the page is left. */
+  function askReplace(fileName: string, stored: YearSummary, file: YearFile): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (left.current) return resolve(false);
+      replacing.value = { id: ++asked, fileName, stored, file, answer: (yes) => { replacing.value = null; resolve(yes); } };
+    });
+  }
 
   async function onImport(e: Event) {
     const input = e.currentTarget as HTMLInputElement;
@@ -58,6 +145,7 @@ export function SettingsView() {
     errors.value = [];
     const done: string[] = [];
     for (const f of files) {
+      if (left.current) break;
       try {
         const data = await readJsonFile(f);
         const check = validateYearFile(data);
@@ -66,7 +154,7 @@ export function SettingsView() {
           continue;
         }
         const stored = years.value.find((y) => y.setup.year === check.file.year);
-        if (stored && !confirm(replaceQuestion(f.name, stored, check.file))) continue;
+        if (stored && !(await askReplace(f.name, stored, check.file))) continue;
         const r = await importYear(data);
         if (r.ok) done.push(`${r.file.year} (${plural(r.file.days.length, "day")} logged)`);
         await openYear(check.file.year);
@@ -92,6 +180,7 @@ export function SettingsView() {
         {message.value && <p class="saved" role="status">{message.value}</p>}
         {errors.value.length > 0 && <ul class="errors" role="alert">{errors.value.map((x) => <li>{x}</li>)}</ul>}
       </section>
+      {replacing.value && <ReplaceDialog key={replacing.value.id} pending={replacing.value} />}
 
       <StartYearCard />
 
@@ -140,7 +229,6 @@ function DemoNote() {
 function YearsTable() {
   const closing = useSignal<number | null>(null);
   const asking = useSignal<number | null>(null);
-  const open = current.value?.setup.year;
   return (
     <>
       <table class="years data-table">
@@ -161,7 +249,6 @@ function YearsTable() {
                 <td class="y-year">
                   {year}
                   {closed && <span class="badge">closed</span>}
-                  {year === open && <span class="badge">open</span>}
                 </td>
                 <td class="y-count" data-label="Logged">{plural(y.days, "day")}</td>
                 <td class="y-count" data-label="Habits">{habits.length}</td>
@@ -405,20 +492,45 @@ function OfflineCard() {
   );
 }
 
+/**
+ * On the home screen: a real Install button where the browser lends its prompt, and that
+ * browser's own steps where it doesn't. The prompt can arrive after the page is drawn, so the
+ * card follows installState. As in the Money Tracker.
+ */
 function InstallCard() {
-  const state = installState.value;
-  const steps = installSteps(detectDevice());
+  /** What came of the last Install, and the state it was said in: it is shown only while that holds. */
+  const said = useSignal<{ text: string; in: string } | null>(null);
+  const now = installState.value;
+  // A note about the steps stops being true once the browser offers its prompt again.
+  const note = said.value?.in === now ? said.value.text : null;
+
+  async function onInstall() {
+    const outcome = await promptInstall();
+    const text = outcome === "dismissed" ? "Not installed. The steps are here if you change your mind."
+      : outcome === "unavailable" ? "The browser wouldn't install it from here. Try the steps instead."
+      : null;
+    said.value = text ? { text, in: installState.value } : null;
+  }
+
   return (
     <section class="card">
       <h3 class="card-title">On your home screen</h3>
-      {state === "running" ? <p class="muted">You're using the installed app.</p>
-        : state === "installed" ? <p class="muted">Installed. Open it from your home screen or app list.</p>
-        : state === "prompt" ? (
-          <div class="setting-row">
-            <button type="button" class="primary" onClick={() => promptInstall()}>Install Habit Tracker</button>
-            <span class="small muted">It opens in its own window and works offline.</span>
-          </div>
-        ) : <p class="muted">{steps.map((s) => (typeof s === "string" ? s : <b>{s.b}</b>))}</p>}
+      <p class="muted">
+        Installed, it opens from its own icon in a window of its own, with or without a signal,
+        with no address to type.
+      </p>
+      <p class="muted">
+        {now === "running" ? "You are using the installed tracker."
+          : now === "installed" ? "Installed. From now on, open it from its icon."
+          : now === "prompt" ? "This browser can install it in one tap."
+          : installSteps(detectDevice()).map((s) => (typeof s === "string" ? s : <b>{s.b}</b>))}
+      </p>
+      {(now === "prompt" || note) && (
+        <div class="setting-row">
+          {now === "prompt" && <button type="button" class="primary" onClick={onInstall}>Install</button>}
+          {note && <span class="muted" role="status">{note}</span>}
+        </div>
+      )}
     </section>
   );
 }

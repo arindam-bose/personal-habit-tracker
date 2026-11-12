@@ -1,6 +1,6 @@
 // Reports: the year in charts and words. Overview (the day score through the year, each month's
-// score, and how each weekday goes), a report card for every month and the year, and habits month
-// by month, with times and numbers against their goals.
+// score, how each weekday goes, and the year's report card), a report card for every month, and
+// habits month by month, with times and numbers against their goals.
 // Loaded only when opened: it brings in the charting library.
 
 import { useSignal } from "@preact/signals";
@@ -16,8 +16,8 @@ import type { Habit } from "../types";
 import { Chart, axisStyle, baseOption, percentAxis, token, type ChartOption } from "./chart";
 import { NoYear, openDay, plural, refDay } from "./common";
 
-type Tab = "overview" | "months" | "year" | "habits";
-const TABS: [Tab, string][] = [["overview", "Overview"], ["months", "Monthly reports"], ["year", "Yearly report"], ["habits", "Habits by month"]];
+type Tab = "overview" | "months" | "habits";
+const TABS: [Tab, string][] = [["overview", "Overview"], ["months", "Monthly reports"], ["habits", "Habits by month"]];
 
 export function ReportsView() {
   const tab = useSignal<Tab>("overview");
@@ -46,7 +46,6 @@ export function ReportsView() {
             })}
           </div>
         )}
-        {tab.value === "year" && <YearReport t={t} ref_={ref} />}
         {tab.value === "habits" && <HabitsByMonth t={t} months={months} stats={stats} />}
       </div>
     </div>
@@ -136,26 +135,42 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
           <TableView head={["Weekday", "Average score", "Days"]} rows={order.map((d) => [WEEKDAYS[d]!, percent(wd[d]!.score, 1), wd[d]!.days])} />
         </section>
       </div>
+      <YearReport t={t} ref_={ref_} />
     </>
   );
 }
 
-/** One habit's line in a report card: "🧘 Meditation: 31 days (100%)". */
-function HabitLine({ h, of }: { h: HabitStats; of: number }) {
+/**
+ * One row of a report card: the name on the left, its values right-aligned in two columns (the
+ * share, then the count at the far right), so the numbers line up down the card. `sub` is a muted line under it,
+ * right-aligned with the values.
+ */
+function ReportRow(props: { name: preact.ComponentChildren; value: preact.ComponentChildren; share?: number | null; sub?: string; class?: string }) {
+  return (
+    <>
+      <tr class={`${props.class ?? ""}${props.sub ? " rt-has-sub" : ""}`}>
+        <th scope="row">{props.name}</th>
+        <td class="num">{props.share !== undefined && <span class="pill">{percent(props.share)}</span>}</td>
+        <td class="num"><b>{props.value}</b></td>
+      </tr>
+      {props.sub && <tr class="rt-sub"><td colSpan={3} class="muted">{props.sub}</td></tr>}
+    </>
+  );
+}
+
+/** A habit's row: "🧘 Meditation · 55% · 17 days", or for a time or number, the days its goal was met. */
+function HabitRow({ h, of }: { h: HabitStats; of: number }) {
   const { habit } = h;
   if (!h.days) return null;
-  const share = <span class="pill">{percent(h.rate)}</span>;
-  if (habit.kind === "check") {
-    return <li>{label(habit)}: <b>{plural(h.met, "day")}</b>{h.days < of ? ` of ${h.days}` : ""} {share}</li>;
-  }
+  // A habit that counted on fewer of the days (added or stopped partway) says out of how many.
+  const days = (n: number) => (h.days < of ? `${n} of ${plural(h.days, "day")}` : plural(n, "day"));
+  if (habit.kind === "check") return <ReportRow name={label(habit)} value={days(h.met)} share={h.rate} />;
   const avg = h.average === null ? "–" : habit.kind === "duration" ? formatMinutes(h.average) : h.average.toFixed(1).replace(/\.0$/, "");
   const total = habit.kind === "duration" ? durationWords(h.total) : `${h.total.toLocaleString()}${habit.unit ? ` ${habit.unit}` : ""}`;
-  return (
-    <li>
-      {label(habit)}: {habit.goal ? <>{goalText(habit)} on <b>{plural(h.met, "day")}</b> {share}</> : <b>{plural(h.logged, "day")} logged</b>}
-      {h.logged > 0 && <span class="muted rl-sub">{total} in all, {avg} a day on average</span>}
-    </li>
-  );
+  const sub = h.logged > 0 ? `${total} in all, ${avg} a day on average` : undefined;
+  return habit.goal
+    ? <ReportRow name={<>{label(habit)} <span class="muted">{goalText(habit)}</span></>} value={days(h.met)} share={h.rate} sub={sub} />
+    : <ReportRow name={label(habit)} value={`${days(h.logged)} logged`} sub={sub} />;
 }
 
 function ReportCard(props: { title: string; stats: PeriodStats; scoreName: string; extra?: preact.ComponentChildren }) {
@@ -163,13 +178,15 @@ function ReportCard(props: { title: string; stats: PeriodStats; scoreName: strin
   return (
     <section class="card report-card">
       <h3 class="card-title">{props.title}</h3>
-      <p class="small">Days: <b>{s.days}</b></p>
-      <ul class="report-lines small">
-        {s.habits.map((h) => <HabitLine h={h} of={s.days} />)}
-      </ul>
-      <p class="small">{s.perfect ? "🎉" : "💔"} Perfect days: <b>{s.perfect}</b> <span class="pill">{percent(s.days ? (s.perfect / s.days) * 100 : null)}</span></p>
-      {props.extra}
-      <p class="report-score">💯 {props.scoreName}: <b>{points(s.score)}</b></p>
+      <table class="report-table small">
+        <tbody>
+          <ReportRow class="rt-days" name="Days passed" value={s.days} />
+          {s.habits.map((h) => <HabitRow h={h} of={s.days} />)}
+          <ReportRow class="rt-gap" name={`${s.perfect ? "🎉" : "💔"} Perfect days`} value={s.perfect} share={s.days ? (s.perfect / s.days) * 100 : null} />
+          {props.extra}
+          <ReportRow class="rt-score" name={`💯 ${props.scoreName}`} value={points(s.score)} />
+        </tbody>
+      </table>
     </section>
   );
 }
@@ -179,18 +196,14 @@ function YearReport({ t, ref_ }: { t: Tracked; ref_: string }) {
   const perfect = perfectStreak(t, ref_);
   const streaks = t.habits.map((h) => ({ h, s: habitStreak(t, h, ref_) })).filter((x) => x.s.best > 0).sort((a, b) => b.s.best - a.s.best);
   return (
-    <div class="report-cards one">
-      <ReportCard title={`📅 ${t.year}${ref_ < `${t.year}-12-31` ? ` so far (to ${longDate(ref_)})` : ""}`} stats={y} scoreName="Yearly score"
+    <ReportCard title={`📅 ${t.year}${ref_ < `${t.year}-12-31` ? ` so far (to ${longDate(ref_)})` : ""}`} stats={y} scoreName="Yearly score"
         extra={
-          <div class="small">
-            <p>🔥 Longest streaks in {t.year}:</p>
-            <ul class="report-lines">
-              {streaks.map(({ h, s }) => <li>{label(h)}: <b>{plural(s.best, "day")}</b></li>)}
-              <li>🎉 Perfect days: <b>{plural(perfect.best, "day")}</b> in a row</li>
-            </ul>
-          </div>
+          <>
+            <tr class="rt-sep rt-head"><th scope="rowgroup" colSpan={3}>🔥 Longest streaks in {t.year}</th></tr>
+            {streaks.map(({ h, s }) => <ReportRow name={label(h)} value={plural(s.best, "day")} />)}
+            <ReportRow name="🎉 Perfect days in a row" value={plural(perfect.best, "day")} />
+          </>
         } />
-    </div>
   );
 }
 

@@ -10,6 +10,7 @@ import { dayScore, firstDay, habitStreakAcross, level, percent } from "../score"
 import { chain, current, readOnly, selectedDay, setNote, setValue, today, tracked, weekStart } from "../state";
 import type { Habit, IsoDate } from "../types";
 import { NoYear, ScoreBar, mode, setMode } from "./common";
+import { Help } from "./help";
 import { Icon } from "./icons";
 
 /** Why a day can't be logged, or null when it can. */
@@ -34,7 +35,8 @@ export function TodayView() {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || mode.value !== "day") return;
       const el = e.target as HTMLElement;
-      if (el.closest("input, textarea, select, dialog")) return;
+      // Not while typing, in a dialog, on the cookie question or on a ?: the keys belong there.
+      if (el.closest("input, textarea, select, dialog, .consent, .help")) return;
       const t = tracked.value;
       if (!t) return;
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -78,9 +80,13 @@ export function TodayView() {
         {date !== today.value && inYear(today.value) && (
           <button type="button" onClick={() => go(today.value)}>Today</button>
         )}
-        <div class="segmented view-mode" role="group" aria-label="View">
-          <button type="button" class={mode.value === "day" ? "active" : ""} aria-pressed={mode.value === "day"} onClick={() => setMode("day")}>Day</button>
-          <button type="button" class={mode.value === "week" ? "active" : ""} aria-pressed={mode.value === "week"} onClick={() => setMode("week")}>Week</button>
+        {/* The ? rides with the Day/Week switch, at the row's right end, so its tip opens on screen. */}
+        <div class="day-nav-end">
+          <div class="segmented view-mode" role="group" aria-label="View">
+            <button type="button" class={mode.value === "day" ? "active" : ""} aria-pressed={mode.value === "day"} onClick={() => setMode("day")}>Day</button>
+            <button type="button" class={mode.value === "week" ? "active" : ""} aria-pressed={mode.value === "week"} onClick={() => setMode("week")}>Week</button>
+          </div>
+          <Help label="About the day log">Times are typed as h:mm (7:45). Leaving a box saves it.</Help>
         </div>
       </div>
       <WeekStrip date={date} week={week} year={year} onPick={go} />
@@ -302,7 +308,6 @@ function WeekTable({ week }: { week: IsoDate }) {
           </tbody>
         </table>
       </div>
-      <p class="muted small">Times are typed as h:mm (7:45). Leaving a box saves it.</p>
     </section>
   );
 }

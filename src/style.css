@@ -11,6 +11,7 @@
   --good: #2f7d4f;
   --on-heat: #ffffff;
   --row-hover: #f1f1ed;
+  --diff-bg: #fff3c4; /* a row that differs, in Replace-on-import */
   --focus: #3b5bcc55;
   /* Chart series, in fixed order (validated for colour-blind separation on this surface). */
   --series-1: #2a78d6;
@@ -50,6 +51,7 @@
   --good: #6fcf97;
   --on-heat: #ffffff;
   --row-hover: #26262a;
+  --diff-bg: #4a3f17;
   --focus: #8ea6f266;
   --series-1: #3987e5;
   --series-2: #d95926;
@@ -450,6 +452,77 @@ h2, h3 {
   margin-bottom: 12px !important;
 }
 
+/* A card's ? (src/views/help.tsx), as in the Money Tracker. The ? sits in the card's top right corner,
+   and the description shows under it, right-aligned, on hover or focus. */
+.card:has(.card-help) {
+  position: relative;
+}
+
+/* Room for the ?, so a long title (September by habit) never runs under it. */
+.card:has(.card-help) > .card-title {
+  padding-right: 28px;
+}
+
+.card-help {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+.help {
+  position: relative;
+  display: inline-flex;
+}
+
+button.help-btn {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--muted);
+  background: none;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: help;
+}
+
+button.help-btn:hover,
+button.help-btn:focus-visible {
+  filter: none;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.help-tip {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 64px));
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.12s, visibility 0.12s;
+}
+
+.help-btn:hover + .help-tip,
+.help-btn:focus + .help-tip {
+  visibility: visible;
+  opacity: 1;
+}
+
 .card-head {
   display: flex;
   justify-content: space-between;
@@ -488,7 +561,9 @@ h2, h3 {
   }
 }
 
-button:disabled {
+button:disabled,
+select:disabled,
+input[type="date"]:disabled {
   opacity: 0.5;
   cursor: default;
   filter: none;
@@ -725,7 +800,10 @@ button.icon-action.icon-export {
   color: var(--accent);
 }
 
-.view-mode {
+.day-nav-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-left: auto;
 }
 
@@ -1295,33 +1373,75 @@ button.tile-link:hover {
   gap: 16px;
 }
 
-.report-cards.one {
-  grid-template-columns: minmax(0, 640px);
+/* A report card's rows: names left, values right-aligned in two columns (share, then count). */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 4px;
 }
 
-.report-lines {
-  list-style: none;
-  margin: 8px 0;
-  padding: 0;
-  display: grid;
-  gap: 4px;
+.report-table th,
+.report-table td {
+  padding: 3px 0;
+  vertical-align: top;
   line-height: 1.45;
 }
 
-.rl-sub {
-  display: block;
+.report-table th {
+  text-align: left;
+  font-weight: 400;
+}
+
+/* The names take the spare width, so the share sits next to the count however wide the card. */
+.report-table th[scope="row"] {
+  width: 100%;
+}
+
+.report-table td {
+  padding-left: 12px;
+  white-space: nowrap;
+}
+
+.report-table tr.rt-gap > * {
+  padding-top: 12px;
+}
+
+/* A line between parts of a card (the year's longest streaks). */
+.report-table tr.rt-sep > * {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.report-table tr.rt-head th {
+  font-weight: 600;
+}
+
+/* Days passed reads at the score's size, with a line under it. */
+.report-table tr.rt-days > * {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.report-table tr.rt-days + tr > * {
+  padding-top: 8px;
+}
+
+/* The muted line under a time or number habit, right-aligned with the values. */
+.report-table tr.rt-has-sub > * {
+  padding-bottom: 0;
+}
+
+.report-table tr.rt-sub td {
+  padding: 0 0 3px;
+  text-align: right;
   font-size: 12px;
 }
 
-.report-card p {
-  margin: 8px 0;
-}
-
-.report-score {
-  font-size: 15px;
-  border-top: 1px solid var(--border);
+.report-table tr.rt-score > * {
   padding-top: 8px;
-  margin-bottom: 0 !important;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
 }
 
 .month-grid td {
@@ -1550,6 +1670,37 @@ dialog.guide::backdrop {
   line-height: 1.5;
 }
 
+/* Replace-on-import: the stored year and the file side by side; rows that differ are tinted. */
+table.compare {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+table.compare th,
+table.compare td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+table.compare thead th {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+table.compare tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+table.compare tr.differs th,
+table.compare tr.differs td {
+  background: var(--diff-bg);
+}
+
 .guide-body h2 {
   margin: 0 0 8px;
   font-size: 18px;
@@ -1589,7 +1740,10 @@ dialog.guide::backdrop {
     flex: 1 1 140px;
   }
 
-  .view-mode {
+  /* On a phone the switch and its ? take the rest of their line, the ? at its right end. */
+  .day-nav-end {
+    flex: 1 0 auto;
+    justify-content: space-between;
     margin-left: 0;
   }
 
@@ -1672,4 +1826,45 @@ dialog.guide::backdrop {
   left: 0;
   z-index: 1;
   background: var(--surface);
+}
+
+/* The cookie question, until it is answered (src/analytics.ts). Docked at the foot, above
+   everything but dialogs, and wide enough to read rather than glance at. */
+.consent {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  box-sizing: border-box;
+  width: calc(100% - 32px);
+  max-width: 640px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.consent-text {
+  flex: 1 1 300px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.consent-text strong {
+  color: var(--text);
+}
+
+.consent-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
 }

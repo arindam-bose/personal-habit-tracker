@@ -4,6 +4,8 @@
 import type { ComponentChildren } from "preact";
 import { useRef } from "preact/hooks";
 import { released, version } from "../../package.json";
+import { consent, openConsent } from "../analytics";
+import { Modal } from "./modal";
 
 const REPO = "https://github.com/arindam-bose/personal-habit-tracker";
 
@@ -23,15 +25,12 @@ function DialogFact(props: { term: string; title: string; children: ComponentChi
         <button type="button" class="link fact-open" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>{props.term}</button>
       </dt>
       <dd />
-      <dialog ref={dialog} class="guide" aria-label={props.title} onClick={(e) => e.target === dialog.current && dialog.current?.close()}>
-        <div class="guide-body">
-          <h2 tabIndex={-1} autofocus>{props.title}</h2>
-          {props.children}
-          <div class="form-actions">
-            <button type="button" class="primary" onClick={() => dialog.current?.close()}>Close</button>
-          </div>
+      <Modal dialogRef={dialog} title={props.title}>
+        {props.children}
+        <div class="form-actions">
+          <button type="button" class="primary" onClick={() => dialog.current?.close()}>Close</button>
         </div>
-      </dialog>
+      </Modal>
     </div>
   );
 }
@@ -61,6 +60,10 @@ export function AboutCard() {
           <p>
             There is no account and no server. Everything you log is stored in your own browser, on your
             own device, and is never sent anywhere. It works without a signal, too.
+          </p>
+          <p>
+            If you say yes under <b>Cookie settings</b>, Google Analytics counts visits to the site.
+            It never sees what you log.
           </p>
           <p>
             That also means <b>you are the backup</b>. Download a copy of each year now and then with
@@ -126,6 +129,14 @@ export function AboutCard() {
         </div>
         <LinkFact term="Source code" href={REPO} />
         <LinkFact term="Log issues and request features" href={`${REPO}/issues`} />
+        <div>
+          <dt>Cookie settings</dt>
+          <dd>
+            <button type="button" class="link" onClick={openConsent} title="Change whether Google Analytics may count your visits">
+              {consent.value === "granted" ? "Accepted" : consent.value === "denied" ? "Declined" : "Not chosen"}
+            </button>
+          </dd>
+        </div>
       </dl>
     </section>
   );
