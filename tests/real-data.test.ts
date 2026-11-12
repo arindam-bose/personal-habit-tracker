@@ -7,9 +7,9 @@ import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { globSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { MONTHS } from "../src/dates";
-import { monthStats, trackedOf, yearStats } from "../src/score";
+import { monthStats, trackedOf, yearStats, type Tracked } from "../src/score";
 import type { YearFile } from "../src/types";
 import { validateYearFile } from "../src/validate";
 
@@ -43,11 +43,15 @@ const pct = (s: string | undefined) => (s ? Number(s.replace("%", "")) : NaN);
 for (const year of [2025, 2026]) {
   const dir = join(ROOT, "data/notion", String(year));
   describe.skipIf(!existsSync(dir))(`Notion ${year}`, () => {
-    const out = join(mkdtempSync(join(tmpdir(), "habits-")), `${year}.json`);
-    execFileSync("python3", ["-I", join(ROOT, "tools/notion_import.py"), dir, String(year), out]);
-    const file = JSON.parse(readFileSync(out, "utf-8")) as YearFile;
-    const t = trackedOf({ setup: file, days: file.days });
-    const monthly = csvRows(globSync(join(dir, "**/*Monthly*[0-9a-f].csv"))[0]!);
+    // In beforeAll, not the describe body: vitest runs a skipped describe's body too, to collect its tests.
+    let file: YearFile, t: Tracked, monthly: Record<string, string>[];
+    beforeAll(() => {
+      const out = join(mkdtempSync(join(tmpdir(), "habits-")), `${year}.json`);
+      execFileSync("python3", ["-I", join(ROOT, "tools/notion_import.py"), dir, String(year), out]);
+      file = JSON.parse(readFileSync(out, "utf-8")) as YearFile;
+      t = trackedOf({ setup: file, days: file.days });
+      monthly = csvRows(globSync(join(dir, "**/*Monthly*[0-9a-f].csv"))[0]!);
+    });
 
     it("is a valid year file", () => {
       expect(validateYearFile(file).ok).toBe(true);
