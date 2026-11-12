@@ -14,7 +14,7 @@ import { tracked, weekStart } from "../state";
 import { theme } from "../theme";
 import type { Habit } from "../types";
 import { CardTitle } from "./help";
-import { Chart, OUTSIDE_LABEL_ROOM, axisStyle, barLabel, levelLine, baseOption, percentAxis, token, type ChartOption } from "./chart";
+import { Chart, OUTSIDE_LABEL_ROOM, axisStyle, barLabels, levelLine, baseOption, percentAxis, token, type ChartOption } from "./chart";
 import { NoYear, openDay, plural, refDay } from "./common";
 
 type Tab = "overview" | "months" | "habits";
@@ -100,7 +100,7 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
     xAxis: { type: "category", data: months.map((m) => MONTHS_SHORT[m - 1]), ...axisStyle(), splitLine: { show: false } },
     yAxis: { ...percentAxis(), axisLabel: { color: token("--muted") } },
     series: [{ name: "Monthly score", type: "bar", data: stats.map((s) => (s.score === null ? null : Math.round(s.score * 10) / 10)), barMaxWidth: 36,
-      itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] }, label: barLabel((v) => points(v, 1)),
+      itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] }, ...barLabels((v) => points(v, 1)),
       ...(average === null ? {} : { markLine: levelLine(average, `Average\n${points(average, 1)}`, true) }) }],
   };
   const monthEnds = bestAndHardest(months.map((_, i) => i), (i) => stats[i]!.score);
@@ -116,7 +116,7 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
     // Out of 100, to one place, as Monthly score is beside it: the axis, the labels, the tooltip and the table.
     yAxis: { ...percentAxis(), axisLabel: { color: token("--muted") } },
     series: [{ name: "Average day score", type: "bar", data: order.map((d) => wd[d]!.score), barMaxWidth: 36, itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] },
-      label: barLabel((v) => points(v, 1)),
+      ...barLabels((v) => points(v, 1)),
       ...(average === null ? {} : { markLine: levelLine(average, `Average\n${points(average, 1)}`, true) }) }],
   };
   const dayEnds = bestAndHardest(order, (d) => wd[d]!.score);
@@ -282,6 +282,7 @@ function MeasureChart(props: { habit: Habit; index: number; months: number[]; st
   const option: ChartOption = {
     ...baseOption(),
     legend: { show: false },
+    ...(habit.goal ? { grid: { ...(baseOption().grid as object), right: OUTSIDE_LABEL_ROOM } } : {}),
     tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: show },
     xAxis: { type: "category", data: months.map((m) => MONTHS_SHORT[m - 1]), ...axisStyle(), splitLine: { show: false } },
     yAxis: {
@@ -294,10 +295,10 @@ function MeasureChart(props: { habit: Habit; index: number; months: number[]; st
     },
     series: [{
       name: `Average ${habit.name}`, type: "bar", data: values.map((v) => (v === null ? null : Math.round(v * 10) / 10)), barMaxWidth: 32,
-      itemStyle: { color, borderRadius: [4, 4, 0, 0] },
-      ...(habit.goal ? {
-        markLine: levelLine(habit.goal.value, `Goal ${show(habit.goal.value)}`),
-      } : {}),
+      // Each month's average on top, as on the Overview's bars; so the goal is named past the line's
+      // end, where it can't land on one.
+      itemStyle: { color, borderRadius: [4, 4, 0, 0] }, ...barLabels(show, true),
+      ...(habit.goal ? { markLine: levelLine(habit.goal.value, `Goal\n${show(habit.goal.value)}`, true) } : {}),
     }],
   };
   return (

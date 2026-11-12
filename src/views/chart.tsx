@@ -6,10 +6,11 @@ import { BarChart, LineChart } from "echarts/charts";
 import { GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from "echarts/components";
 import * as echarts from "echarts/core";
 import { SVGRenderer } from "echarts/renderers";
+import { LabelLayout } from "echarts/features";
 import { useEffect, useRef } from "preact/hooks";
 import { theme } from "../theme";
 
-echarts.use([BarChart, LineChart, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent, SVGRenderer]);
+echarts.use([BarChart, LineChart, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent, LabelLayout, SVGRenderer]);
 
 export type ChartOption = echarts.EChartsCoreOption;
 
@@ -65,16 +66,21 @@ export function percentAxis() {
 }
 
 /**
- * A bar's value on top of it, muted. Smaller on a phone, where a dozen bars share the width and the
- * labels would run into each other; the size is picked when the chart's option is built.
+ * The series fields for a bar's value on top of it, muted. Smaller on a phone, where a dozen bars
+ * share the width; the size is picked when the chart's option is built. `hideOverlap`, for labels as
+ * wide as a time ("7:43"), leaves out one that would still run into its neighbour there: every other
+ * month, say. The table under the chart has every one.
  */
-export function barLabel(format: (value: number) => string) {
+export function barLabels(format: (value: number) => string, hideOverlap = false) {
   return {
-    show: true, position: "top" as const, color: token("--muted"),
-    fontSize: matchMedia("(max-width: 600px)").matches ? 9 : 12,
-    // A halo of the card's own colour, so a level line passing behind a label doesn't strike it through.
-    textBorderColor: token("--surface"), textBorderWidth: 3,
-    formatter: (p: { value: number }) => format(p.value),
+    label: {
+      show: true, position: "top" as const, color: token("--muted"),
+      fontSize: matchMedia("(max-width: 600px)").matches ? 9 : 12,
+      // A halo of the card's own colour, so a level line passing behind a label doesn't strike it through.
+      textBorderColor: token("--surface"), textBorderWidth: 3,
+      formatter: (p: { value: number }) => format(p.value),
+    },
+    ...(hideOverlap ? { labelLayout: { hideOverlap: true } } : {}),
   };
 }
 
