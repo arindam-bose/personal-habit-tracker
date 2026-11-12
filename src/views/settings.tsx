@@ -1,6 +1,6 @@
-// Settings: your years (open, back up, close, reopen, delete), importing a backup, starting a
-// year, a demo file, the first day of the week, light or dark, the offline copy, the home screen,
-// erasing everything, and About.
+// Settings: your years (back up, close, reopen, delete; the year picker in the top bar opens
+// one), importing a backup, starting a year, a demo file, the first day of the week, light or
+// dark, the offline copy, the home screen, erasing everything, and About.
 
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
@@ -175,7 +175,6 @@ function YearsTable() {
                     </span>
                   ) : (
                     <span class="row-actions">
-                      {year !== open && <button type="button" onClick={() => openYear(year)}>Open</button>}
                       <IconButton icon="export" label={`Back up ${year}`} title={`Download ${year} as a JSON file`} onClick={() => backUpYear(year)} />
                       {closed ? (
                         <IconButton icon="reopen" label={`Reopen ${year}`} title={`Reopen ${year}, to change it again`} onClick={() => reopenYear(year)} />
