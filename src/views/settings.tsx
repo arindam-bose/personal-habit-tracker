@@ -1,6 +1,6 @@
-// Settings: your years (back up, close, reopen, delete; the year picker in the top bar opens
-// one), importing a backup, starting a year, a demo file, the first day of the week, light or
-// dark, the offline copy, erasing everything, the home screen, and About.
+// Settings: your data, a year per row (back up, close, reopen, delete; the year picker in the top
+// bar opens one), importing a backup, starting a year, a demo file, the first day of the week,
+// light or dark, the offline copy, erasing everything, the home screen, and About.
 
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
@@ -80,7 +80,7 @@ export function SettingsView() {
   return (
     <div class="stack settings">
       <section class="card">
-        <h3 class="card-title">Your years</h3>
+        <h3 class="card-title">Your data</h3>
         {years.value.length ? <YearsTable /> : <p class="muted">Nothing stored yet. Start a year below, or import a backup.</p>}
         <div class="setting-row">
           <label class="button file-button">
