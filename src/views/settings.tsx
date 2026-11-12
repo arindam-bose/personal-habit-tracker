@@ -140,7 +140,6 @@ function DemoNote() {
 function YearsTable() {
   const closing = useSignal<number | null>(null);
   const asking = useSignal<number | null>(null);
-  const open = current.value?.setup.year;
   return (
     <>
       <table class="years data-table">
@@ -161,7 +160,6 @@ function YearsTable() {
                 <td class="y-year">
                   {year}
                   {closed && <span class="badge">closed</span>}
-                  {year === open && <span class="badge">open</span>}
                 </td>
                 <td class="y-count" data-label="Logged">{plural(y.days, "day")}</td>
                 <td class="y-count" data-label="Habits">{habits.length}</td>
