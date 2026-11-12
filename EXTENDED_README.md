@@ -61,6 +61,7 @@ including `noUncheckedIndexedAccess`.
 | `src/theme.ts` | Light or dark: the Settings choice, or following the device. |
 | `src/offline.ts`, `src/service-worker.js` | The offline copy: registering it, its status, checking for updates. |
 | `src/install.ts` | Putting the tracker on the home screen. |
+| `src/analytics.ts` | Google Analytics, only with consent: the cookie banner's answer, loading and switching off GA. |
 | `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `modal.tsx` (the dialog every popup uses), `about.tsx` (the About card) and `hooks.ts` (closing a menu). |
 | `tools/notion_import.py` | Python: a Notion Habit Tracker export to a year file. |
 | `tests/` | Vitest. `helpers.ts` builds small synthetic years. |
@@ -327,6 +328,11 @@ export at test time, so the repository can be public.
 - `data/` is in `.gitignore`. Real data never goes into the repository; tests that
   need it read it locally.
 - The app makes no network requests of its own: code and charts are bundled, and
-  text uses the system's fonts. There are no analytics. The README promises users
-  their data "is never sent anywhere"; anything that changes that (a font or script
-  from another site, analytics, a sync feature) must update that promise too.
+  text uses the system's fonts. The one exception is Google Analytics
+  (`src/analytics.ts`, the same property as the Money Tracker's), and only once the
+  visitor accepts the cookie banner: until then nothing of Google's loads, declining
+  later deletes its cookies, and it never runs in development. The answer is kept in
+  `localStorage` under `habit-tracker-analytics-consent`; Cookie settings in the About
+  card asks again. It counts visits only; it never reads IndexedDB. The README promises
+  users their data "is never sent anywhere"; anything that changes that (a font or
+  script from another site, a sync feature) must update that promise too.

@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 1.0.29** ·
+**Version 1.0.30** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -13,6 +13,10 @@ yearly reports.
 
 There is no account and no server. Everything you log is stored in your own browser, on your own
 computer, and is never sent anywhere.
+
+If you say yes when the tracker first asks (or later, under **Cookie settings** in Settings' About
+card), Google Analytics counts visits to the site. It never sees what you log, and nothing of
+Google's loads unless you say yes.
 
 That also means **you are the backup**. **Backup** in the top bar downloads the open year (an icon
 on a phone), and turns red a week after your last backup, if anything changed since. If you clear
