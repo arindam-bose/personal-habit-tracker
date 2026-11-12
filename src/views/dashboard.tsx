@@ -4,8 +4,8 @@
 
 import { MONTHS, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
 import { formatValue, label, goalText } from "../habits";
-import { dayScore, firstDay, habitStreak, isPerfect, level, monthStats, percent, perfectStreak, periodStats, points, yearStats } from "../score";
-import { selectedDay, tracked, weekStart, today } from "../state";
+import { dayScore, firstDay, habitStreakAcross, isPerfect, level, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats } from "../score";
+import { chain, selectedDay, tracked, weekStart, today } from "../state";
 import { HeatLegend, Heatmap, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
 import { TodayView } from "./today";
 
@@ -38,8 +38,10 @@ function Overview() {
   const month = monthOf(ref);
   const m = monthStats(t, month, ref);
   const y = yearStats(t, ref);
-  const perfect = perfectStreak(t, ref);
-  const streaks = t.habits.filter((h) => h.to === undefined || h.to >= ref).map((h) => ({ h, s: habitStreak(t, h, ref) }));
+  // Streaks run on from earlier stored years, and the best is the longest in any of them.
+  const perfect = perfectStreakAcross(chain.value, ref);
+  const streaks = t.habits.filter((h) => h.to === undefined || h.to >= ref).map((h) => ({ h, s: habitStreakAcross(chain.value, h.id, ref) }));
+  const since = chain.value[0]?.year ?? t.year;
 
   return (
     <div class="stack">
@@ -112,7 +114,10 @@ function Overview() {
               </tr>
             </tbody>
           </table>
-          <p class="muted small">Days in a row each habit was met. Today doesn't break a streak until it's over.</p>
+          <p class="muted small">
+            Days in a row each habit was met{since < t.year ? `, counting every year stored from ${since}: a streak carries on over New Year` : ""}.
+            Today doesn't break a streak until it's over.
+          </p>
         </section>
 
         <section class="card">

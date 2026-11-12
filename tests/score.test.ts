@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { closingStreaks, dayScore, habitStreak, level, monthStats, perfectStreak, trackedOf, yearStats } from "../src/score";
+import { closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, trackedOf, yearStats } from "../src/score";
 import { HABITS, yearFile } from "./helpers";
 import type { DayLog } from "../src/types";
 
@@ -63,7 +63,48 @@ describe("streaks", () => {
 
   it("hands the streaks running on December 31 to the next year", () => {
     const end: DayLog[] = [all("2026-12-30"), { date: "2026-12-31", values: { h_med: true } }];
-    expect(closingStreaks(t(end))).toEqual({ h_med: 2 });
+    expect(closingStreaks([t(end)])).toEqual({ h_med: 2 });
+  });
+});
+
+describe("streaks across years", () => {
+  const y2025 = (days: DayLog[], extra = {}) => { const f = yearFile(days, { year: 2025, ...extra }); return trackedOf({ setup: f, days: f.days }); };
+  const lastWeek2025 = ["2025-12-26", "2025-12-27", "2025-12-28", "2025-12-29", "2025-12-30", "2025-12-31"].map(all);
+  const firstDays2026 = [all("2026-01-01"), all("2026-01-02")];
+
+  it("carries on over New Year when last year is stored", () => {
+    const s = habitStreakAcross([y2025(lastWeek2025), t(firstDays2026)], "h_med", "2026-01-02");
+    expect(s).toEqual({ current: 8, best: 8, today: true });
+  });
+
+  it("keeps the best from an earlier year", () => {
+    const long = Array.from({ length: 20 }, (_, i) => all(`2025-03-${String(i + 1).padStart(2, "0")}`));
+    expect(habitStreakAcross([y2025(long), t(firstDays2026)], "h_med", "2026-01-02")).toMatchObject({ current: 2, best: 20 });
+  });
+
+  it("counts a stored year's own days over what was carried in", () => {
+    const s = habitStreakAcross([y2025(lastWeek2025), t(firstDays2026, { streaksIn: { h_med: 99 } })], "h_med", "2026-01-02");
+    expect(s.current).toBe(8);
+  });
+
+  it("starts from the carried streak when last year isn't stored", () => {
+    expect(habitStreakAcross([t(firstDays2026, { streaksIn: { h_med: 6 } })], "h_med", "2026-01-02").current).toBe(8);
+  });
+
+  it("breaks over a missing year, a year without the habit, and a year begun partway", () => {
+    const y2024 = (() => { const f = yearFile([all("2024-12-31")], { year: 2024 }); return trackedOf({ setup: f, days: f.days }); })();
+    expect(habitStreakAcross([y2024, t(firstDays2026)], "h_med", "2026-01-02").current).toBe(2);
+    const without = y2025(lastWeek2025.map((d) => ({ date: d.date, values: { h_sleep: 480 } })), { habits: HABITS.slice(1) });
+    expect(habitStreakAcross([without, t(firstDays2026)], "h_med", "2026-01-02").current).toBe(2);
+    expect(habitStreakAcross([y2025(lastWeek2025), t(firstDays2026)], "h_med", "2026-01-02").current).toBe(8);
+    const late = t([all("2026-01-02")], { start: "2026-01-02" });
+    expect(habitStreakAcross([y2025(lastWeek2025), late], "h_med", "2026-01-02").current).toBe(1);
+  });
+
+  it("runs the perfect-day streak over New Year too, and hands it on when closing", () => {
+    const chain = [y2025(lastWeek2025), t(firstDays2026)];
+    expect(perfectStreakAcross(chain, "2026-01-02").current).toBe(8);
+    expect(closingStreaks([y2025(lastWeek2025)])).toEqual({ h_med: 6, h_sleep: 6, h_screen: 6, perfect: 6 });
   });
 });
 

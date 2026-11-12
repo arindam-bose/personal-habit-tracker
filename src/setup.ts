@@ -104,12 +104,13 @@ export function withStart(data: YearData, start: IsoDate | null): YearSetup {
 /**
  * The next year, when a year is closed: the habits still counting on December 31, each for the
  * whole year (their first and last days don't carry), the streaks running on December 31, and no days.
+ * `earlier` are the stored years before it, oldest first, so a streak running since one of them carries on.
  */
-export function nextYearFile(data: YearData, now = new Date()): YearFile {
+export function nextYearFile(data: YearData, earlier: YearData[] = [], now = new Date()): YearFile {
   const { setup } = data;
   const end = `${setup.year}-12-31`;
   const habits = setup.habits.filter((h) => h.to === undefined || h.to >= end).map(({ from: _f, to: _t, ...h }) => h);
-  const streaks = closingStreaks(trackedOf(data));
+  const streaks = closingStreaks([...earlier, data].map(trackedOf));
   return {
     app: "habit-tracker",
     schema: 1,

@@ -6,8 +6,8 @@ import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import { WEEKDAYS_SHORT, addDays, longDate, shortDate, weekOf } from "../dates";
 import { formatMinutes, formatValue, goalShort, goalText, isActive, label, meets, parseCount, parseDuration } from "../habits";
-import { dayScore, firstDay, habitStreak, level, percent } from "../score";
-import { current, readOnly, selectedDay, setNote, setValue, today, tracked, weekStart } from "../state";
+import { dayScore, firstDay, habitStreakAcross, level, percent } from "../score";
+import { chain, current, readOnly, selectedDay, setNote, setValue, today, tracked, weekStart } from "../state";
 import type { Habit, IsoDate } from "../types";
 import { NoYear, ScoreBar, mode, setMode } from "./common";
 import { Icon } from "./icons";
@@ -139,7 +139,7 @@ function DayCard({ date }: { date: IsoDate }) {
       <ul class="habit-cards">
         {habits.map((h) => (
           <HabitCard key={`${date}-${h.id}`} habit={h} date={date} value={day?.values[h.id]} locked={!!locked}
-            streak={isToday ? habitStreak(t, h, date).current : null} />
+            streak={isToday ? habitStreakAcross(chain.value, h.id, date).current : null} />
         ))}
       </ul>
       <NoteField key={date} date={date} note={day?.note ?? ""} locked={!!locked} />

@@ -1,7 +1,8 @@
 import { beforeEach, expect, it } from "vitest";
 import { exportYear, importYear } from "../src/backup";
 import { closeDb, eraseAll, loadYear } from "../src/db";
-import { closeYear, current, removeHabit, saveHabit, setNote, setValue, today, openYear, readOnly } from "../src/state";
+import { habitStreakAcross } from "../src/score";
+import { chain, closeYear, current, removeHabit, saveHabit, setNote, setValue, today, openYear, readOnly } from "../src/state";
 import { SetupError } from "../src/setup";
 import { HABITS, yearFile } from "./helpers";
 
@@ -37,6 +38,15 @@ it("refuses to change a logged habit's kind, and deletes a habit's values with i
   await expect(saveHabit({ ...HABITS[0]!, kind: "number" })).rejects.toBeInstanceOf(SetupError);
   await removeHabit("h_med");
   expect((await loadYear(2026))!.days).toEqual([{ date: "2026-01-02", values: { h_sleep: 400 } }]);
+});
+
+it("counts streaks through earlier stored years, closed or not", async () => {
+  await importYear(yearFile([{ date: "2025-12-30", values: { h_med: true } }, { date: "2025-12-31", values: { h_med: true } }], { year: 2025 }));
+  await importYear(yearFile([{ date: "2026-01-01", values: { h_med: true } }]));
+  today.value = "2026-01-01";
+  await openYear(2026);
+  expect(chain.value.map((t) => t.year)).toEqual([2025, 2026]);
+  expect(habitStreakAcross(chain.value, "h_med", today.value).current).toBe(3);
 });
 
 it("closes a year into the next with its habits and running streaks", async () => {

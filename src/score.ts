@@ -132,62 +132,105 @@ export function yearStats(t: Tracked, today: IsoDate): PeriodStats {
 export interface Streak {
   /** Days in a row up to today, or up to yesterday while today isn't met yet. */
   current: number;
-  /** The longest run this year, counting one carried in from last year. */
+  /** The longest run, counting one carried in from an earlier year. */
   best: number;
   /** Whether today is already met. */
   today: boolean;
 }
 
+/** What a streak counts in one year: the days it applies to, and whether each was a success. Null: it doesn't exist that year. */
+type StreakTest = { applies: (d: IsoDate) => boolean; passed: (d: IsoDate) => boolean; carried: number } | null;
+
 /**
- * Days in a row a test was passed, over the days the test applies to (others are skipped: they
- * neither add to a run nor break it). `carried` is a run brought in from the year before.
+ * Days in a row a test was passed, through a run of years, oldest first. Days the test doesn't
+ * apply to are skipped: they neither add to a run nor break it. A run goes on from December 31 into
+ * January 1 only when both years are here, the later one is tracked from January 1, and the test
+ * exists in both. Otherwise a year starts from its carried-in streak (kept when the year before was
+ * closed), or from 0.
  */
-function runOf(dates: IsoDate[], applies: (d: IsoDate) => boolean, passed: (d: IsoDate) => boolean, carried: number, today: IsoDate): Streak {
-  let run = carried;
-  let best = carried;
-  let beforeToday = carried;
+function chainRun(chain: Tracked[], today: IsoDate, testOf: (t: Tracked) => StreakTest): Streak {
+  let run = 0;
+  let best = 0;
+  let current = 0;
   let todayPassed = false;
-  for (const d of dates) {
-    if (!applies(d)) continue;
-    if (d === today) beforeToday = run;
-    if (passed(d)) {
-      run++;
-      if (d === today) todayPassed = true;
-    } else run = 0;
+  chain.forEach((t, i) => {
+    const test = testOf(t);
+    const prev = chain[i - 1];
+    if (!test) {
+      run = current = 0;
+      return;
+    }
+    const joined = prev !== undefined && prev.year === t.year - 1 && firstDay(t) === `${t.year}-01-01` && testOf(prev) !== null;
+    if (!joined) run = test.carried;
     if (run > best) best = run;
-  }
-  const lastIsToday = dates.length > 0 && dates[dates.length - 1] === today && applies(today);
-  // Today isn't over: not done yet doesn't end the run.
-  const current = lastIsToday && !todayPassed ? beforeToday : run;
+    let beforeToday = run;
+    const dates = countedDays(t, today);
+    for (const d of dates) {
+      if (!test.applies(d)) continue;
+      if (d === today) beforeToday = run;
+      if (test.passed(d)) {
+        run++;
+        if (d === today) todayPassed = true;
+      } else run = 0;
+      if (run > best) best = run;
+    }
+    const lastIsToday = dates.length > 0 && dates[dates.length - 1] === today && test.applies(today);
+    // Today isn't over: not done yet doesn't end the run.
+    current = lastIsToday && !todayPassed ? beforeToday : run;
+  });
   return { current, best, today: todayPassed };
 }
 
-/** A habit's streak: days in a row it was met. */
+function habitTest(id: string): (t: Tracked) => StreakTest {
+  return (t) => {
+    const habit = t.habits.find((h) => h.id === id);
+    if (!habit) return null;
+    // A carried streak goes on only if the habit counts from the year's first day.
+    const carried = habit.from === undefined || habit.from <= firstDay(t) ? t.streaksIn?.[id] ?? 0 : 0;
+    return { applies: (d) => isActive(habit, d), passed: (d) => metOn(habit, t.days.get(d)), carried };
+  };
+}
+
+function perfectTest(t: Tracked): StreakTest {
+  return { applies: (d) => activeOn(t.habits, d).length > 0, passed: (d) => isPerfect(dayScore(t, d)), carried: t.streaksIn?.perfect ?? 0 };
+}
+
+/** A habit's streak in one year: days in a row it was met. */
 export function habitStreak(t: Tracked, habit: Habit, today: IsoDate): Streak {
-  const dates = countedDays(t, today);
-  // A carried streak goes on only if the habit counts from the year's first day.
-  const carried = habit.from === undefined || habit.from <= firstDay(t) ? t.streaksIn?.[habit.id] ?? 0 : 0;
-  return runOf(dates, (d) => isActive(habit, d), (d) => metOn(habit, t.days.get(d)), carried, today);
+  return chainRun([t], today, habitTest(habit.id));
 }
 
-/** The perfect-day streak: days in a row every habit was met. */
+/** The perfect-day streak in one year: days in a row every habit was met. */
 export function perfectStreak(t: Tracked, today: IsoDate): Streak {
-  const dates = countedDays(t, today);
-  return runOf(dates, (d) => activeOn(t.habits, d).length > 0, (d) => isPerfect(dayScore(t, d)), t.streaksIn?.perfect ?? 0, today);
+  return chainRun([t], today, perfectTest);
 }
 
-/** The streaks running at the end of December 31, to carry into the next year. */
-export function closingStreaks(t: Tracked): Record<string, number> {
+/**
+ * A habit's streak through every stored year up to the last in `chain` (oldest first): a run
+ * carries on over New Year, and the best is the longest in any of them.
+ */
+export function habitStreakAcross(chain: Tracked[], id: string, today: IsoDate): Streak {
+  return chainRun(chain, today, habitTest(id));
+}
+
+/** The perfect-day streak through every stored year up to the last in `chain` (oldest first). */
+export function perfectStreakAcross(chain: Tracked[], today: IsoDate): Streak {
+  return chainRun(chain, today, perfectTest);
+}
+
+/** The streaks running at the end of December 31 of the last year in `chain`, to carry into the next year. */
+export function closingStreaks(chain: Tracked[]): Record<string, number> {
+  const t = chain[chain.length - 1]!;
   const end = `${t.year}-12-31`;
   // Seen from the next day: December 31 is over, so not met then ends a streak.
   const after = `${t.year + 1}-01-01`;
   const out: Record<string, number> = {};
   for (const h of t.habits) {
     if (h.to !== undefined && h.to < end) continue;
-    const s = habitStreak(t, h, after);
+    const s = habitStreakAcross(chain, h.id, after);
     if (s.current) out[h.id] = s.current;
   }
-  const p = perfectStreak(t, after);
+  const p = perfectStreakAcross(chain, after);
   if (p.current) out.perfect = p.current;
   return out;
 }

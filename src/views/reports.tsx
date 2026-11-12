@@ -183,9 +183,9 @@ function YearReport({ t, ref_ }: { t: Tracked; ref_: string }) {
       <ReportCard title={`📅 ${t.year}${ref_ < `${t.year}-12-31` ? ` so far (to ${longDate(ref_)})` : ""}`} stats={y} scoreName="Yearly score"
         extra={
           <div class="small">
-            <p>🔥 Longest streaks:</p>
+            <p>🔥 Longest streaks in {t.year}:</p>
             <ul class="report-lines">
-              {streaks.map(({ h, s }) => <li>{label(h)}: <b>{plural(s.best, "day")}</b>{s.current ? <span class="muted"> · {s.current} now</span> : null}</li>)}
+              {streaks.map(({ h, s }) => <li>{label(h)}: <b>{plural(s.best, "day")}</b></li>)}
               <li>🎉 Perfect days: <b>{plural(perfect.best, "day")}</b> in a row</li>
             </ul>
           </div>

@@ -31,6 +31,15 @@ export const readOnly = computed(() => current.value?.setup.closed === true);
 /** The open year in the shape the calculations in score.ts take. */
 export const tracked = computed<Tracked | null>(() => (current.value ? trackedOf(current.value) : null));
 
+/** The stored years before the open one, oldest first, for streaks that run on from year to year. */
+export const earlier = signal<YearData[]>([]);
+
+/** Every stored year up to the open one, oldest first: what the streaks count through. */
+export const chain = computed<Tracked[]>(() => {
+  const open = tracked.value;
+  return open ? [...earlier.value.map(trackedOf), open] : [];
+});
+
 /** Today, on the reader's clock. Moves on at midnight while the page stays open. */
 export const today = signal<IsoDate>(localToday());
 if (typeof window !== "undefined") {
@@ -70,7 +79,10 @@ export async function openYear(year?: number): Promise<void> {
   const saved = await getSetting("activeYear");
   const thisYear = Number(today.value.slice(0, 4));
   const pick = [year, saved, thisYear, stored[0]].find((y) => y !== undefined && stored.includes(y));
-  current.value = pick === undefined ? null : await loadYear(pick);
+  const before = pick === undefined ? [] : stored.filter((y) => y < pick);
+  const [data, ...rest] = await Promise.all([pick === undefined ? null : loadYear(pick), ...before.map((y) => loadYear(y))]);
+  earlier.value = rest.filter((d): d is YearData => d !== null).sort((a, b) => a.setup.year - b.setup.year);
+  current.value = data ?? null;
   if (pick !== undefined && pick !== saved) await setSetting("activeYear", pick);
   // The day log shows a day of the open year: today when it's this year, else its last day.
   if (pick !== undefined && !selectedDay.value.startsWith(`${pick}-`)) {
@@ -213,7 +225,7 @@ export interface CloseResult {
 export async function closeYear(): Promise<CloseResult> {
   const result = await inTurn(async () => {
     const data = editable();
-    const next = nextYearFile(data);
+    const next = nextYearFile(data, earlier.value);
     const existing = await loadYear(next.year);
     await putChange({ ...data.setup, closed: true });
     if (!existing) await replaceYear(next);
@@ -251,6 +263,7 @@ export async function eraseEverything(): Promise<void> {
   await inTurn(async () => {
     await eraseAll();
     current.value = null;
+    earlier.value = [];
     weekStart.value = 1;
   });
   await refreshYears();

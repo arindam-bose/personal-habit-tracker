@@ -95,7 +95,9 @@ export function AboutCard() {
           </p>
           <p>
             A <b>streak</b> is the days in a row a habit was met. Today doesn't break it until the day is
-            over. When you close a year, the streaks running on December 31 carry into the next one.
+            over. With last year stored too, a streak carries on over New Year, and the best counts every
+            stored year. Closing a year also keeps its streaks running on December 31 in the next year,
+            so they carry on even on a device without the old year.
           </p>
           <h3>The pages</h3>
           <ul>

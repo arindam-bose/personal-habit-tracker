@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 1.0.3** ·
+**Version 1.0.4** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -47,8 +47,10 @@ score lower. **Stop** a habit you're giving up: its days so far keep counting, l
   scores 0 once it has come.
 - A **month's or year's score** is the average of its days so far, out of 100.
 - A **perfect day** meets every habit.
-- A **streak** is the days in a row a habit was met. Today doesn't break it until it's over. When a
-  year is closed, the streaks running on December 31 carry on into the next year.
+- A **streak** is the days in a row a habit was met. Today doesn't break it until it's over. With
+  earlier years stored, a streak carries on over New Year, and the Dashboard's best is the longest
+  in any stored year. Closing a year also keeps the streaks running on December 31 in the next
+  year, so they carry on even on a device without the old year.
 
 These are the same rules as the Notion tracker this replaces, so imported years score exactly as
 they did there.
