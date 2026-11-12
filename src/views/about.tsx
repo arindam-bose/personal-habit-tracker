@@ -4,6 +4,7 @@
 import type { ComponentChildren } from "preact";
 import { useRef } from "preact/hooks";
 import { released, version } from "../../package.json";
+import { Modal } from "./modal";
 
 const REPO = "https://github.com/arindam-bose/personal-habit-tracker";
 
@@ -23,15 +24,12 @@ function DialogFact(props: { term: string; title: string; children: ComponentChi
         <button type="button" class="link fact-open" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>{props.term}</button>
       </dt>
       <dd />
-      <dialog ref={dialog} class="guide" aria-label={props.title} onClick={(e) => e.target === dialog.current && dialog.current?.close()}>
-        <div class="guide-body">
-          <h2 tabIndex={-1} autofocus>{props.title}</h2>
-          {props.children}
-          <div class="form-actions">
-            <button type="button" class="primary" onClick={() => dialog.current?.close()}>Close</button>
-          </div>
+      <Modal dialogRef={dialog} title={props.title}>
+        {props.children}
+        <div class="form-actions">
+          <button type="button" class="primary" onClick={() => dialog.current?.close()}>Close</button>
         </div>
-      </dialog>
+      </Modal>
     </div>
   );
 }

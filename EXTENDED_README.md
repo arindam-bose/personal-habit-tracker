@@ -61,7 +61,7 @@ including `noUncheckedIndexedAccess`.
 | `src/theme.ts` | Light or dark: the Settings choice, or following the device. |
 | `src/offline.ts`, `src/service-worker.js` | The offline copy: registering it, its status, checking for updates. |
 | `src/install.ts` | Putting the tracker on the home screen. |
-| `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `about.tsx` (the About card) and `hooks.ts` (closing a menu). |
+| `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `modal.tsx` (the dialog every popup uses), `about.tsx` (the About card) and `hooks.ts` (closing a menu). |
 | `tools/notion_import.py` | Python: a Notion Habit Tracker export to a year file. |
 | `tests/` | Vitest. `helpers.ts` builds small synthetic years. |
 | `data/` | Your own Notion exports. Git-ignored; never commit it. |
@@ -197,7 +197,10 @@ A backup is the year's `YearFile`, downloaded from the Settings page or the top 
 the changes being saved. The button turns into a red reminder for an open year with
 days logged that was never backed up, or that changed since a backup at least 7 days
 old, in its days or its setup (`backupDue` in `storage.ts`). Importing a file counts
-as a backup made at its `exportedAt` time. JSON keys are written in a fixed order and
+as a backup made at its `exportedAt` time. Importing over a stored year first asks in a
+dialog (`ReplaceDialog` in `settings.tsx`, as in the Money Tracker): days logged, habits
+and last updated in the tracker and in the file side by side, rows that differ
+tinted (`--diff-bg`), and a warning when the tracker's changes are newer. JSON keys are written in a fixed order and
 days oldest first, so two backups of the same year diff cleanly.
 
 Backups are named `habit-tracker-<year>_<date>_<time>_<browser>_<system>.json`

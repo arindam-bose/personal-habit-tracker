@@ -11,6 +11,7 @@
   --good: #2f7d4f;
   --on-heat: #ffffff;
   --row-hover: #f1f1ed;
+  --diff-bg: #fff3c4; /* a row that differs, in Replace-on-import */
   --focus: #3b5bcc55;
   /* Chart series, in fixed order (validated for colour-blind separation on this surface). */
   --series-1: #2a78d6;
@@ -50,6 +51,7 @@
   --good: #6fcf97;
   --on-heat: #ffffff;
   --row-hover: #26262a;
+  --diff-bg: #4a3f17;
   --focus: #8ea6f266;
   --series-1: #3987e5;
   --series-2: #d95926;
@@ -1548,6 +1550,37 @@ dialog.guide::backdrop {
 .guide-body {
   padding: 20px 24px;
   line-height: 1.5;
+}
+
+/* Replace-on-import: the stored year and the file side by side; rows that differ are tinted. */
+table.compare {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+table.compare th,
+table.compare td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+table.compare thead th {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+table.compare tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+table.compare tr.differs th,
+table.compare tr.differs td {
+  background: var(--diff-bg);
 }
 
 .guide-body h2 {
