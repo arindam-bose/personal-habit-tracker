@@ -108,7 +108,7 @@ export function SettingsView() {
             <button type="button" class={weekStart.value === v ? "active" : ""} aria-pressed={weekStart.value === v} onClick={() => saveWeekStart(v)}>{name}</button>
           ))}
         </div>
-        <p class="muted small">For the week on Today, the Dashboard's This week, and the heatmaps' rows.</p>
+        <p class="muted small">For the week strip and This week on the Dashboard, and the heatmaps' rows.</p>
       </section>
 
       <section class="card">
@@ -275,7 +275,7 @@ function StartYearCard() {
     try {
       await startYear(chosen!, habits, start.value || null);
       open.value = years.value.length === 0;
-      location.hash = habits.length ? "#/today" : "#/habits";
+      location.hash = habits.length ? "#/dashboard" : "#/habits";
     } catch (err) {
       error.value = err instanceof Error ? err.message : String(err);
     }

@@ -12,7 +12,6 @@ import { HabitsView } from "./views/habits";
 import { useDismiss } from "./views/hooks";
 import { Icon } from "./views/icons";
 import { SettingsView } from "./views/settings";
-import { TodayView } from "./views/today";
 
 /** Pages with charts pull in the charting library, so their code is only downloaded when first opened. */
 function chartPage(load: () => Promise<ComponentType>): ComponentType {
@@ -36,7 +35,7 @@ function chartPage(load: () => Promise<ComponentType>): ComponentType {
 
 /** Pages, by URL hash (#/reports). Hash links work on any static host with no server setup. */
 const PAGES = {
-  today: { label: "Today", view: TodayView },
+  // The main page: today's log at the top, the year at a glance below it.
   dashboard: { label: "Dashboard", view: DashboardView },
   calendar: { label: "Calendar", view: CalendarView },
   reports: { label: "Reports", view: chartPage(() => import("./views/reports").then((m) => m.ReportsView)) },
@@ -47,9 +46,12 @@ const PAGES = {
 } as const;
 type Page = keyof typeof PAGES;
 
+/** Old page names, so bookmarks made before a page moved still open the right one. */
+const RENAMED: Record<string, Page> = { today: "dashboard" };
+
 function pageFromHash(): Page {
   const name = location.hash.replace(/^#\/?/, "");
-  return name in PAGES ? (name as Page) : "today";
+  return name in PAGES ? (name as Page) : RENAMED[name] ?? "dashboard";
 }
 
 export function App() {

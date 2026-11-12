@@ -42,7 +42,7 @@ export function HabitsView() {
         <div class="card-head">
           <div>
             <h3>Habits in {setup.year}</h3>
-            <p class="muted small">Each day's score is the share of these habits met that day. The order here is the order on Today.</p>
+            <p class="muted small">Each day's score is the share of these habits met that day. The order here is the order on the Dashboard.</p>
           </div>
           {!locked && editing.value !== "new" && <button type="button" class="primary" onClick={() => (editing.value = "new")}>+ Add habit</button>}
         </div>

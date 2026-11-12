@@ -730,15 +730,10 @@ button.icon-action.icon-export {
   color: var(--muted);
 }
 
-.today-badge,
-.open-badge {
+.open-badge,
+.today-badge {
   background: color-mix(in srgb, var(--accent) 15%, var(--surface));
   color: var(--accent);
-}
-
-.perfect-badge {
-  background: color-mix(in srgb, var(--good) 15%, var(--surface));
-  color: var(--good);
 }
 
 .view-mode {
@@ -791,26 +786,8 @@ button.icon-action.icon-export {
   gap: 12px;
 }
 
-.day-score {
-  padding: 14px 20px;
-}
-
-.day-score-row {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-bottom: 8px;
-}
-
-.day-score-value {
-  font-size: 28px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
 .locked {
-  margin: 8px 0 0;
+  margin: 0;
 }
 
 .habit-cards {
@@ -1017,6 +994,13 @@ textarea:focus-visible {
 }
 
 /* --- Dashboard --- */
+
+/* Between the day log and the year at a glance. */
+.section-sep {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 28px 0 24px;
+}
 
 .tiles {
   display: grid;

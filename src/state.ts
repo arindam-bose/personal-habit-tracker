@@ -40,7 +40,7 @@ if (typeof window !== "undefined") {
   }, 60_000);
 }
 
-/** The day the Today page shows. Other pages set it to open a day there. */
+/** The day the Dashboard's day log shows. Other pages set it to open a day there. */
 export const selectedDay = signal<IsoDate>(today.value);
 
 /** The first day of the week: 1 Monday, 0 Sunday. */
@@ -72,7 +72,7 @@ export async function openYear(year?: number): Promise<void> {
   const pick = [year, saved, thisYear, stored[0]].find((y) => y !== undefined && stored.includes(y));
   current.value = pick === undefined ? null : await loadYear(pick);
   if (pick !== undefined && pick !== saved) await setSetting("activeYear", pick);
-  // The Today page shows a day of the open year: today when it's this year, else its last day.
+  // The day log shows a day of the open year: today when it's this year, else its last day.
   if (pick !== undefined && !selectedDay.value.startsWith(`${pick}-`)) {
     selectedDay.value = pick === thisYear ? today.value : `${pick}-${pick < thisYear ? "12-31" : "01-01"}`;
   }

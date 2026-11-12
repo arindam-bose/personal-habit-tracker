@@ -1,4 +1,4 @@
-// Today: log a day. A card per habit (tap a check, type a time or a number), the day's score,
+// The day log, at the top of the Dashboard: log a day. A card per habit (tap a check, type a time or a number), the day's score,
 // a note, and a strip of the week to move between days. The Week view is a table of the whole
 // week, for catching up on several days at once.
 
@@ -6,10 +6,10 @@ import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import { WEEKDAYS_SHORT, addDays, longDate, shortDate, weekOf } from "../dates";
 import { formatMinutes, formatValue, goalShort, goalText, isActive, label, meets, parseCount, parseDuration } from "../habits";
-import { dayScore, firstDay, habitStreak, isPerfect, level, percent, perfectStreak } from "../score";
+import { dayScore, firstDay, habitStreak, level, percent } from "../score";
 import { current, readOnly, selectedDay, setNote, setValue, today, tracked, weekStart } from "../state";
 import type { Habit, IsoDate } from "../types";
-import { NoYear, ScoreBar, mode, plural, setMode } from "./common";
+import { NoYear, ScoreBar, mode, setMode } from "./common";
 import { Icon } from "./icons";
 
 /** Why a day can't be logged, or null when it can. */
@@ -129,10 +129,8 @@ function DayCard({ date }: { date: IsoDate }) {
   const t = tracked.value!;
   const habits = t.habits.filter((h) => isActive(h, date));
   const day = t.days.get(date);
-  const s = dayScore(t, date);
   const locked = lockedReason(date, firstDay(t), readOnly.value, t.year);
   const isToday = date === today.value;
-  const perfectRun = isToday ? perfectStreak(t, date) : null;
 
   if (!data.setup.habits.length) {
     return (
@@ -144,16 +142,8 @@ function DayCard({ date }: { date: IsoDate }) {
 
   return (
     <div class="day-card">
-      <section class="panel day-score" aria-label="The day's score">
-        <div class="day-score-row">
-          <span class="day-score-value">{s ? percent(s.score) : "–"}</span>
-          <span class="muted">{s ? `${s.met} of ${plural(s.total, "habit")} met` : "No habits count this day"}</span>
-          {isPerfect(s) && <span class="badge perfect-badge">Perfect day</span>}
-          {perfectRun && perfectRun.current > 1 && <span class="muted small">{perfectRun.current} perfect days in a row</span>}
-        </div>
-        <ScoreBar score={s?.score ?? null} />
-        {locked && <p class="muted small locked">{locked}</p>}
-      </section>
+      {/* The day's score is the first tile below the separator. */}
+      {locked && <p class="muted small locked">{locked}</p>}
       <ul class="habit-cards">
         {habits.map((h, i) => (
           <HabitCard key={`${date}-${h.id}`} habit={h} date={date} index={i} value={day?.values[h.id]} locked={!!locked}

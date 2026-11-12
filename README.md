@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 1.0.0** ·
+**Version 1.0.1** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -27,7 +27,7 @@ New versions download by themselves; the top bar then offers **Reload**.
 2. **Start a year**: pick a starter set of habits, the same habits as last year, or none, and
    optionally the day you start. Or **import** a Habit Tracker file (`.json`).
 3. Add, change or reorder habits on the **Habits** page.
-4. Log each day on **Today**.
+4. Log each day at the top of the **Dashboard**.
 
 Want to look around first? On the Settings page, **Download a demo file** and import it.
 
@@ -55,11 +55,12 @@ they did there.
 
 ## What's in it
 
-- **Today**: a card per habit to tick or fill in, the day's score, a note, and the week as a strip
-  of days. **Week** shows the whole week as a table, for catching up on several days at once.
-- **Dashboard**: today, this week, this month and the year; every habit's streak, now and best; the
-  year as a heatmap; and how each habit is going this month against the whole year.
-- **Calendar**: a heatmap of the day score, and one for each habit. Click a day to open it.
+- **Dashboard**, the main page. At the top, the day to log: a card per habit to tick or fill in,
+  the day's score, a note, and the week as a strip of days. **Week** shows the whole week as a
+  table, for catching up on several days at once. Below it, the year at a glance: today, this week,
+  this month and the year; every habit's streak, now and best; the year as a heatmap; and how each
+  habit is going this month against the whole year.
+- **Calendar**: a heatmap of the day score, and one for each habit. Click a day to open it on the Dashboard.
 - **Reports**: the day score through the year, each month's score, the average by weekday, a report
   card for every month and for the year, habits month by month, and times and numbers against their
   goals. Every chart has its numbers as a table, too.
@@ -72,7 +73,7 @@ they did there.
 Closing a year downloads its backup, makes it read-only, and starts the next year with the habits
 still counting on December 31 and the streaks running then. Add more habits there as you like.
 
-## Handy keys on Today
+## Handy keys on the Dashboard
 
 | Key | Does |
 |---|---|

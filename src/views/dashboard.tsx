@@ -1,24 +1,38 @@
-// Dashboard: the year at a glance. Scores for the day, the week, the month and the year, every
-// habit's streak, the year as a heatmap, and how each habit is going this month.
+// Dashboard, the main page. At the top, the day to log (see today.tsx); below it, the year at a
+// glance: scores for the day, the week, the month and the year, every habit's streak, the year as
+// a heatmap, and how each habit is going this month.
 
 import { MONTHS, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
 import { formatValue, label, goalText } from "../habits";
-import { dayScore, habitStreak, isPerfect, level, monthStats, percent, perfectStreak, periodStats, points, yearStats } from "../score";
-import { tracked, weekStart, today } from "../state";
+import { dayScore, firstDay, habitStreak, isPerfect, level, monthStats, percent, perfectStreak, periodStats, points, yearStats } from "../score";
+import { selectedDay, tracked, weekStart, today } from "../state";
 import { HeatLegend, Heatmap, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
+import { TodayView } from "./today";
 
 export function DashboardView() {
-  const t = tracked.value;
-  if (!t) return <NoYear />;
+  if (!tracked.value) return <NoYear />;
+  return (
+    <>
+      <TodayView />
+      <hr class="section-sep" />
+      <Overview />
+    </>
+  );
+}
+
+/** The year at a glance, under the day being logged. */
+function Overview() {
+  const t = tracked.value!;
   const ref = refDay(t);
   if (ref === null) {
-    return <section class="panel empty-state"><p>{t.year} hasn't started yet. Its dashboard fills in from {longDate(t.start ?? `${t.year}-01-01`)}.</p></section>;
+    return <section class="panel empty-state"><p>{t.year} hasn't started yet. Its figures fill in from {longDate(t.start ?? `${t.year}-01-01`)}.</p></section>;
   }
-  if (!t.habits.length) {
-    return <section class="panel empty-state"><p>{t.year} has no habits yet. <a href="#/habits">Add your habits on the Habits page</a>.</p></section>;
-  }
+  // Today already says how to add the first habits.
+  if (!t.habits.length) return null;
+  // The first tile is the day open in the log above: today, or another day picked there.
+  const picked = selectedDay.value >= firstDay(t) && selectedDay.value <= ref ? selectedDay.value : ref;
   const isToday = ref === today.value;
-  const day = dayScore(t, ref);
+  const day = dayScore(t, picked);
   const week = weekOf(ref, weekStart.value);
   const weekStats = periodStats(t, ref, week, addDays(week, 6));
   const month = monthOf(ref);
@@ -30,8 +44,8 @@ export function DashboardView() {
   return (
     <div class="stack">
       <div class="tiles">
-        <button type="button" class="card tile tile-link" onClick={() => openDay(ref)}>
-          <span class="tile-label">{isToday ? "Today" : shortDate(ref)}</span>
+        <button type="button" class="card tile tile-link" onClick={() => openDay(picked)}>
+          <span class="tile-label">{picked === today.value ? "Today" : shortDate(picked)}</span>
           <span class="tile-value">{day ? percent(day.score) : "–"}</span>
           <ScoreBar score={day?.score ?? null} />
           <span class="tile-detail">{day ? `${day.met} of ${plural(day.total, "habit")} met${isPerfect(day) ? " · Perfect day 🎉" : ""}` : ""}</span>

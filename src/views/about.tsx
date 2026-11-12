@@ -74,7 +74,7 @@ export function AboutCard() {
             <li>On this <b>Settings</b> page, start a year (with a starter set of habits, or the same habits
               as last year), or import a backup.</li>
             <li>Add, change or reorder your habits on the <b>Habits</b> page.</li>
-            <li>Log each day on <b>Today</b>.</li>
+            <li>Log each day at the top of the <b>Dashboard</b>.</li>
           </ol>
           <h3>Habits</h3>
           <ul>
@@ -99,16 +99,16 @@ export function AboutCard() {
           </p>
           <h3>The pages</h3>
           <ul>
-            <li><b>Today</b>: log a day, or switch to <b>Week</b> to fill in a whole week as a table.</li>
-            <li><b>Dashboard</b>: today, this week, this month and the year, your streaks, and the year as a heatmap.</li>
-            <li><b>Calendar</b>: a heatmap for the day score and one for each habit. Click a day to open it.</li>
+            <li><b>Dashboard</b>: at the top, log a day, or switch to <b>Week</b> to fill in a whole week as a table.
+              Below it: today, this week, this month and the year, your streaks, and the year as a heatmap.</li>
+            <li><b>Calendar</b>: a heatmap for the day score and one for each habit. Click a day to open it on the Dashboard.</li>
             <li><b>Reports</b>: each month and the year in words and charts, habits month by month, times against
               their goals, and which weekdays go best.</li>
             <li><b>Over the years</b>: once two or more years are stored, each year side by side.</li>
             <li><b>Settings</b>: start, import, back up, close, reopen and delete years; the first day of the week;
               light or dark; the offline copy; and the home screen.</li>
           </ul>
-          <h3>Handy keys on Today</h3>
+          <h3>Handy keys on the Dashboard</h3>
           <table class="data-table keys">
             <tbody>
               <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>The day before or after</td></tr>

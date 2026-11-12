@@ -25,7 +25,7 @@ export function NoYear() {
   );
 }
 
-// The Today page's Day or Week view.
+// The day log's Day or Week view (at the top of the Dashboard).
 const MODE_KEY = "habit-tracker-today-mode";
 const savedMode = (): "day" | "week" => {
   try {
@@ -52,11 +52,13 @@ export function refDay(t: Tracked): IsoDate | null {
   return lastDay(t, today.value);
 }
 
-/** Open a day on the Today page. */
+/** Open a day in the log at the top of the Dashboard. */
 export function openDay(date: IsoDate): void {
   selectedDay.value = date;
   setMode("day");
-  location.hash = "#/today";
+  // From the Dashboard itself the address doesn't change, so scroll up here too.
+  if (location.hash === "#/dashboard" || location.hash === "#/" || location.hash === "") window.scrollTo(0, 0);
+  else location.hash = "#/dashboard";
 }
 
 /** A thin bar filled to a score out of 100. */
@@ -83,7 +85,7 @@ const TOP = 16;
 
 /**
  * A year as a grid of days: a column per week, a row per weekday, each day shaded by `cell`.
- * Pointing at (or tabbing to) a day says what it holds under the map; clicking opens it on Today.
+ * Pointing at (or tabbing to) a day says what it holds under the map; clicking opens it in the day log.
  */
 export function Heatmap(props: { t: Tracked; weekStart: 0 | 1; cell: (date: IsoDate) => Cell; label: string; compact?: boolean }) {
   const { t, weekStart } = props;

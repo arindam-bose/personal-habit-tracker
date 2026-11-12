@@ -1,5 +1,5 @@
 // Calendar: the year as heatmaps. One for the day score, then one for each habit, shaded on the
-// days it was met. Click a day to open it on Today.
+// days it was met. Click a day to open it in the Dashboard's day log.
 
 import { formatValue, goalText, isActive, label, meets } from "../habits";
 import { dayScore, level, percent, yearStats } from "../score";
