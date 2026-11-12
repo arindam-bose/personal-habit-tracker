@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, points, trackedOf, weekdayScores, weekdayStats, yearStats } from "../src/score";
+import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, outOf100, points, trackedOf, weekdayStats, yearStats } from "../src/score";
 import { HABITS, yearFile } from "./helpers";
 import type { DayLog } from "../src/types";
 
@@ -166,7 +166,25 @@ describe("weekday stats", () => {
     expect(sleep(2)).toMatchObject({ logged: 0, average: null });
   });
 
-  it("scores each weekday as weekdayScores does", () => {
-    expect(w.map((x) => x.score)).toEqual(weekdayScores(tr, "2026-03-10").map((x) => x.score));
+  it("scores each weekday as the average of its days, and counts the days scored", () => {
+    // The ten Mondays from January 5 all count, with all three habits: nothing met until March 2,
+    // then 1 of 3 on the 2nd (screen under its limit) and 1 of 3 on the 9th (sleep over its goal).
+    const mondays = w[1]!;
+    expect(mondays.scored).toBe(10);
+    expect(mondays.score).toBeCloseTo(((1 / 3) * 100 + (1 / 3) * 100) / 10, 10);
+  });
+});
+
+describe("EoD review fixes", () => {
+  it("names no best or hardest when every period scores the same", () => {
+    expect(bestAndHardest([0, 1, 2], () => 100)).toBeNull();
+    expect(bestAndHardest([0, 1, 2], (i) => [8, null, 8][i]!)).toBeNull();
+  });
+
+  it("formats a chart's score out of 100, and a missing one as a dash, never 0.0 or NaN", () => {
+    expect(outOf100(64.25)).toBe("64.3 / 100");
+    expect(outOf100(null)).toBe("–");
+    expect(outOf100(undefined)).toBe("–");
+    expect(outOf100("-")).toBe("–"); // ECharts' own placeholder for a missing value
   });
 });

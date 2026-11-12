@@ -4,17 +4,17 @@
 // Loaded only when opened: it brings in the charting library.
 
 import { useSignal } from "@preact/signals";
-import { MONTHS, MONTHS_SHORT, WEEKDAYS, WEEKDAYS_SHORT, longDate } from "../dates";
+import { MONTHS, MONTHS_SHORT, WEEKDAYS, WEEKDAYS_SHORT, longDate, weekOrder } from "../dates";
 import { durationWords, formatMinutes, goalShort, goalText, label } from "../habits";
 import {
-  bestAndHardest, dailyScores, habitStreak, monthStats, percent, perfectStreak, points, rollingAverage, weekdayScores, weekdayStats, yearStats,
+  bestAndHardest, dailyScores, habitStreak, monthStats, outOf100, percent, perfectStreak, points, rollingAverage, weekdayStats, yearStats,
   type HabitStats, type PeriodStats, type Tracked,
 } from "../score";
 import { tracked, weekStart } from "../state";
 import { theme } from "../theme";
 import type { Habit } from "../types";
 import { CardTitle } from "./help";
-import { Chart, OUTSIDE_LABEL_ROOM, axisStyle, barLabels, levelLine, baseOption, percentAxis, token, type ChartOption } from "./chart";
+import { Chart, axisStyle, barLabels, levelLine, outsideLabelRoom, baseOption, percentAxis, token, type ChartOption } from "./chart";
 import { NoYear, openDay, plural, refDay } from "./common";
 
 type Tab = "overview" | "months" | "habits";
@@ -29,6 +29,8 @@ export function ReportsView() {
   void theme.value; // charts redraw in the new colours on a switch
   const months = Array.from({ length: Number(ref.slice(5, 7)) }, (_, i) => i + 1);
   const stats = months.map((m) => monthStats(t, m, ref));
+  // Once a render: the Overview's average line and its year report card both read it.
+  const year = yearStats(t, ref);
 
   return (
     <div class="reports">
@@ -38,7 +40,7 @@ export function ReportsView() {
         ))}
       </div>
       <div class="tab-panel" role="tabpanel">
-        {tab.value === "overview" && <Overview t={t} ref_={ref} months={months} stats={stats} />}
+        {tab.value === "overview" && <Overview t={t} ref_={ref} months={months} stats={stats} year={year} />}
         {tab.value === "months" && (
           <div class="report-cards">
             {[...months].reverse().map((m) => {
@@ -68,7 +70,7 @@ function TableView(props: { head: string[]; rows: (string | number)[][] }) {
   );
 }
 
-function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: PeriodStats[] }) {
+function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: PeriodStats[]; year: PeriodStats }) {
   const { t, ref_, months, stats } = props;
   const daily = dailyScores(t, ref_);
   const smooth = rollingAverage(daily.map((d) => d.score), 7);
@@ -91,33 +93,34 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
 
   // The year so far, as its report card scores it: the average of every day counted, which is also
   // what the weekdays share out between them.
-  const average = yearStats(t, ref_).score;
+  const average = props.year.score;
+  const averageName = average === null ? "" : `Average\n${points(average, 1)}`;
+  const averageRoom = average === null ? {} : { grid: { ...(baseOption().grid as object), right: outsideLabelRoom(averageName) } };
+  const averageLine = average === null ? {} : { markLine: levelLine(average, averageName) };
   const monthOption: ChartOption = {
     ...baseOption(),
     legend: { show: false },
-    ...(average === null ? {} : { grid: { ...(baseOption().grid as object), right: OUTSIDE_LABEL_ROOM } }),
-    tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: (v: unknown) => `${points(Number(v), 1)} / 100` },
+    ...averageRoom,
+    tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: outOf100 },
     xAxis: { type: "category", data: months.map((m) => MONTHS_SHORT[m - 1]), ...axisStyle(), splitLine: { show: false } },
     yAxis: { ...percentAxis(), axisLabel: { color: token("--muted") } },
-    series: [{ name: "Monthly score", type: "bar", data: stats.map((s) => (s.score === null ? null : Math.round(s.score * 10) / 10)), barMaxWidth: 36,
-      itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] }, ...barLabels((v) => points(v, 1)),
-      ...(average === null ? {} : { markLine: levelLine(average, `Average\n${points(average, 1)}`, true) }) }],
+    series: [{ name: "Monthly score", type: "bar", data: stats.map((s) => s.score), barMaxWidth: 36,
+      itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] }, ...barLabels((v) => points(v, 1)), ...averageLine }],
   };
   const monthEnds = bestAndHardest(months.map((_, i) => i), (i) => stats[i]!.score);
 
-  const wd = weekdayScores(t, ref_);
-  const order = [0, 1, 2, 3, 4, 5, 6].map((i) => (i + weekStart.value) % 7);
+  const wd = weekdayStats(t, ref_);
+  const order = weekOrder(weekStart.value);
   const weekdayOption: ChartOption = {
     ...baseOption(),
     legend: { show: false },
-    ...(average === null ? {} : { grid: { ...(baseOption().grid as object), right: OUTSIDE_LABEL_ROOM } }),
-    tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: (v: unknown) => `${points(Number(v), 1)} / 100` },
+    ...averageRoom,
+    tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: outOf100 },
     xAxis: { type: "category", data: order.map((d) => WEEKDAYS_SHORT[d]), ...axisStyle(), splitLine: { show: false } },
     // Out of 100, to one place, as Monthly score is beside it: the axis, the labels, the tooltip and the table.
     yAxis: { ...percentAxis(), axisLabel: { color: token("--muted") } },
     series: [{ name: "Average day score", type: "bar", data: order.map((d) => wd[d]!.score), barMaxWidth: 36, itemStyle: { color: blue, borderRadius: [4, 4, 0, 0] },
-      ...barLabels((v) => points(v, 1)),
-      ...(average === null ? {} : { markLine: levelLine(average, `Average\n${points(average, 1)}`, true) }) }],
+      ...barLabels((v) => points(v, 1)), ...averageLine }],
   };
   const dayEnds = bestAndHardest(order, (d) => wd[d]!.score);
 
@@ -146,10 +149,10 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
           {dayEnds && (
             <p class="muted small">Best on {WEEKDAYS[dayEnds.best]}s ({points(wd[dayEnds.best]!.score, 1)}), hardest on {WEEKDAYS[dayEnds.hardest]}s ({points(wd[dayEnds.hardest]!.score, 1)}).</p>
           )}
-          <TableView head={["Weekday", "Average score", "Days"]} rows={order.map((d) => [WEEKDAYS[d]!, points(wd[d]!.score, 1), wd[d]!.days])} />
+          <TableView head={["Weekday", "Average score", "Days"]} rows={order.map((d) => [WEEKDAYS[d]!, points(wd[d]!.score, 1), wd[d]!.scored])} />
         </section>
       </div>
-      <YearReport t={t} ref_={ref_} />
+      <YearReport t={t} ref_={ref_} y={props.year} />
     </>
   );
 }
@@ -205,8 +208,7 @@ function ReportCard(props: { title: string; stats: PeriodStats; scoreName: strin
   );
 }
 
-function YearReport({ t, ref_ }: { t: Tracked; ref_: string }) {
-  const y = yearStats(t, ref_);
+function YearReport({ t, ref_, y }: { t: Tracked; ref_: string; y: PeriodStats }) {
   const perfect = perfectStreak(t, ref_);
   const streaks = t.habits.map((h) => ({ h, s: habitStreak(t, h, ref_) })).filter((x) => x.s.best > 0).sort((a, b) => b.s.best - a.s.best);
   return (
@@ -232,7 +234,7 @@ function HabitsByMonth(props: { t: Tracked; ref_: string; months: number[]; stat
   const measures = t.habits.filter((h) => h.kind !== "check");
   const byMonth: Along = { by: "month", short: months.map((m) => MONTHS_SHORT[m - 1]!), long: months.map((m) => MONTHS[m - 1]!), stats };
   // In the order the week starts on, as the Overview's By weekday is.
-  const order = [0, 1, 2, 3, 4, 5, 6].map((i) => (i + weekStart.value) % 7);
+  const order = weekOrder(weekStart.value);
   const w = weekdayStats(t, ref_);
   const byWeekday: Along = { by: "weekday", short: order.map((d) => WEEKDAYS_SHORT[d]!), long: order.map((d) => WEEKDAYS[d]!), stats: order.map((d) => w[d]!) };
   return (
@@ -302,11 +304,12 @@ function MeasureChart(props: { habit: Habit; index: number; along: Along }) {
   const show = (v: unknown) => (v === null || v === undefined ? "–" : duration ? formatMinutes(Number(v)) : Number(v).toFixed(1).replace(/\.0$/, ""));
   const color = token("--series-1");
   const goalValue = habit.goal?.value ?? 0;
+  const goalName = `Goal\n${goalShort(habit)}`;
   const weekly = along.by === "weekday";
   const option: ChartOption = {
     ...baseOption(),
     legend: { show: false },
-    ...(habit.goal ? { grid: { ...(baseOption().grid as object), right: OUTSIDE_LABEL_ROOM } } : {}),
+    ...(habit.goal ? { grid: { ...(baseOption().grid as object), right: outsideLabelRoom(goalName) } } : {}),
     tooltip: { ...(baseOption().tooltip as object), trigger: "axis", valueFormatter: show },
     xAxis: { type: "category", data: along.short, ...axisStyle(), splitLine: { show: false } },
     yAxis: {
@@ -324,7 +327,7 @@ function MeasureChart(props: { habit: Habit; index: number; along: Along }) {
       // Each bar's average on top, as on the Overview's bars; so the goal is named past the line's
       // end, where it can't land on one.
       itemStyle: { color, borderRadius: [4, 4, 0, 0] }, ...barLabels(show, true),
-      ...(habit.goal ? { markLine: levelLine(habit.goal.value, `Goal\n${goalShort(habit)}`, true) } : {}),
+      ...(habit.goal ? { markLine: levelLine(habit.goal.value, goalName) } : {}),
     }],
   };
   // The best weekday is the one nearest the goal's side: the most sleep, the least screen time.

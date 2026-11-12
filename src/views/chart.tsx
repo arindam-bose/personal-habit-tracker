@@ -1,7 +1,7 @@
 // A thin Preact wrapper around ECharts. Only the chart types we use are bundled.
 // Colours come from the CSS tokens in style.css, so charts follow light/dark mode.
 
-import { useSignal } from "@preact/signals";
+import { signal, useSignal } from "@preact/signals";
 import { BarChart, LineChart } from "echarts/charts";
 import { GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from "echarts/components";
 import * as echarts from "echarts/core";
@@ -13,6 +13,16 @@ import { theme } from "../theme";
 echarts.use([BarChart, LineChart, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent, LabelLayout, SVGRenderer]);
 
 export type ChartOption = echarts.EChartsCoreOption;
+
+export { outsideLabelRoom } from "./chart-room";
+
+/**
+ * A phone-wide screen, kept up to date: a chart whose option reads it is built again when the
+ * window narrows past it or widens (a phone turned on its side), so its labels resize then too.
+ */
+const narrowQuery = typeof matchMedia === "function" ? matchMedia("(max-width: 600px)") : null;
+const narrow = signal(narrowQuery?.matches ?? false);
+narrowQuery?.addEventListener("change", (e) => (narrow.value = e.matches));
 
 /** The current value of a CSS colour token, e.g. token("--series-1"). */
 export function token(name: string): string {
@@ -67,7 +77,7 @@ export function percentAxis() {
 
 /**
  * The series fields for a bar's value on top of it, muted. Smaller on a phone, where a dozen bars
- * share the width; the size is picked when the chart's option is built. `hideOverlap`, for labels as
+ * share the width (see `narrow`). `hideOverlap`, for labels as
  * wide as a time ("7:43"), leaves out one that would still run into its neighbour there: every other
  * month, say. The table under the chart has every one.
  */
@@ -75,7 +85,7 @@ export function barLabels(format: (value: number) => string, hideOverlap = false
   return {
     label: {
       show: true, position: "top" as const, color: token("--muted"),
-      fontSize: matchMedia("(max-width: 600px)").matches ? 9 : 12,
+      fontSize: narrow.value ? 9 : 12,
       // A halo of the card's own colour, so a level line passing behind a label doesn't strike it through.
       textBorderColor: token("--surface"), textBorderWidth: 3,
       formatter: (p: { value: number }) => format(p.value),
@@ -84,25 +94,17 @@ export function barLabels(format: (value: number) => string, hideOverlap = false
   };
 }
 
-/** The room at a chart's right for a level line named outside it ("Average" over its value). */
-export const OUTSIDE_LABEL_ROOM = 56;
-
 /**
- * A dashed level across a chart, named at its right end: a habit's goal, or the year's average.
- * Silent, so hovering it doesn't hide the bars' tooltip. `outside` names it past the plot's right
- * edge instead, for a chart whose bars carry labels the name would land on; that chart leaves room
- * for it with OUTSIDE_LABEL_ROOM.
+ * A dashed level across a chart: a habit's goal, or the year's average. Named past the plot's
+ * right edge, where it can't land on a bar's label; the chart leaves room for the name with
+ * `outsideLabelRoom(name)`. Drawn under the bars and their labels, as the gridlines are, so it never
+ * strikes a value through; and silent, so hovering it doesn't hide the bars' tooltip.
  */
-export function levelLine(value: number, name: string, outside = false) {
+export function levelLine(value: number, name: string) {
   return {
-    symbol: "none", silent: true,
+    symbol: "none", silent: true, z: 1,
     lineStyle: { type: "dashed" as const, color: token("--text"), width: 1 },
-    // Named outside, it is drawn under the bars and their labels, as the gridlines are, so it never
-    // strikes a value through.
-    ...(outside ? { z: 1 } : {}),
-    label: outside
-      ? { formatter: name, color: token("--muted"), position: "end" as const, fontSize: 11, lineHeight: 13 }
-      : { formatter: name, color: token("--muted"), position: "insideEndTop" as const },
+    label: { formatter: name, color: token("--muted"), position: "end" as const, fontSize: 11, lineHeight: 13 },
     data: [{ yAxis: value }],
   };
 }

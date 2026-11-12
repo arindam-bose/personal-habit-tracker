@@ -113,7 +113,7 @@ function WeekStrip(props: { date: IsoDate; week: IsoDate; year: number; onPick: 
             disabled={out} aria-pressed={d === props.date}
             aria-label={`${longDate(d)}${come ? `: ${logged && s ? percent(s.score) : "nothing logged"}` : ""}`}
             onClick={() => props.onPick(d)}>
-            <span class="wd-name">{WEEKDAYS_SHORT[(i + weekStart.value) % 7]}</span>
+            <span class="wd-name">{WEEKDAYS_SHORT[weekday(d)]}</span>
             <span class="wd-num">{Number(d.slice(8))}</span>
             <span class={`wd-dot ${lvl === null ? "hm-none" : `hm-${lvl}`}`} />
           </button>

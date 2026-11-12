@@ -9,7 +9,7 @@ import { dateTime } from "../dates";
 import { demoFileName, demoYear } from "../demo";
 import { detectDevice } from "../device";
 import { STARTER_HABITS, label } from "../habits";
-import { installState, installSteps, promptInstall } from "../install";
+import { installState, installSteps, promptInstall, type InstallState } from "../install";
 import { checkForUpdates, offlineChanged, offlineStatus, updateReady } from "../offline";
 import {
   backUpYear, closeYear, current, eraseEverything, openYear, persistState, removeYear, reopenYear,
@@ -501,7 +501,7 @@ function OfflineCard() {
  */
 function InstallCard() {
   /** What came of the last Install, and the state it was said in: it is shown only while that holds. */
-  const said = useSignal<{ text: string; in: string } | null>(null);
+  const said = useSignal<{ text: string; in: InstallState } | null>(null);
   const now = installState.value;
   // A note about the steps stops being true once the browser offers its prompt again.
   const note = said.value?.in === now ? said.value.text : null;

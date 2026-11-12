@@ -8,6 +8,11 @@ export const MONTHS_SHORT = MONTHS.map((m) => m.slice(0, 3));
 export const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const WEEKDAYS_SHORT = WEEKDAYS.map((d) => d.slice(0, 3));
 
+/** The weekdays (0 Sunday to 6 Saturday) in the order a week starting on `start` runs. */
+export function weekOrder(start: number): number[] {
+  return [0, 1, 2, 3, 4, 5, 6].map((i) => (i + start) % 7);
+}
+
 const DAY_MS = 86_400_000;
 
 function utc(iso: IsoDate): Date {

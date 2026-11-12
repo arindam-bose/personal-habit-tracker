@@ -315,7 +315,11 @@ their own `tests/tsconfig.json` so Node's types stay out of the app).
   move to a clean device unchanged; a backup's settings never undo a device's own;
   importing over a year leaves none of the old days behind.
 - **Share test** (`share.test.ts`): a phone opens its share sheet, a computer copies the
-  link, closing the sheet says nothing, and a sheet that fails falls back to copying.
+  link, closing the sheet (or a second tap while it's open) says nothing, a sheet that fails falls back to copying, and a Cmd-, Ctrl- or Shift-click is left to the browser.
+- **Small pieces of the pages**: `chart-room.test.ts` (the room a chart leaves for a goal or
+  average named past its line), `install.test.ts` (what On your home screen shows once the
+  browser's prompt is answered), `consent.test.ts` (Cookie settings hands itself to the banner,
+  so focus can go back to it).
 - **README test**: the README names the version in `package.json`.
 - **Real-data tests** (`tests/real-data.test.ts`) run for each `data/notion/<year>/`
   present, and are skipped when there is none (as on GitHub): the importer's file is
