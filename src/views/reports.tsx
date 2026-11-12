@@ -1,6 +1,6 @@
 // Reports: the year in charts and words. Overview (the day score through the year, each month's
-// score, and how each weekday goes), a report card for every month and the year, and habits month
-// by month, with times and numbers against their goals.
+// score, how each weekday goes, and the year's report card), a report card for every month, and
+// habits month by month, with times and numbers against their goals.
 // Loaded only when opened: it brings in the charting library.
 
 import { useSignal } from "@preact/signals";
@@ -16,8 +16,8 @@ import type { Habit } from "../types";
 import { Chart, axisStyle, baseOption, percentAxis, token, type ChartOption } from "./chart";
 import { NoYear, openDay, plural, refDay } from "./common";
 
-type Tab = "overview" | "months" | "year" | "habits";
-const TABS: [Tab, string][] = [["overview", "Overview"], ["months", "Monthly reports"], ["year", "Yearly report"], ["habits", "Habits by month"]];
+type Tab = "overview" | "months" | "habits";
+const TABS: [Tab, string][] = [["overview", "Overview"], ["months", "Monthly reports"], ["habits", "Habits by month"]];
 
 export function ReportsView() {
   const tab = useSignal<Tab>("overview");
@@ -46,7 +46,6 @@ export function ReportsView() {
             })}
           </div>
         )}
-        {tab.value === "year" && <YearReport t={t} ref_={ref} />}
         {tab.value === "habits" && <HabitsByMonth t={t} months={months} stats={stats} />}
       </div>
     </div>
@@ -136,6 +135,7 @@ function Overview(props: { t: Tracked; ref_: string; months: number[]; stats: Pe
           <TableView head={["Weekday", "Average score", "Days"]} rows={order.map((d) => [WEEKDAYS[d]!, percent(wd[d]!.score, 1), wd[d]!.days])} />
         </section>
       </div>
+      <YearReport t={t} ref_={ref_} />
     </>
   );
 }
@@ -196,16 +196,14 @@ function YearReport({ t, ref_ }: { t: Tracked; ref_: string }) {
   const perfect = perfectStreak(t, ref_);
   const streaks = t.habits.map((h) => ({ h, s: habitStreak(t, h, ref_) })).filter((x) => x.s.best > 0).sort((a, b) => b.s.best - a.s.best);
   return (
-    <div class="report-cards one">
-      <ReportCard title={`📅 ${t.year}${ref_ < `${t.year}-12-31` ? ` so far (to ${longDate(ref_)})` : ""}`} stats={y} scoreName="Yearly score"
+    <ReportCard title={`📅 ${t.year}${ref_ < `${t.year}-12-31` ? ` so far (to ${longDate(ref_)})` : ""}`} stats={y} scoreName="Yearly score"
         extra={
           <>
-            <tr class="rt-gap rt-head"><th scope="rowgroup" colSpan={3}>🔥 Longest streaks in {t.year}</th></tr>
+            <tr class="rt-sep rt-head"><th scope="rowgroup" colSpan={3}>🔥 Longest streaks in {t.year}</th></tr>
             {streaks.map(({ h, s }) => <ReportRow name={label(h)} value={plural(s.best, "day")} />)}
             <ReportRow name="🎉 Perfect days in a row" value={plural(perfect.best, "day")} />
           </>
         } />
-    </div>
   );
 }
 

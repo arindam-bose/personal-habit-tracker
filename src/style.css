@@ -1297,10 +1297,6 @@ button.tile-link:hover {
   gap: 16px;
 }
 
-.report-cards.one {
-  grid-template-columns: minmax(0, 640px);
-}
-
 /* A report card's rows: names left, values right-aligned in two columns (share, then count). */
 .report-table {
   width: 100%;
@@ -1320,6 +1316,11 @@ button.tile-link:hover {
   font-weight: 400;
 }
 
+/* The names take the spare width, so the share sits next to the count however wide the card. */
+.report-table th[scope="row"] {
+  width: 100%;
+}
+
 .report-table td {
   padding-left: 12px;
   white-space: nowrap;
@@ -1327,6 +1328,12 @@ button.tile-link:hover {
 
 .report-table tr.rt-gap > * {
   padding-top: 12px;
+}
+
+/* A line between parts of a card (the year's longest streaks). */
+.report-table tr.rt-sep > * {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 
 .report-table tr.rt-head th {
