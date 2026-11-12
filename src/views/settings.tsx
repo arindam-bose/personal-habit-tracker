@@ -15,7 +15,7 @@ import {
   backUpYear, closeYear, current, eraseEverything, openYear, persistState, refreshYears, removeYear, reopenYear,
   saveWeekStart, startYear, today, weekStart, years, type YearSummary,
 } from "../state";
-import { backupText, lastUpdatedAt } from "../storage";
+import { backupText, lastUpdatedAt, requestPersistence } from "../storage";
 import { setTheme, themeChoice, type ThemeChoice } from "../theme";
 import type { Habit, YearFile } from "../types";
 import { validateYearFile } from "../validate";
@@ -120,8 +120,7 @@ export function SettingsView() {
       <section class="card">
         <h3 class="card-title">Keeping your data</h3>
         <p class="small">
-          Everything you log stays in this browser, on this device. {persistState.value ? PERSIST_TEXT[persistState.value] : ""}
-          {" "}<b>Backup</b> in the top bar downloads the open year; import it here on a new device to carry on.
+          Everything you log stays in this browser, on this device. <b>Backup</b> in the top bar downloads the open year; import it here on a new device to carry on.
         </p>
       </section>
 
@@ -349,21 +348,52 @@ function StartYearCard() {
   );
 }
 
+/** The offline copy and whether the browser keeps the data, as in the Money Tracker. */
 function OfflineCard() {
-  const status = useSignal("");
-  const check = useSignal<string | null>(null);
+  const status = useSignal("Checking…");
+  const note = useSignal<string | null>(null);
+  const checking = useSignal(false);
+  // Asked again whenever the service worker says the offline copy changed.
+  const changed = offlineChanged.value;
   useEffect(() => {
     offlineStatus().then((s) => (status.value = s));
-  }, [offlineChanged.value]);
+  }, [changed]);
+
+  async function onCheck() {
+    checking.value = true;
+    try {
+      note.value = await checkForUpdates();
+    } finally {
+      checking.value = false;
+    }
+  }
+
   return (
     <section class="card">
       <h3 class="card-title">Offline</h3>
-      <p class="small">{status.value}</p>
+      <p class="muted">{status.value}</p>
+      {persistState.value && (
+        <p class="muted">
+          {PERSIST_TEXT[persistState.value]}{" "}
+          {persistState.value === "not-persisted" && (
+            <button type="button" class="link" onClick={async () => (persistState.value = await requestPersistence())}>
+              Ask again
+            </button>
+          )}
+        </p>
+      )}
       <div class="setting-row">
-        <button type="button" onClick={async () => (check.value = "Checking…", check.value = await checkForUpdates())}>Check for updates</button>
-        {updateReady.value && <button type="button" class="primary" onClick={() => location.reload()}>Reload for v{updateReady.value}</button>}
+        <button type="button" class="striped" disabled={checking.value} onClick={onCheck}>
+          {checking.value ? "Checking…" : "Check for updates"}
+        </button>
+        {/* Once a newer version is in, that's the news, whatever the check last said. */}
+        {updateReady.value ? (
+          <>
+            <span class="muted" role="status">v{updateReady.value} is ready.</span>
+            <button type="button" class="primary" onClick={() => location.reload()}>Reload</button>
+          </>
+        ) : note.value && <span class="muted" role="status">{note.value}</span>}
       </div>
-      {check.value && <p class="small muted" role="status">{check.value}</p>}
     </section>
   );
 }

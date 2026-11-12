@@ -1449,6 +1449,11 @@ button.link.demo-link {
   text-underline-offset: 2px;
 }
 
+/* A button with a blue stripe down its left edge (Check for updates). */
+button.striped {
+  border-left: 3px solid var(--accent);
+}
+
 .file-button {
   cursor: pointer;
 }
