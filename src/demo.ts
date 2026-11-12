@@ -18,6 +18,9 @@ function rng(seed: number): () => number {
 
 const NOTES = ["Travel day", "Ran a 10k!", "Sick, took it easy", "Family visit", "Long day at work", "Hiking trip", "Started a new book"];
 
+/** What the demo downloads as. */
+export const demoFileName = (year: number) => `habit-tracker-demo-${year}.json`;
+
 export function demoYear(now = new Date()): YearFile {
   const today = localToday(now);
   const year = Number(today.slice(0, 4));

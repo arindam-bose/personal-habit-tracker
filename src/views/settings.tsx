@@ -4,9 +4,9 @@
 
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { backupFileName, importYear, readJsonFile, saveYearFile } from "../backup";
+import { importYear, readJsonFile, saveYearFile } from "../backup";
 import { dateTime } from "../dates";
-import { demoYear } from "../demo";
+import { demoFileName, demoYear } from "../demo";
 import { detectDevice } from "../device";
 import { STARTER_HABITS, label } from "../habits";
 import { installState, installSteps, promptInstall } from "../install";
@@ -87,14 +87,8 @@ export function SettingsView() {
             Import a backup (.json)
             <input type="file" accept=".json,application/json" multiple class="sr-only" onChange={onImport} />
           </label>
-          <button type="button" class="link" onClick={() => saveYearFile(demoYear(), backupFileName(Number(today.value.slice(0, 4)), new Date(), detectDevice()).replace("habit-tracker", "habit-tracker-demo"))}>
-            Download a demo file
-          </button>
         </div>
-        <p class="muted small">
-          The demo is this year so far, made up: import it to look around. It replaces this year's data, so
-          back up first if you have any.
-        </p>
+        <DemoNote />
         {message.value && <p class="saved" role="status">{message.value}</p>}
         {errors.value.length > 0 && <ul class="errors" role="alert">{errors.value.map((x) => <li>{x}</li>)}</ul>}
       </section>
@@ -134,6 +128,21 @@ export function SettingsView() {
       <EraseCard />
       <AboutCard />
     </div>
+  );
+}
+
+/** The demo, offered inside a sentence that says what's in it. */
+function DemoNote() {
+  const year = Number(today.value.slice(0, 4));
+  const have = years.value.some((y) => y.setup.year === year);
+  return (
+    <p class="muted small demo-download">
+      New here?{" "}
+      <button type="button" class="link demo-link" onClick={() => saveYearFile(demoYear(), demoFileName(year))}>Download a demo file</button>{" "}
+      and import it to look around: this year so far, with eight habits to tick or fill in (sleep and screen
+      time against their goals, and glasses of water added in April), good and bad stretches, and a few notes.
+      {have && <> It is a {year} file, so importing it would replace your own {year} (you'll be asked first).</>}
+    </p>
   );
 }
 

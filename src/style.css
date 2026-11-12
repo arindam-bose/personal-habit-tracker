@@ -1437,6 +1437,18 @@ table.years {
   font-size: 14px;
 }
 
+.demo-download {
+  margin: 10px 0 0;
+}
+
+/* Underlined, so it reads as a link inside the sentence. */
+button.link.demo-link {
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .file-button {
   cursor: pointer;
 }
