@@ -244,23 +244,33 @@ function ClosePanel(props: { year: number; onDone: () => void }) {
 function StartYearCard() {
   const thisYear = Number(today.value.slice(0, 4));
   const stored = years.value.map((y) => y.setup.year);
-  const choices = [thisYear - 1, thisYear, thisYear + 1].filter((y) => !stored.includes(y));
+  // Offered first: this year, then next year, then last year, whichever isn't stored yet.
+  const preferred = [thisYear, thisYear + 1, thisYear - 1].filter((y) => !stored.includes(y));
+  const choices = [...preferred].sort((a, b) => a - b);
   const year = useSignal<number | null>(null);
-  const chosen = year.value !== null && choices.includes(year.value) ? year.value : choices.includes(thisYear) ? thisYear : choices[0] ?? null;
+  const chosen = year.value !== null && choices.includes(year.value) ? year.value : preferred[0] ?? null;
   const source = years.value[0];
-  const from = useSignal<"copy" | "starter" | "none">(source ? "copy" : "starter");
+  // Until the user picks, these follow what's stored: the same habits as the newest year if there is one.
+  const fromPick = useSignal<"copy" | "starter" | "none" | null>(null);
+  const from = fromPick.value === "copy" && !source ? "starter" : fromPick.value ?? (source ? "copy" : "starter");
   const picked = useSignal<Set<string>>(new Set(STARTER_HABITS.map((h) => h.id)));
   const start = useSignal("");
   const error = useSignal<string | null>(null);
-  const open = useSignal(years.value.length === 0);
+  // Open by itself only while nothing is stored; otherwise it waits for Start.
+  const openPick = useSignal<boolean | null>(null);
+  const open = openPick.value ?? years.value.length === 0;
 
   if (chosen === null) return null;
-  if (!open.value) {
+  if (!open) {
     return (
       <section class="card">
-        <div class="card-head">
-          <h3>Start a year</h3>
-          <button type="button" onClick={() => (open.value = true)}>Start {chosen}…</button>
+        <h3 class="card-title">Start a year</h3>
+        <p class="muted">
+          Track another year, from January 1 or any day you pick. It can begin with {source ? `the same habits as ${source.setup.year}, ` : ""}a
+          starter set{source ? "," : ""} or none, and you can add, change and stop habits any time after.
+        </p>
+        <div class="setting-row">
+          <button type="button" class="striped" onClick={() => (openPick.value = true)}>Start {chosen}…</button>
         </div>
       </section>
     );
@@ -270,10 +280,10 @@ function StartYearCard() {
   async function submit(e: Event) {
     e.preventDefault();
     error.value = null;
-    const habits: Habit[] = from.value === "copy" ? copyable : from.value === "starter" ? STARTER_HABITS.filter((h) => picked.value.has(h.id)) : [];
+    const habits: Habit[] = from === "copy" ? copyable : from === "starter" ? STARTER_HABITS.filter((h) => picked.value.has(h.id)) : [];
     try {
       await startYear(chosen!, habits, start.value || null);
-      open.value = years.value.length === 0;
+      openPick.value = null;
       location.hash = habits.length ? "#/dashboard" : "#/habits";
     } catch (err) {
       error.value = err instanceof Error ? err.message : String(err);
@@ -301,15 +311,15 @@ function StartYearCard() {
           <legend class="field-label">Habits</legend>
           {source && (
             <label class="choice">
-              <input type="radio" name="from" checked={from.value === "copy"} onChange={() => (from.value = "copy")} />
+              <input type="radio" name="from" checked={from === "copy"} onChange={() => (fromPick.value = "copy")} />
               The same as {source.setup.year}: {copyable.map(label).join(", ") || "none"}
             </label>
           )}
           <label class="choice">
-            <input type="radio" name="from" checked={from.value === "starter"} onChange={() => (from.value = "starter")} />
+            <input type="radio" name="from" checked={from === "starter"} onChange={() => (fromPick.value = "starter")} />
             Pick from a starter set
           </label>
-          {from.value === "starter" && (
+          {from === "starter" && (
             <div class="starter-picks">
               {STARTER_HABITS.map((h) => (
                 <label class="check-row">
@@ -325,7 +335,7 @@ function StartYearCard() {
             </div>
           )}
           <label class="choice">
-            <input type="radio" name="from" checked={from.value === "none"} onChange={() => (from.value = "none")} />
+            <input type="radio" name="from" checked={from === "none"} onChange={() => (fromPick.value = "none")} />
             None yet: I'll add them on the Habits page
           </label>
         </fieldset>
@@ -333,7 +343,7 @@ function StartYearCard() {
         {error.value && <p class="form-error" role="alert">{error.value}</p>}
         <div class="form-actions">
           <button type="submit" class="primary">Start {chosen}</button>
-          {years.value.length > 0 && <button type="button" onClick={() => (open.value = false)}>Cancel</button>}
+          {years.value.length > 0 && <button type="button" onClick={() => (openPick.value = false)}>Cancel</button>}
         </div>
       </form>
     </section>
