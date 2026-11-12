@@ -1,17 +1,28 @@
 // A thin Preact wrapper around ECharts. Only the chart types we use are bundled.
 // Colours come from the CSS tokens in style.css, so charts follow light/dark mode.
 
-import { useSignal } from "@preact/signals";
+import { signal, useSignal } from "@preact/signals";
 import { BarChart, LineChart } from "echarts/charts";
 import { GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from "echarts/components";
 import * as echarts from "echarts/core";
 import { SVGRenderer } from "echarts/renderers";
+import { LabelLayout } from "echarts/features";
 import { useEffect, useRef } from "preact/hooks";
 import { theme } from "../theme";
 
-echarts.use([BarChart, LineChart, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent, SVGRenderer]);
+echarts.use([BarChart, LineChart, GridComponent, LegendComponent, MarkLineComponent, TooltipComponent, LabelLayout, SVGRenderer]);
 
 export type ChartOption = echarts.EChartsCoreOption;
+
+export { outsideLabelRoom } from "./chart-room";
+
+/**
+ * A phone-wide screen, kept up to date: a chart whose option reads it is built again when the
+ * window narrows past it or widens (a phone turned on its side), so its labels resize then too.
+ */
+const narrowQuery = typeof matchMedia === "function" ? matchMedia("(max-width: 600px)") : null;
+const narrow = signal(narrowQuery?.matches ?? false);
+narrowQuery?.addEventListener("change", (e) => (narrow.value = e.matches));
 
 /** The current value of a CSS colour token, e.g. token("--series-1"). */
 export function token(name: string): string {
@@ -62,6 +73,40 @@ export function axisStyle() {
 /** A 0 to 100 value axis, labelled in percent. */
 export function percentAxis() {
   return { type: "value" as const, min: 0, max: 100, ...axisStyle(), axisLine: { show: false }, axisLabel: { color: token("--muted"), formatter: "{value}%" } };
+}
+
+/**
+ * The series fields for a bar's value on top of it, muted. Smaller on a phone, where a dozen bars
+ * share the width (see `narrow`). `hideOverlap`, for labels as
+ * wide as a time ("7:43"), leaves out one that would still run into its neighbour there: every other
+ * month, say. The table under the chart has every one.
+ */
+export function barLabels(format: (value: number) => string, hideOverlap = false) {
+  return {
+    label: {
+      show: true, position: "top" as const, color: token("--muted"),
+      fontSize: narrow.value ? 9 : 12,
+      // A halo of the card's own colour, so a level line passing behind a label doesn't strike it through.
+      textBorderColor: token("--surface"), textBorderWidth: 3,
+      formatter: (p: { value: number }) => format(p.value),
+    },
+    ...(hideOverlap ? { labelLayout: { hideOverlap: true } } : {}),
+  };
+}
+
+/**
+ * A dashed level across a chart: a habit's goal, or the year's average. Named past the plot's
+ * right edge, where it can't land on a bar's label; the chart leaves room for the name with
+ * `outsideLabelRoom(name)`. Drawn under the bars and their labels, as the gridlines are, so it never
+ * strikes a value through; and silent, so hovering it doesn't hide the bars' tooltip.
+ */
+export function levelLine(value: number, name: string) {
+  return {
+    symbol: "none", silent: true, z: 1,
+    lineStyle: { type: "dashed" as const, color: token("--text"), width: 1 },
+    label: { formatter: name, color: token("--muted"), position: "end" as const, fontSize: 11, lineHeight: 13 },
+    data: [{ yAxis: value }],
+  };
 }
 
 /** A tooltip's colour dot, faded to 40% for a lighter-shade series, as its bars are. */

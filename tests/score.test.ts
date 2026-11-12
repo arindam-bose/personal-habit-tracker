@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, trackedOf, yearStats } from "../src/score";
+import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, outOf100, points, trackedOf, weekdayStats, yearStats } from "../src/score";
 import { HABITS, yearFile } from "./helpers";
 import type { DayLog } from "../src/types";
 
@@ -117,4 +117,74 @@ describe("streaks across years", () => {
 
 it("shades the heatmap in quarters", () => {
   expect([null, 0, 10, 25, 26, 66.67, 99, 100].map(level)).toEqual([null, 0, 1, 1, 2, 3, 4, 5]);
+});
+
+describe("formatting and comparing scores", () => {
+  it("rounds to the whole point by default, as Notion does, or to the places asked for", () => {
+    expect(points(69.6)).toBe("70");
+    expect(points(69.64, 1)).toBe("69.6");
+    expect(points(69.65, 1)).toBe("69.7");
+    expect(points(70, 1)).toBe("70.0");
+    expect(points(null, 1)).toBe("–");
+  });
+
+  it("finds the best and the hardest, skipping periods without a score", () => {
+    const scores: Record<string, number | null> = { Jan: 70.2, Feb: null, Mar: 64.1, Apr: 73.4 };
+    expect(bestAndHardest(Object.keys(scores), (k) => scores[k]!)).toEqual({ best: "Apr", hardest: "Mar" });
+  });
+
+  it("keeps the first of a tie, and says nothing with fewer than two scored", () => {
+    expect(bestAndHardest([0, 1, 2], (i) => [50, 50, 40][i]!)).toEqual({ best: 0, hardest: 2 });
+    expect(bestAndHardest([0, 1], (i) => [80, null][i]!)).toBeNull();
+  });
+});
+
+describe("weekday stats", () => {
+  // 2026-03-01 is a Sunday, so the 2nd and 9th are Mondays and the 3rd a Tuesday.
+  const tr = t([
+    { date: "2026-03-01", values: { h_sleep: 480 } },
+    { date: "2026-03-02", values: { h_sleep: 400, h_screen: 300 } },
+    { date: "2026-03-09", values: { h_sleep: 500, h_screen: 420 } },
+  ]);
+  const w = weekdayStats(tr, "2026-03-10");
+  const sleep = (d: number) => w[d]!.habits[1]!;
+  const screen = (d: number) => w[d]!.habits[2]!;
+
+  it("averages a time habit over the values logged on each weekday", () => {
+    expect(sleep(1)).toMatchObject({ logged: 2, total: 900, average: 450 });
+    expect(screen(1)).toMatchObject({ logged: 2, average: 360 });
+    expect(sleep(0)).toMatchObject({ logged: 1, average: 480 });
+  });
+
+  it("counts every Monday so far, and the goal met on those logged", () => {
+    // January 5 to March 9: ten Mondays; sleep met (at least 7:30) only on the 9th.
+    expect(sleep(1)).toMatchObject({ days: 10, met: 1 });
+    expect(screen(1)!.met).toBe(1); // 5:00 is under the 6:00 limit; 7:00 isn't
+  });
+
+  it("has no average on a weekday with nothing logged", () => {
+    expect(sleep(2)).toMatchObject({ logged: 0, average: null });
+  });
+
+  it("scores each weekday as the average of its days, and counts the days scored", () => {
+    // The ten Mondays from January 5 all count, with all three habits: nothing met until March 2,
+    // then 1 of 3 on the 2nd (screen under its limit) and 1 of 3 on the 9th (sleep over its goal).
+    const mondays = w[1]!;
+    expect(mondays.scored).toBe(10);
+    expect(mondays.score).toBeCloseTo(((1 / 3) * 100 + (1 / 3) * 100) / 10, 10);
+  });
+});
+
+describe("EoD review fixes", () => {
+  it("names no best or hardest when every period scores the same", () => {
+    expect(bestAndHardest([0, 1, 2], () => 100)).toBeNull();
+    expect(bestAndHardest([0, 1, 2], (i) => [8, null, 8][i]!)).toBeNull();
+  });
+
+  it("formats a chart's score out of 100, and a missing one as a dash, never 0.0 or NaN", () => {
+    expect(outOf100(64.25)).toBe("64.3 / 100");
+    expect(outOf100(null)).toBe("–");
+    expect(outOf100(undefined)).toBe("–");
+    expect(outOf100("-")).toBe("–"); // ECharts' own placeholder for a missing value
+  });
 });

@@ -1,6 +1,6 @@
 // Settings: your data, a year per row (back up, close, reopen, delete; the year picker in the top
 // bar opens one), importing a backup, starting a year, a demo file, the first day of the week,
-// light or dark, the offline copy, erasing everything, the home screen, and About.
+// light or dark, the offline copy, erasing everything, the home screen, Support, and About.
 
 import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
@@ -9,7 +9,7 @@ import { dateTime } from "../dates";
 import { demoFileName, demoYear } from "../demo";
 import { detectDevice } from "../device";
 import { STARTER_HABITS, label } from "../habits";
-import { installState, installSteps, promptInstall } from "../install";
+import { installState, installSteps, promptInstall, type InstallState } from "../install";
 import { checkForUpdates, offlineChanged, offlineStatus, updateReady } from "../offline";
 import {
   backUpYear, closeYear, current, eraseEverything, openYear, persistState, removeYear, reopenYear,
@@ -23,6 +23,7 @@ import { AboutCard } from "./about";
 import { plural } from "./common";
 import { IconButton } from "./icons";
 import { Modal } from "./modal";
+import { SupportCard } from "./support";
 
 const MAY_CLEAR = "This browser may clear your data on its own - if the site goes unvisited for a while, or space runs low - so keep a backup.";
 const PERSIST_TEXT = {
@@ -206,6 +207,7 @@ export function SettingsView() {
       <OfflineCard />
       <EraseCard />
       <InstallCard />
+      <SupportCard />
       <AboutCard />
     </div>
   );
@@ -499,7 +501,7 @@ function OfflineCard() {
  */
 function InstallCard() {
   /** What came of the last Install, and the state it was said in: it is shown only while that holds. */
-  const said = useSignal<{ text: string; in: string } | null>(null);
+  const said = useSignal<{ text: string; in: InstallState } | null>(null);
   const now = installState.value;
   // A note about the steps stops being true once the browser offers its prompt again.
   const note = said.value?.in === now ? said.value.text : null;

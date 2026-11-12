@@ -108,7 +108,7 @@ export function AboutCard() {
               Below it: today, this week, this month and the year, your streaks, and the year as a heatmap.</li>
             <li><b>Calendar</b>: a heatmap for the day score and one for each habit. Click a day to open it on the Dashboard.</li>
             <li><b>Reports</b>: each month and the year in words and charts, habits month by month, times against
-              their goals, and which weekdays go best.</li>
+              their goals each month and on each weekday, and which weekdays go best.</li>
             <li><b>Over the years</b>: once two or more years are stored, each year side by side.</li>
             <li><b>Settings</b>: start, import, back up, close, reopen and delete years; the first day of the week;
               light or dark; the offline copy; and the home screen.</li>
@@ -132,7 +132,7 @@ export function AboutCard() {
         <div>
           <dt>Cookie settings</dt>
           <dd>
-            <button type="button" class="link" onClick={openConsent} title="Change whether Google Analytics may count your visits">
+            <button type="button" class="link" onClick={(e) => openConsent(e.currentTarget)} title="Change whether Google Analytics may count your visits">
               {consent.value === "granted" ? "Accepted" : consent.value === "denied" ? "Declined" : "Not chosen"}
             </button>
           </dd>

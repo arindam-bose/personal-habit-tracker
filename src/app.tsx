@@ -2,7 +2,7 @@ import { useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import type { ComponentType } from "preact";
 import { version } from "../package.json";
-import { chooseConsent, consentAsked, type Consent } from "./analytics";
+import { chooseConsent, consentAsked, takeConsentOpener, type Consent } from "./analytics";
 import { dateTime } from "./dates";
 import { updateReady } from "./offline";
 import { backupDue, backupText, lastUpdatedAt, requestPersistence } from "./storage";
@@ -153,8 +153,8 @@ function ConsentBanner() {
   const opener = useRef<HTMLElement | null>(null);
   // Opened from Cookie settings, focus follows it here; on a first visit it doesn't steal focus from the page.
   useEffect(() => {
-    const from = document.activeElement as HTMLElement | null;
-    if (!from?.closest(".facts")) return;
+    const from = takeConsentOpener();
+    if (!from) return;
     opener.current = from;
     first.current?.focus();
   }, []);

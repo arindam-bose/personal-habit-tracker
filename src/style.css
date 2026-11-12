@@ -350,7 +350,8 @@ main {
 }
 
 button,
-.button {
+.button,
+.plain-button {
   display: inline-block;
   font: inherit;
   padding: 6px 14px;
@@ -368,7 +369,8 @@ button,
 }
 
 button:hover,
-.button:hover {
+.button:hover,
+.plain-button:hover {
   filter: brightness(0.95);
 }
 
@@ -391,6 +393,8 @@ select {
 input:focus-visible,
 select:focus-visible,
 button:focus-visible,
+a.button:focus-visible,
+.plain-button:focus-visible,
 tr:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 1px;
@@ -577,6 +581,32 @@ button.danger-solid {
 
 .danger-zone {
   border-left: 4px solid var(--danger);
+}
+
+/* Support the tracker (src/views/support.tsx): the one card lit in the accent, a wash of it and the
+   accent down its edge, as the danger zone has red down its own. */
+.support {
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  border-left: 4px solid var(--accent);
+}
+
+.support .setting-row + .setting-row {
+  margin-top: 10px;
+}
+
+/* Links drawn as buttons: Buy me a coffee filled (.button), with its cup; Share the tracker plain
+   (.plain-button), in the base button's own look, set with button's above. */
+a.button,
+.plain-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.coffee-button .icon {
+  width: 18px;
+  height: 18px;
 }
 
 .form-error {
@@ -1442,6 +1472,16 @@ button.tile-link:hover {
   padding-top: 8px;
   border-top: 1px solid var(--border);
   font-size: 15px;
+}
+
+/* Across the whole card, the months sharing what the names leave; on a phone the cells keep their
+   40px and the table scrolls sideways in .table-scroll. */
+.month-grid {
+  width: 100%;
+}
+
+.month-grid th[scope="row"] {
+  white-space: nowrap;
 }
 
 .month-grid td {

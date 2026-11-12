@@ -83,13 +83,19 @@ export interface PeriodStats {
   days: number;
   /** The average day score, 0 to 100; null with no scored day. */
   score: number | null;
+  /** Days with a score: those with a habit counting. */
+  scored: number;
   perfect: number;
   habits: HabitStats[];
 }
 
 /** How the days from `from` to `to` (both included, only those come) went. */
 export function periodStats(t: Tracked, today: IsoDate, from?: IsoDate, to?: IsoDate): PeriodStats {
-  const dates = countedDays(t, today, from, to);
+  return statsOf(t, countedDays(t, today, from, to));
+}
+
+/** How some days went: a period's, or every Monday's. */
+function statsOf(t: Tracked, dates: IsoDate[]): PeriodStats {
   let sum = 0;
   let scored = 0;
   let perfect = 0;
@@ -117,7 +123,7 @@ export function periodStats(t: Tracked, today: IsoDate, from?: IsoDate, to?: Iso
     h.rate = h.days ? (h.met / h.days) * 100 : null;
     h.average = h.logged ? h.total / h.logged : null;
   }
-  return { days: dates.length, score: scored ? sum / scored : null, perfect, habits };
+  return { days: dates.length, score: scored ? sum / scored : null, scored, perfect, habits };
 }
 
 export function monthStats(t: Tracked, month: number, today: IsoDate): PeriodStats {
@@ -239,17 +245,13 @@ export function closingStreaks(chain: Tracked[]): Record<string, number> {
   return out;
 }
 
-/** The average day score for each weekday (0 Sunday to 6 Saturday), and how many days each averages. */
-export function weekdayScores(t: Tracked, today: IsoDate): { score: number | null; days: number }[] {
-  const sums = Array.from({ length: 7 }, () => ({ sum: 0, days: 0 }));
-  for (const date of countedDays(t, today)) {
-    const s = dayScore(t, date);
-    if (!s) continue;
-    const w = sums[weekday(date)]!;
-    w.sum += s.score;
-    w.days++;
-  }
-  return sums.map((w) => ({ score: w.days ? w.sum / w.days : null, days: w.days }));
+/**
+ * Each weekday's stats (0 Sunday to 6 Saturday) over the year so far, counted as a month's are:
+ * for a time or number habit, the average of the values logged on that weekday.
+ */
+export function weekdayStats(t: Tracked, today: IsoDate): PeriodStats[] {
+  const dates = countedDays(t, today);
+  return [0, 1, 2, 3, 4, 5, 6].map((w) => statsOf(t, dates.filter((d) => weekday(d) === w)));
 }
 
 /** Every day come, with its score (null when no habit counted). */
@@ -281,7 +283,39 @@ export function percent(score: number | null, digits = 2): string {
   return score === null ? "–" : `${score.toFixed(digits).replace(/\.?0+$/, "")}%`;
 }
 
-/** The score out of 100, rounded: Notion's "Monthly score: 70". */
-export function points(score: number | null): string {
-  return score === null ? "–" : String(Math.round(score));
+/**
+ * The score out of 100, rounded: Notion's "Monthly score: 70". With `digits`, to that many places,
+ * kept even when they are zeros ("70.0"), so a row of them lines up.
+ */
+export function points(score: number | null, digits = 0): string {
+  if (score === null) return "–";
+  const scale = 10 ** digits;
+  return (Math.round(score * scale) / scale).toFixed(digits);
+}
+
+/**
+ * A chart's score as its tooltip shows it, "64.3 / 100"; a missing one as a dash. ECharts hands a
+ * tooltip null, undefined or "-" for a bar with no value, which Number() would make 0 or NaN.
+ */
+export function outOf100(value: unknown): string {
+  const n = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN;
+  return Number.isFinite(n) ? `${points(n, 1)} / 100` : "–";
+}
+
+/**
+ * The best and the hardest of some periods (weekdays, months), by score: the first of them wins a tie.
+ * Null with fewer than two scored, or when they all score the same: there is nothing to compare.
+ */
+export function bestAndHardest<K>(keys: K[], scoreOf: (key: K) => number | null): { best: K; hardest: K } | null {
+  const scored = keys.filter((k) => scoreOf(k) !== null);
+  if (scored.length < 2) return null;
+  let best = scored[0] as K;
+  let hardest = scored[0] as K;
+  for (const k of scored) {
+    if (scoreOf(k)! > scoreOf(best)!) best = k;
+    if (scoreOf(k)! < scoreOf(hardest)!) hardest = k;
+  }
+  // All alike: one period would be both the best and the hardest, so there is nothing to say.
+  if (scoreOf(best) === scoreOf(hardest)) return null;
+  return { best, hardest };
 }
