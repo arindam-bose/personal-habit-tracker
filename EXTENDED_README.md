@@ -62,7 +62,7 @@ including `noUncheckedIndexedAccess`.
 | `src/offline.ts`, `src/service-worker.js` | The offline copy: registering it, its status, checking for updates. |
 | `src/install.ts` | Putting the tracker on the home screen. |
 | `src/analytics.ts` | Google Analytics, only with consent: the cookie banner's answer, loading and switching off GA. |
-| `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `modal.tsx` (the dialog every popup uses), `about.tsx` (the About card) and `hooks.ts` (closing a menu). |
+| `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `modal.tsx` (the dialog every popup uses), `help.tsx` (a card's ? with its description, as in the Money Tracker), `about.tsx` (the About card) and `hooks.ts` (closing a menu). |
 | `tools/notion_import.py` | Python: a Notion Habit Tracker export to a year file. |
 | `tests/` | Vitest. `helpers.ts` builds small synthetic years. |
 | `data/` | Your own Notion exports. Git-ignored; never commit it. |

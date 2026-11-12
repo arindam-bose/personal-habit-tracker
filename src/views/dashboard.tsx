@@ -7,6 +7,7 @@ import { formatValue, goalText, isActive, label, meets } from "../habits";
 import { dayScore, firstDay, habitStreakAcross, isPerfect, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats } from "../score";
 import { chain, selectedDay, tracked, weekStart, today } from "../state";
 import { HeatLegend, Heatmap, dayCell, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
+import { CardTitle } from "./help";
 import { TodayView } from "./today";
 
 export function DashboardView() {
@@ -84,7 +85,10 @@ function Overview() {
 
       <div class="columns">
         <section class="card">
-          <h3 class="card-title">Streaks</h3>
+          <CardTitle title="Streaks">
+            Days in a row each habit was met{since < t.year ? `, counting every year stored from ${since}: a streak carries on over New Year` : ""}.
+            Today doesn't break a streak until it's over.
+          </CardTitle>
           <table class="data-table streak-table">
             <thead>
               <tr>
@@ -120,14 +124,12 @@ function Overview() {
               </tr>
             </tbody>
           </table>
-          <p class="muted small">
-            Days in a row each habit was met{since < t.year ? `, counting every year stored from ${since}: a streak carries on over New Year` : ""}.
-            Today doesn't break a streak until it's over.
-          </p>
         </section>
 
         <section class="card">
-          <h3 class="card-title">{shownName} by habit</h3>
+          <CardTitle title={`${shownName} by habit`}>
+            Days met in {shownName}{shownMonth === monthOf(ref) && ref === today.value ? " so far" : ""}; the mark is the share for the whole year.
+          </CardTitle>
           <ul class="hbars">
             {shown.habits.filter((x) => x.days > 0).map((x) => {
               const yearRate = y.habits.find((yh) => yh.habit.id === x.habit.id)?.rate ?? null;
@@ -143,7 +145,6 @@ function Overview() {
               );
             })}
           </ul>
-          <p class="muted small">Days met in {shownName}{shownMonth === monthOf(ref) && ref === today.value ? " so far" : ""}; the mark is the share for the whole year.</p>
         </section>
       </div>
     </div>

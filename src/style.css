@@ -452,6 +452,77 @@ h2, h3 {
   margin-bottom: 12px !important;
 }
 
+/* A card's ? (src/views/help.tsx), as in the Money Tracker. The ? sits in the card's top right corner,
+   and the description shows under it, right-aligned, on hover or focus. */
+.card:has(.card-help) {
+  position: relative;
+}
+
+/* Room for the ? beside a head's own buttons (+ Add, Include loans). */
+.card:has(.card-help) .card-head {
+  padding-right: 28px;
+}
+
+.card-help {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+.help {
+  position: relative;
+  display: inline-flex;
+}
+
+button.help-btn {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--muted);
+  background: none;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: help;
+}
+
+button.help-btn:hover,
+button.help-btn:focus-visible {
+  filter: none;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.help-tip {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 64px));
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.12s, visibility 0.12s;
+}
+
+.help-btn:hover + .help-tip,
+.help-btn:focus + .help-tip {
+  visibility: visible;
+  opacity: 1;
+}
+
 .card-head {
   display: flex;
   justify-content: space-between;
