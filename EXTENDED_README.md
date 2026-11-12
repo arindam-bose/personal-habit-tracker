@@ -177,7 +177,8 @@ changes. The Dashboard's Day or Week choice is kept per tab, in `sessionStorage`
 `src/state.ts` holds the open year in a signal (`current`). Every change goes
 through an action that writes to IndexedDB first, then updates the signal.
 **Actions run one at a time** (`inTurn`), each reading the latest state when its
-turn comes, so ticking habits quickly can't have one save overwrite another. A closed year refuses every change, as does
+turn comes, so ticking habits quickly can't have one save overwrite another;
+`tests/state.test.ts` guards against it. A closed year refuses every change, as does
 a day before the start or still to come. A save that lands after the year picker
 moved to another year is stored but not shown.
 
@@ -299,8 +300,9 @@ their own `tests/tsconfig.json` so Node's types stay out of the app).
 - **Unit tests** (`score`, `habits`, `validate`, `demo`) run on small synthetic years
   from `tests/helpers.ts`, with expected numbers worked out by hand.
 - **Storage tests** (`state.test.ts`) use `fake-indexeddb` (`tests/setup.ts`): logging
-  and clearing a day, refusing days to come, deleting a habit with its values,
-  streaks across stored years, a save landing after the year switched, closing a year.
+  and clearing a day, quick changes made before the first is saved, refusing days to
+  come, deleting a habit with its values, streaks across stored years, a save landing
+  after the year switched, closing a year.
 - **README test**: the README names the version in `package.json`.
 - **Real-data tests** (`tests/real-data.test.ts`) run for each `data/notion/<year>/`
   present, and are skipped when there is none (as on GitHub): the importer's file is

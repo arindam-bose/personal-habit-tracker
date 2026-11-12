@@ -38,6 +38,29 @@ it("logs a day, and a day left empty is removed", async () => {
   expect(current.value!.setup.lastChangedAt).toBeDefined();
 });
 
+it("keeps every one of several quick changes, made before the first is saved", async () => {
+  await importYear(yearFile([]));
+  await openYear(2026);
+  // Slow saves, so the changes overlap: run all at once, each would read the same old year and the last would win.
+  slow.on = true;
+  await Promise.all([
+    setValue("2026-03-01", "h_med", true),
+    setValue("2026-03-01", "h_sleep", 480),
+    setNote("2026-03-01", "Long walk"),
+    setValue("2026-03-02", "h_med", true),
+    saveHabit({ id: "h_water", name: "Water", emoji: "💧", kind: "number", unit: "glasses", goal: { op: "atLeast", value: 8 } }),
+  ]);
+  slow.on = false;
+  const expected = [
+    { date: "2026-03-01", values: { h_med: true, h_sleep: 480 }, note: "Long walk" },
+    { date: "2026-03-02", values: { h_med: true } },
+  ];
+  for (const data of [current.value!, (await loadYear(2026))!]) {
+    expect(data.days).toEqual(expected);
+    expect(data.setup.habits.map((h) => h.id)).toEqual(["h_med", "h_sleep", "h_screen", "h_water"]);
+  }
+});
+
 it("won't log a day that hasn't come", async () => {
   today.value = "2026-03-01";
   await importYear(yearFile([]));
