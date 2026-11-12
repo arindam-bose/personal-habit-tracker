@@ -1474,6 +1474,16 @@ button.tile-link:hover {
   font-size: 15px;
 }
 
+/* Across the whole card, the months sharing what the names leave; on a phone the cells keep their
+   40px and the table scrolls sideways in .table-scroll. */
+.month-grid {
+  width: 100%;
+}
+
+.month-grid th[scope="row"] {
+  white-space: nowrap;
+}
+
 .month-grid td {
   min-width: 40px;
 }
