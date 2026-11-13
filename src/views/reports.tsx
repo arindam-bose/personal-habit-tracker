@@ -5,7 +5,7 @@
 
 import { useSignal } from "@preact/signals";
 import { MONTHS, MONTHS_SHORT, WEEKDAYS, WEEKDAYS_SHORT, longDate, weekOrder } from "../dates";
-import { durationWords, formatMinutes, goalShort, goalText, label } from "../habits";
+import { durationWords, formatAverage, goalShort, goalText, label } from "../habits";
 import {
   bestAndHardest, dailyScores, habitStreak, monthStats, outOf100, percent, perfectStreak, points, rollingAverage, weekdayStats, yearStats,
   type HabitStats, type PeriodStats, type Tracked,
@@ -182,7 +182,7 @@ function HabitRow({ h, of }: { h: HabitStats; of: number }) {
   // A habit that counted on fewer of the days (added or stopped partway) says out of how many.
   const days = (n: number) => (h.days < of ? `${n} of ${plural(h.days, "day")}` : plural(n, "day"));
   if (habit.kind === "check") return <ReportRow name={label(habit)} value={days(h.met)} share={h.rate} />;
-  const avg = h.average === null ? "–" : habit.kind === "duration" ? formatMinutes(h.average) : h.average.toFixed(1).replace(/\.0$/, "");
+  const avg = h.average === null ? "–" : formatAverage(habit, h.average);
   const total = habit.kind === "duration" ? durationWords(h.total) : `${h.total.toLocaleString()}${habit.unit ? ` ${habit.unit}` : ""}`;
   const sub = h.logged > 0 ? <><b>{total}</b> in all, <b>{avg}</b> a day on average</> : undefined;
   return habit.goal
@@ -301,7 +301,7 @@ function MeasureChart(props: { habit: Habit; index: number; along: Along }) {
   const { stats } = along;
   const duration = habit.kind === "duration";
   const values = stats.map((s) => s.habits[props.index]!.average);
-  const show = (v: unknown) => (v === null || v === undefined ? "–" : duration ? formatMinutes(Number(v)) : Number(v).toFixed(1).replace(/\.0$/, ""));
+  const show = (v: unknown) => (v === null || v === undefined ? "–" : formatAverage(habit, Number(v)));
   const color = token("--series-1");
   const goalValue = habit.goal?.value ?? 0;
   const goalName = `Goal\n${goalShort(habit)}`;

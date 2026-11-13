@@ -4,6 +4,7 @@ import type { ComponentType } from "preact";
 import { version } from "../package.json";
 import { chooseConsent, consentAsked, takeConsentOpener, type Consent } from "./analytics";
 import { dateTime } from "./dates";
+import { pageFor } from "./routes";
 import { updateReady } from "./offline";
 import { backupDue, backupText, lastUpdatedAt, requestPersistence } from "./storage";
 import { backUpYear, current, loadSettings, openYear, persistState, years } from "./state";
@@ -51,8 +52,7 @@ type Page = keyof typeof PAGES;
 const RENAMED: Record<string, Page> = { today: "dashboard", calendar: "heatmaps" };
 
 function pageFromHash(): Page {
-  const name = location.hash.replace(/^#\/?/, "");
-  return name in PAGES ? (name as Page) : RENAMED[name] ?? "dashboard";
+  return pageFor(location.hash.replace(/^#\/?/, ""), PAGES, RENAMED, "dashboard");
 }
 
 export function App() {

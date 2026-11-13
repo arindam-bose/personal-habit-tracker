@@ -56,6 +56,7 @@ including `noUncheckedIndexedAccess`.
 | `src/backup.ts` | JSON import and export, and backup file names. |
 | `src/storage.ts` | Asking the browser to keep the data; when to remind about a backup; "Last updated". |
 | `src/state.ts` | The open year as Preact signals, and the actions that change it. |
+| `src/routes.ts` | Which page an address opens, including old page names (`#/today`, `#/calendar`). |
 | `src/demo.ts` | The demo file on the Settings page. |
 | `src/device.ts` | The browser and system, for backup file names. |
 | `src/theme.ts` | Light or dark: the Settings choice, or following the device. |

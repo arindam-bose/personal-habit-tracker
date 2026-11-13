@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthPassed, monthStats, yearPassed, perfectStreak, perfectStreakAcross, outOf100, points, trackedOf, weekdayStats, yearStats } from "../src/score";
+import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthPassed, monthStats, monthTracked, monthUnderWay, wholePercent, yearPassed, perfectStreak, perfectStreakAcross, outOf100, points, trackedOf, weekdayStats, yearStats } from "../src/score";
 import { HABITS, yearFile } from "./helpers";
 import type { DayLog } from "../src/types";
 
@@ -207,5 +207,37 @@ describe("yearPassed", () => {
     expect(yearPassed(2024, "2024-12-31")).toBe(100);
     expect(yearPassed(2026, "2025-12-31")).toBe(0);
     expect(yearPassed(2025, "2026-01-01")).toBe(100);
+  });
+});
+
+describe("the month by month table", () => {
+  it("bolds a month only while its year is under way", () => {
+    expect(monthUnderWay({ year: 2026 }, "2026-11-13")).toBe(11);
+    expect(monthUnderWay({ year: 2026 }, "2026-12-31")).toBe(12);
+    // A past year is over: December 31 is its last day, but not under way.
+    expect(monthUnderWay({ year: 2025 }, "2026-11-13")).toBeNull();
+    expect(monthUnderWay({ year: 2027 }, "2026-11-13")).toBeNull();
+  });
+
+  it("knows a month wholly before tracking began", () => {
+    const t = { year: 2026, start: "2026-06-15" };
+    expect(monthTracked(t, 5)).toBe(false);
+    expect(monthTracked(t, 6)).toBe(true);
+    expect(monthTracked({ year: 2026 }, 1)).toBe(true);
+  });
+
+  it("reads 100 only for all of it, and 0 only for none", () => {
+    expect(wholePercent(100)).toBe(100);
+    expect(wholePercent((299 / 300) * 100)).toBe(99);
+    expect(wholePercent(99.5)).toBe(99);
+    expect(wholePercent(0)).toBe(0);
+    expect(wholePercent(0.3)).toBe(1);
+    expect(wholePercent(64.44)).toBe(64);
+    expect(wholePercent(64.5)).toBe(65);
+  });
+
+  it("counts a leap year's days for yearPassed", () => {
+    expect(yearPassed(2024, "2024-02-29")).toBeCloseTo((60 / 366) * 100);
+    expect(yearPassed(2026, "2026-01-01")).toBeCloseTo((1 / 365) * 100);
   });
 });

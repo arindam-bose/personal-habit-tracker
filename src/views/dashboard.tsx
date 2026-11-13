@@ -3,8 +3,9 @@
 // a heatmap, the year month by month, and how each habit went in the month of the day open above.
 
 import { MONTHS, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
-import { formatMinutes, formatValue, goalShort, goalText, isActive, label, meets } from "../habits";
-import { dayScore, firstDay, habitStreakAcross, isPerfect, monthPassed, monthStats, yearPassed, percent, perfectStreakAcross, periodStats, points, yearStats, type PeriodStats, type Tracked } from "../score";
+import { Fragment } from "preact";
+import { formatAverage, formatValue, goalShort, goalText, isActive, label, meets } from "../habits";
+import { dayScore, firstDay, habitStreakAcross, isPerfect, monthPassed, monthStats, monthTracked, monthUnderWay, yearPassed, percent, perfectStreakAcross, periodStats, points, wholePercent, yearStats, type PeriodStats, type Tracked } from "../score";
 import { chain, selectedDay, tracked, weekStart, today } from "../state";
 import { HeatLegend, Heatmap, dayCell, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
 import type { Habit } from "../types";
@@ -84,7 +85,7 @@ function Overview() {
         <HeatLegend />
       </section>
 
-      <MonthByMonth t={t} ref_={ref} />
+      <MonthByMonth t={t} ref_={ref} year={y} />
 
       <div class="columns">
         <section class="card">
@@ -154,10 +155,10 @@ function Overview() {
   );
 }
 
-/** A tile's score, as all four read: "65 / 100", rounded to the nearest whole point; a dash with none. */
+/** A tile's score, as all four read: "65 / 100", to the nearest whole point (see wholePercent); a dash with none. */
 function OutOf100(props: { score: number | null }) {
   if (props.score === null) return <>–</>;
-  return <>{points(props.score)} <span class="tile-unit">/ 100</span></>;
+  return <>{wholePercent(props.score)} <span class="tile-unit">/ 100</span></>;
 }
 
 /** A column of the month table: a habit, and whether it has an average column too. */
@@ -165,34 +166,35 @@ type Col = { h: Habit; i: number; measure: boolean };
 
 /**
  * A row of the month table: a month, or the year so far. `stats` is null for a month still to
- * come, which shows only how much of it has gone by (none).
+ * come or one before tracking began, which show only how much of them has gone by.
  */
-function PeriodRow(props: { name: string; what?: string; passed: number; stats: PeriodStats | null; cols: Col[]; class: string }) {
+function PeriodRow(props: { name: string; what?: string; note?: string; passed: number; stats: PeriodStats | null; cols: Col[]; class: string }) {
   const { name, passed, stats, cols } = props;
   const what = props.what ?? name;
+  const passedText = `${wholePercent(passed)}%`;
   return (
     <tr class={props.class}>
-      <th scope="row" title={props.what}>{name}</th>
+      <th scope="row" title={props.note ?? props.what}>{name}</th>
       <td class="passed">
         <span class="bar-line">
-          <span class="num">{Math.round(passed)}%</span>
-          <ScoreBar score={passed} label={`${what}: ${Math.round(passed)}% gone by`} />
+          <span class="num">{passedText}</span>
+          <ScoreBar score={passed} label={`${what}: ${passedText} gone by`} />
         </span>
       </td>
       {cols.map(({ h, i, measure }) => {
         const x = stats?.habits[i];
         const counted = x !== undefined && x.days > 0;
         return (
-          <>
+          <Fragment key={h.id}>
             <td class="num" title={counted ? `${x.met} of ${plural(x.days, "day")} met · ${percent(x.rate)}` : stats ? `${h.name} didn't count in ${what}` : undefined}>
-              {!stats ? null : counted ? <span class="rate">{Math.round(x.rate!)}%<Ring value={x.rate!} /></span> : <span class="muted">·</span>}
+              {!stats ? null : counted ? <span class="rate">{wholePercent(x.rate!)}%<Ring value={x.rate!} /></span> : <span class="muted">·</span>}
             </td>
             {measure && (
               <td class="num" title={counted && x.average !== null ? `Average of ${plural(x.logged, "day")} logged` : undefined}>
-                {!stats ? null : counted && x.average !== null ? averageText(h, x.average) : <span class="muted">{counted ? "–" : "·"}</span>}
+                {!stats ? null : counted && x.average !== null ? formatAverage(h, x.average) : <span class="muted">{counted ? "–" : "·"}</span>}
               </td>
             )}
-          </>
+          </Fragment>
         );
       })}
       <td>
@@ -220,22 +222,19 @@ function Ring(props: { value: number }) {
   );
 }
 
-/** A time or number habit's average, as its values read: "7:09", "8.2". */
-function averageText(h: Habit, average: number): string {
-  return h.kind === "duration" ? formatMinutes(average) : (Math.round(average * 10) / 10).toLocaleString();
-}
-
 /**
  * The year a row per month, as the Notion tracker's Monthly Progress: how much of the month has
  * gone by, the share of days each habit was met, a time or number habit's average, and the score.
  */
-function MonthByMonth(props: { t: Tracked; ref_: string }) {
+function MonthByMonth(props: { t: Tracked; ref_: string; year: PeriodStats }) {
   const { t, ref_ } = props;
-  const current = monthOf(ref_);
+  // In bold while it's under way: none for a year that's over.
+  const current = monthUnderWay(t, today.value);
   const rows = MONTHS.map((_, i) => {
     const month = i + 1;
     const passed = monthPassed(t.year, month, ref_);
-    return { month, passed, stats: passed ? monthStats(t, month, ref_) : null };
+    const tracked = monthTracked(t, month);
+    return { month, passed, tracked, stats: passed && tracked ? monthStats(t, month, ref_) : null };
   });
   // A column per habit; a time or number habit has a second, its average.
   const cols: Col[] = t.habits.map((h, i) => ({ h, i, measure: h.kind !== "check" }));
@@ -244,7 +243,8 @@ function MonthByMonth(props: { t: Tracked; ref_: string }) {
       <CardTitle title={`${t.year}, month by month`}>
         How much of each month has gone by, the share of its days each habit was met, the average
         time or number logged, and the month's score. Overall is the year so far, every day counted
-        together, as the {t.year} tile above. A dot means the habit didn't count that month.
+        together, as the {t.year} tile above. A dot means the habit didn't count that month; a month
+        before tracking began shows only how much of it has gone by.
       </CardTitle>
       <div class="table-scroll">
         <table class="data-table month-table">
@@ -253,20 +253,21 @@ function MonthByMonth(props: { t: Tracked; ref_: string }) {
               <th scope="col">Month</th>
               <th scope="col">Passed</th>
               {cols.map(({ h, measure }) => (
-                <>
+                <Fragment key={h.id}>
                   <th scope="col" class="num" title={h.name}>{label(h)}</th>
-                  {measure && <th scope="col" class="num" title={`${h.name}: average${h.goal ? `, goal ${goalText(h)}` : ""}`}>{h.emoji ? `${h.emoji} ` : ""}Avg{h.goal ? <span class="goal">{goalShort(h)}</span> : null}</th>}
-                </>
+                  {measure && <th scope="col" class="num" title={`${h.name}: average${h.goal ? `, goal ${goalText(h)}` : ""}`}>{h.emoji ? <>{h.emoji} <span class="sr-only">{h.name} </span>Avg</> : `${h.name} avg`}{h.goal ? <span class="goal">{goalShort(h)}</span> : null}</th>}
+                </Fragment>
               ))}
               <th scope="col">Score</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ month, passed, stats }) => (
-              <PeriodRow name={MONTHS[month - 1]!} passed={passed} stats={stats} cols={cols} class={month === current ? "current" : ""} />
+            {rows.map(({ month, passed, tracked, stats }) => (
+              <PeriodRow name={MONTHS[month - 1]!} note={tracked ? undefined : `Before tracking began on ${longDate(firstDay(t))}`}
+                passed={passed} stats={stats} cols={cols} class={month === current ? "current" : ""} />
             ))}
             {/* The year so far, as the 2026 tile counts it: every day pooled, not the months averaged. */}
-            <PeriodRow name="Overall" what={`${t.year} so far`} passed={yearPassed(t.year, ref_)} stats={yearStats(t, ref_)} cols={cols} class="total" />
+            <PeriodRow name="Overall" what={`${t.year} so far`} passed={yearPassed(t.year, ref_)} stats={props.year} cols={cols} class="total" />
           </tbody>
         </table>
       </div>
