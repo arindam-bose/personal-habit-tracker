@@ -54,25 +54,25 @@ function Overview() {
       <div class="tiles">
         <button type="button" class="card tile tile-link" onClick={() => openDay(picked)}>
           <span class="tile-label">{pickedLabel}</span>
-          <span class="tile-value">{day ? percent(day.score) : "–"}</span>
+          <span class="tile-value"><OutOf100 score={day?.score ?? null} /></span>
           <ScoreBar score={day?.score ?? null} />
           <span class="tile-detail">{day ? `${day.met} of ${plural(day.total, "habit")} met${isPerfect(day) ? " · Perfect day 🎉" : ""}` : ""}</span>
         </button>
         <div class="card tile">
           <span class="tile-label">This week</span>
-          <span class="tile-value">{percent(weekStats.score)}</span>
+          <span class="tile-value"><OutOf100 score={weekStats.score} /></span>
           <ScoreBar score={weekStats.score} />
           <span class="tile-detail">{plural(weekStats.days, "day")} from {shortDate(week)} · {plural(weekStats.perfect, "perfect day")}</span>
         </div>
         <div class="card tile">
           <span class="tile-label">{MONTHS[month - 1]}</span>
-          <span class="tile-value">{points(m.score)} <span class="tile-unit">/ 100</span></span>
+          <span class="tile-value"><OutOf100 score={m.score} /></span>
           <ScoreBar score={m.score} />
           <span class="tile-detail">{plural(m.days, "day")} · {plural(m.perfect, "perfect day")}</span>
         </div>
         <div class="card tile">
           <span class="tile-label">{t.year}</span>
-          <span class="tile-value">{points(y.score)} <span class="tile-unit">/ 100</span></span>
+          <span class="tile-value"><OutOf100 score={y.score} /></span>
           <ScoreBar score={y.score} />
           <span class="tile-detail">{plural(y.days, "day")} · {plural(y.perfect, "perfect day")}</span>
         </div>
@@ -152,6 +152,12 @@ function Overview() {
       </div>
     </div>
   );
+}
+
+/** A tile's score, as all four read: "65 / 100", rounded to the nearest whole point; a dash with none. */
+function OutOf100(props: { score: number | null }) {
+  if (props.score === null) return <>–</>;
+  return <>{points(props.score)} <span class="tile-unit">/ 100</span></>;
 }
 
 /** A share out of 100 as a small ring, filled clockwise from the top. */
