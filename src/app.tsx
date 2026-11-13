@@ -7,7 +7,7 @@ import { dateTime } from "./dates";
 import { updateReady } from "./offline";
 import { backupDue, backupText, lastUpdatedAt, requestPersistence } from "./storage";
 import { backUpYear, current, loadSettings, openYear, persistState, years } from "./state";
-import { CalendarView } from "./views/calendar";
+import { HeatmapsView } from "./views/heatmaps";
 import { DashboardView } from "./views/dashboard";
 import { HabitsView } from "./views/habits";
 import { useDismiss } from "./views/hooks";
@@ -38,7 +38,7 @@ function chartPage(load: () => Promise<ComponentType>): ComponentType {
 const PAGES = {
   // The main page: today's log at the top, the year at a glance below it.
   dashboard: { label: "Dashboard", view: DashboardView },
-  calendar: { label: "Calendar", view: CalendarView },
+  heatmaps: { label: "Heatmaps", view: HeatmapsView },
   reports: { label: "Reports", view: chartPage(() => import("./views/reports").then((m) => m.ReportsView)) },
   habits: { label: "Habits", view: HabitsView },
   // Only in the menu with two or more years.
@@ -48,7 +48,7 @@ const PAGES = {
 type Page = keyof typeof PAGES;
 
 /** Old page names, so bookmarks made before a page moved still open the right one. */
-const RENAMED: Record<string, Page> = { today: "dashboard" };
+const RENAMED: Record<string, Page> = { today: "dashboard", calendar: "heatmaps" };
 
 function pageFromHash(): Page {
   const name = location.hash.replace(/^#\/?/, "");
