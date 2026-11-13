@@ -1908,3 +1908,76 @@ table.compare tr.differs td {
   gap: 8px;
   margin-left: auto;
 }
+
+/* The Dashboard's month by month table: a bar beside a share, a ring beside each habit's. */
+.month-table {
+  width: 100%;
+}
+
+/* Headers wrap to two lines, so ten habits fit across a laptop screen. */
+.month-table thead th {
+  white-space: normal;
+  vertical-align: bottom;
+  min-width: 7ch;
+  max-width: 11ch;
+}
+
+.month-table thead .goal {
+  display: block;
+  font-weight: 400;
+}
+
+.month-table tr.current th[scope="row"] {
+  font-weight: 700;
+}
+
+.month-table .bar-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 110px;
+}
+
+.month-table .bar-line .num {
+  min-width: 4ch;
+}
+
+.month-table .bar-line .score-bar {
+  flex: 1;
+}
+
+/* How much of the month has gone by: grey, so it doesn't read as a score. */
+.month-table td.passed .score-bar span {
+  background: var(--muted);
+}
+
+.month-table .rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.month-table th,
+.month-table td {
+  padding-left: 7px;
+  padding-right: 7px;
+}
+
+.ring {
+  flex: none;
+}
+
+.ring-track,
+.ring-fill {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.ring-track {
+  stroke: var(--heat-empty);
+}
+
+.ring-fill {
+  stroke: rgb(var(--heat));
+  stroke-linecap: round;
+}

@@ -131,6 +131,19 @@ export function monthStats(t: Tracked, month: number, today: IsoDate): PeriodSta
   return periodStats(t, today, `${t.year}-${mm}-01`, `${t.year}-${mm}-${daysInMonth(t.year, month)}`);
 }
 
+/**
+ * How much of a month has gone by, 0 to 100: all of it once it's over, today's share of it now, and
+ * none before it starts. The calendar's, not the tracking's: Notion's "Days Already Passed".
+ */
+export function monthPassed(year: number, month: number, today: IsoDate): number {
+  const mm = String(month).padStart(2, "0");
+  const first = `${year}-${mm}-01`;
+  const days = daysInMonth(year, month);
+  if (today < first) return 0;
+  if (today > `${year}-${mm}-${days}`) return 100;
+  return (Number(today.slice(8, 10)) / days) * 100;
+}
+
 export function yearStats(t: Tracked, today: IsoDate): PeriodStats {
   return periodStats(t, today);
 }

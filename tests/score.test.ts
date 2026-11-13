@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthStats, perfectStreak, perfectStreakAcross, outOf100, points, trackedOf, weekdayStats, yearStats } from "../src/score";
+import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthPassed, monthStats, perfectStreak, perfectStreakAcross, outOf100, points, trackedOf, weekdayStats, yearStats } from "../src/score";
 import { HABITS, yearFile } from "./helpers";
 import type { DayLog } from "../src/types";
 
@@ -186,5 +186,17 @@ describe("EoD review fixes", () => {
     expect(outOf100(null)).toBe("–");
     expect(outOf100(undefined)).toBe("–");
     expect(outOf100("-")).toBe("–"); // ECharts' own placeholder for a missing value
+  });
+});
+
+describe("monthPassed", () => {
+  it("is the share of the month's days come, by the calendar", () => {
+    expect(monthPassed(2026, 10, "2026-11-13")).toBe(100);
+    expect(monthPassed(2026, 11, "2026-11-13")).toBeCloseTo((13 / 30) * 100);
+    expect(monthPassed(2026, 12, "2026-11-13")).toBe(0);
+    expect(monthPassed(2026, 11, "2026-11-30")).toBe(100);
+    expect(monthPassed(2024, 2, "2024-02-29")).toBe(100);
+    // A past year is over.
+    expect(monthPassed(2025, 12, "2026-11-13")).toBe(100);
   });
 });

@@ -1,12 +1,13 @@
 // Dashboard, the main page. At the top, the day to log (see today.tsx); below it, the year at a
 // glance: scores for the day, the week, the month and the year, every habit's streak, the year as
-// a heatmap, and how each habit went in the month of the day open above.
+// a heatmap, the year month by month, and how each habit went in the month of the day open above.
 
-import { MONTHS, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
-import { formatValue, goalText, isActive, label, meets } from "../habits";
-import { dayScore, firstDay, habitStreakAcross, isPerfect, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats } from "../score";
+import { MONTHS, MONTHS_SHORT, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
+import { formatMinutes, formatValue, goalShort, goalText, isActive, label, meets } from "../habits";
+import { dayScore, firstDay, habitStreakAcross, isPerfect, monthPassed, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats, type Tracked } from "../score";
 import { chain, selectedDay, tracked, weekStart, today } from "../state";
 import { HeatLegend, Heatmap, dayCell, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
+import type { Habit } from "../types";
 import { CardTitle } from "./help";
 import { TodayView } from "./today";
 
@@ -83,6 +84,8 @@ function Overview() {
         <HeatLegend />
       </section>
 
+      <MonthByMonth t={t} ref_={ref} />
+
       <div class="columns">
         <section class="card">
           <CardTitle title="Streaks">
@@ -148,5 +151,101 @@ function Overview() {
         </section>
       </div>
     </div>
+  );
+}
+
+/** A share out of 100 as a small ring, filled clockwise from the top. */
+function Ring(props: { value: number }) {
+  const r = 7;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(100, props.value));
+  return (
+    <svg class="ring" viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+      <circle cx="9" cy="9" r={r} class="ring-track" />
+      {v > 0 && <circle cx="9" cy="9" r={r} class="ring-fill" stroke-dasharray={`${(v / 100) * c} ${c}`} transform="rotate(-90 9 9)" />}
+    </svg>
+  );
+}
+
+/** A time or number habit's average, as its values read: "7:09", "8.2". */
+function averageText(h: Habit, average: number): string {
+  return h.kind === "duration" ? formatMinutes(average) : (Math.round(average * 10) / 10).toLocaleString();
+}
+
+/**
+ * The year a row per month, as the Notion tracker's Monthly Progress: how much of the month has
+ * gone by, the share of days each habit was met, a time or number habit's average, and the score.
+ */
+function MonthByMonth(props: { t: Tracked; ref_: string }) {
+  const { t, ref_ } = props;
+  const current = monthOf(ref_);
+  const rows = MONTHS.map((_, i) => {
+    const month = i + 1;
+    const passed = monthPassed(t.year, month, ref_);
+    return { month, passed, stats: passed ? monthStats(t, month, ref_) : null };
+  });
+  // A column per habit; a time or number habit has a second, its average.
+  const cols = t.habits.map((h, i) => ({ h, i, measure: h.kind !== "check" }));
+  return (
+    <section class="card">
+      <CardTitle title={`${t.year}, month by month`}>
+        How much of each month has gone by, the share of its days each habit was met, the average
+        time or number logged, and the month's score. A dot means the habit didn't count that month.
+      </CardTitle>
+      <div class="table-scroll">
+        <table class="data-table month-table">
+          <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">Passed</th>
+              {cols.map(({ h, measure }) => (
+                <>
+                  <th scope="col" class="num" title={h.name}>{label(h)}</th>
+                  {measure && <th scope="col" class="num" title={`${h.name}: average${h.goal ? `, goal ${goalText(h)}` : ""}`}>{h.emoji ? `${h.emoji} ` : ""}Avg{h.goal ? <span class="goal">{goalShort(h)}</span> : null}</th>}
+                </>
+              ))}
+              <th scope="col">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ month, passed, stats }) => (
+              <tr class={month === current ? "current" : ""}>
+                <th scope="row">{MONTHS[month - 1]}</th>
+                <td class="passed">
+                  <span class="bar-line">
+                    <span class="num">{Math.round(passed)}%</span>
+                    <ScoreBar score={passed} label={`${MONTHS_SHORT[month - 1]}: ${Math.round(passed)}% gone by`} />
+                  </span>
+                </td>
+                {cols.map(({ h, i, measure }) => {
+                  const x = stats?.habits[i];
+                  const counted = x !== undefined && x.days > 0;
+                  return (
+                    <>
+                      <td class="num" title={counted ? `${x.met} of ${plural(x.days, "day")} met · ${percent(x.rate)}` : stats ? `${h.name} didn't count in ${MONTHS[month - 1]}` : undefined}>
+                        {!stats ? null : counted ? <span class="rate">{Math.round(x.rate!)}%<Ring value={x.rate!} /></span> : <span class="muted">·</span>}
+                      </td>
+                      {measure && (
+                        <td class="num" title={counted && x.average !== null ? `Average of ${plural(x.logged, "day")} logged` : undefined}>
+                          {!stats ? null : counted && x.average !== null ? averageText(h, x.average) : <span class="muted">{counted ? "–" : "·"}</span>}
+                        </td>
+                      )}
+                    </>
+                  );
+                })}
+                <td>
+                  {stats && stats.score !== null && (
+                    <span class="bar-line">
+                      <span class="num">{points(stats.score, 1)}</span>
+                      <ScoreBar score={stats.score} label={`${MONTHS[month - 1]} score: ${points(stats.score, 1)} out of 100`} />
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
