@@ -144,6 +144,15 @@ export function monthPassed(year: number, month: number, today: IsoDate): number
   return (Number(today.slice(8, 10)) / days) * 100;
 }
 
+/** How much of the year has gone by, 0 to 100, as monthPassed counts a month. */
+export function yearPassed(year: number, today: IsoDate): number {
+  const first = `${year}-01-01`;
+  const last = `${year}-12-31`;
+  if (today < first) return 0;
+  if (today > last) return 100;
+  return (dateRange(first, today).length / dateRange(first, last).length) * 100;
+}
+
 export function yearStats(t: Tracked, today: IsoDate): PeriodStats {
   return periodStats(t, today);
 }

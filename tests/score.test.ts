@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthPassed, monthStats, perfectStreak, perfectStreakAcross, outOf100, points, trackedOf, weekdayStats, yearStats } from "../src/score";
+import { bestAndHardest, closingStreaks, dayScore, habitStreak, habitStreakAcross, level, monthPassed, monthStats, yearPassed, perfectStreak, perfectStreakAcross, outOf100, points, trackedOf, weekdayStats, yearStats } from "../src/score";
 import { HABITS, yearFile } from "./helpers";
 import type { DayLog } from "../src/types";
 
@@ -198,5 +198,14 @@ describe("monthPassed", () => {
     expect(monthPassed(2024, 2, "2024-02-29")).toBe(100);
     // A past year is over.
     expect(monthPassed(2025, 12, "2026-11-13")).toBe(100);
+  });
+});
+
+describe("yearPassed", () => {
+  it("is the share of the year's days come", () => {
+    expect(yearPassed(2026, "2026-11-13")).toBeCloseTo((317 / 365) * 100);
+    expect(yearPassed(2024, "2024-12-31")).toBe(100);
+    expect(yearPassed(2026, "2025-12-31")).toBe(0);
+    expect(yearPassed(2025, "2026-01-01")).toBe(100);
   });
 });

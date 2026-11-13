@@ -1927,6 +1927,11 @@ table.compare tr.differs td {
   font-weight: 400;
 }
 
+/* Overall, the year so far, sits under December. */
+.month-table tr.total > * {
+  border-top: 2px solid var(--border);
+}
+
 .month-table tr.current th[scope="row"] {
   font-weight: 700;
 }
