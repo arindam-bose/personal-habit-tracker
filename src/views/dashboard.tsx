@@ -1,12 +1,14 @@
 // Dashboard, the main page. At the top, the day to log (see today.tsx); below it, the year at a
 // glance: scores for the day, the week, the month and the year, every habit's streak, the year as
-// a heatmap, and how each habit went in the month of the day open above.
+// a heatmap, the year month by month, and how each habit went in the month of the day open above.
 
 import { MONTHS, longDate, monthOf, shortDate, weekOf, addDays } from "../dates";
-import { formatValue, goalText, isActive, label, meets } from "../habits";
-import { dayScore, firstDay, habitStreakAcross, isPerfect, monthStats, percent, perfectStreakAcross, periodStats, points, yearStats } from "../score";
+import { Fragment } from "preact";
+import { formatAverage, formatValue, goalShort, goalText, isActive, label, meets } from "../habits";
+import { dayScore, firstDay, habitStreakAcross, isPerfect, monthPassed, monthStats, monthTracked, monthUnderWay, yearPassed, percent, perfectStreakAcross, periodStats, points, wholePercent, yearStats, type PeriodStats, type Tracked } from "../score";
 import { chain, selectedDay, tracked, weekStart, today } from "../state";
 import { HeatLegend, Heatmap, dayCell, NoYear, ScoreBar, openDay, plural, refDay } from "./common";
+import type { Habit } from "../types";
 import { CardTitle } from "./help";
 import { TodayView } from "./today";
 
@@ -53,25 +55,25 @@ function Overview() {
       <div class="tiles">
         <button type="button" class="card tile tile-link" onClick={() => openDay(picked)}>
           <span class="tile-label">{pickedLabel}</span>
-          <span class="tile-value">{day ? percent(day.score) : "–"}</span>
+          <span class="tile-value"><OutOf100 score={day?.score ?? null} /></span>
           <ScoreBar score={day?.score ?? null} />
           <span class="tile-detail">{day ? `${day.met} of ${plural(day.total, "habit")} met${isPerfect(day) ? " · Perfect day 🎉" : ""}` : ""}</span>
         </button>
         <div class="card tile">
           <span class="tile-label">This week</span>
-          <span class="tile-value">{percent(weekStats.score)}</span>
+          <span class="tile-value"><OutOf100 score={weekStats.score} /></span>
           <ScoreBar score={weekStats.score} />
           <span class="tile-detail">{plural(weekStats.days, "day")} from {shortDate(week)} · {plural(weekStats.perfect, "perfect day")}</span>
         </div>
         <div class="card tile">
           <span class="tile-label">{MONTHS[month - 1]}</span>
-          <span class="tile-value">{points(m.score)} <span class="tile-unit">/ 100</span></span>
+          <span class="tile-value"><OutOf100 score={m.score} /></span>
           <ScoreBar score={m.score} />
           <span class="tile-detail">{plural(m.days, "day")} · {plural(m.perfect, "perfect day")}</span>
         </div>
         <div class="card tile">
           <span class="tile-label">{t.year}</span>
-          <span class="tile-value">{points(y.score)} <span class="tile-unit">/ 100</span></span>
+          <span class="tile-value"><OutOf100 score={y.score} /></span>
           <ScoreBar score={y.score} />
           <span class="tile-detail">{plural(y.days, "day")} · {plural(y.perfect, "perfect day")}</span>
         </div>
@@ -82,6 +84,8 @@ function Overview() {
         <Heatmap t={t} weekStart={weekStart.value} label={`Day scores in ${t.year}`} cell={dayCell(t)} />
         <HeatLegend />
       </section>
+
+      <MonthByMonth t={t} ref_={ref} year={y} />
 
       <div class="columns">
         <section class="card">
@@ -148,5 +152,125 @@ function Overview() {
         </section>
       </div>
     </div>
+  );
+}
+
+/** A tile's score, as all four read: "65 / 100", to the nearest whole point (see wholePercent); a dash with none. */
+function OutOf100(props: { score: number | null }) {
+  if (props.score === null) return <>–</>;
+  return <>{wholePercent(props.score)} <span class="tile-unit">/ 100</span></>;
+}
+
+/** A column of the month table: a habit, and whether it has an average column too. */
+type Col = { h: Habit; i: number; measure: boolean };
+
+/**
+ * A row of the month table: a month, or the year so far. `stats` is null for a month still to
+ * come or one before tracking began, which show only how much of them has gone by.
+ */
+function PeriodRow(props: { name: string; what?: string; note?: string; passed: number; stats: PeriodStats | null; cols: Col[]; class: string }) {
+  const { name, passed, stats, cols } = props;
+  const what = props.what ?? name;
+  const passedText = `${wholePercent(passed)}%`;
+  return (
+    <tr class={props.class}>
+      <th scope="row" title={props.note ?? props.what}>{name}</th>
+      <td class="passed">
+        <span class="bar-line">
+          <span class="num">{passedText}</span>
+          <ScoreBar score={passed} label={`${what}: ${passedText} gone by`} />
+        </span>
+      </td>
+      {cols.map(({ h, i, measure }) => {
+        const x = stats?.habits[i];
+        const counted = x !== undefined && x.days > 0;
+        return (
+          <Fragment key={h.id}>
+            <td class="num" title={counted ? `${x.met} of ${plural(x.days, "day")} met · ${percent(x.rate)}` : stats ? `${h.name} didn't count in ${what}` : undefined}>
+              {!stats ? null : counted ? <span class="rate">{wholePercent(x.rate!)}%<Ring value={x.rate!} /></span> : <span class="muted">·</span>}
+            </td>
+            {measure && (
+              <td class="num" title={counted && x.average !== null ? `Average of ${plural(x.logged, "day")} logged` : undefined}>
+                {!stats ? null : counted && x.average !== null ? formatAverage(h, x.average) : <span class="muted">{counted ? "–" : "·"}</span>}
+              </td>
+            )}
+          </Fragment>
+        );
+      })}
+      <td>
+        {stats && stats.score !== null && (
+          <span class="bar-line">
+            <span class="num">{points(stats.score, 1)}</span>
+            <ScoreBar score={stats.score} label={`${what} score: ${points(stats.score, 1)} out of 100`} />
+          </span>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+/** A share out of 100 as a small ring, filled clockwise from the top. */
+function Ring(props: { value: number }) {
+  const r = 7;
+  const c = 2 * Math.PI * r;
+  const v = Math.max(0, Math.min(100, props.value));
+  return (
+    <svg class="ring" viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+      <circle cx="9" cy="9" r={r} class="ring-track" />
+      {v > 0 && <circle cx="9" cy="9" r={r} class="ring-fill" stroke-dasharray={`${(v / 100) * c} ${c}`} transform="rotate(-90 9 9)" />}
+    </svg>
+  );
+}
+
+/**
+ * The year a row per month, as the Notion tracker's Monthly Progress: how much of the month has
+ * gone by, the share of days each habit was met, a time or number habit's average, and the score.
+ */
+function MonthByMonth(props: { t: Tracked; ref_: string; year: PeriodStats }) {
+  const { t, ref_ } = props;
+  // In bold while it's under way: none for a year that's over.
+  const current = monthUnderWay(t, today.value);
+  const rows = MONTHS.map((_, i) => {
+    const month = i + 1;
+    const passed = monthPassed(t.year, month, ref_);
+    const tracked = monthTracked(t, month);
+    return { month, passed, tracked, stats: passed && tracked ? monthStats(t, month, ref_) : null };
+  });
+  // A column per habit; a time or number habit has a second, its average.
+  const cols: Col[] = t.habits.map((h, i) => ({ h, i, measure: h.kind !== "check" }));
+  return (
+    <section class="card">
+      <CardTitle title={`${t.year}, month by month`}>
+        How much of each month has gone by, the share of its days each habit was met, the average
+        time or number logged, and the month's score. Overall is the year so far, every day counted
+        together, as the {t.year} tile above. A dot means the habit didn't count that month; a month
+        before tracking began shows only how much of it has gone by.
+      </CardTitle>
+      <div class="table-scroll">
+        <table class="data-table month-table">
+          <thead>
+            <tr>
+              <th scope="col">Month</th>
+              <th scope="col">Passed</th>
+              {cols.map(({ h, measure }) => (
+                <Fragment key={h.id}>
+                  <th scope="col" class="num" title={h.name}>{label(h)}</th>
+                  {measure && <th scope="col" class="num" title={`${h.name}: average${h.goal ? `, goal ${goalText(h)}` : ""}`}>{h.emoji ? <>{h.emoji} <span class="sr-only">{h.name} </span>Avg</> : `${h.name} avg`}{h.goal ? <span class="goal">{goalShort(h)}</span> : null}</th>}
+                </Fragment>
+              ))}
+              <th scope="col">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ month, passed, tracked, stats }) => (
+              <PeriodRow name={MONTHS[month - 1]!} note={tracked ? undefined : `Before tracking began on ${longDate(firstDay(t))}`}
+                passed={passed} stats={stats} cols={cols} class={month === current ? "current" : ""} />
+            ))}
+            {/* The year so far, as the 2026 tile counts it: every day pooled, not the months averaged. */}
+            <PeriodRow name="Overall" what={`${t.year} so far`} passed={yearPassed(t.year, ref_)} stats={props.year} cols={cols} class="total" />
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

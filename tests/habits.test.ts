@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMinutes, goalText, habitId, meets, parseCount, parseDuration } from "../src/habits";
+import { formatMinutes, goalText, habitId, meets, parseCount, parseDuration, formatAverage } from "../src/habits";
 
 describe("times", () => {
   it("reads what people type", () => {
@@ -53,4 +53,13 @@ it("gives each habit its own id", () => {
   const taken = new Set(["h_read"]);
   expect(habitId("Cold Shower!", (id) => taken.has(id))).toBe("h_cold-shower");
   expect(habitId("Read", (id) => taken.has(id))).toBe("h_read-2");
+});
+
+describe("formatAverage", () => {
+  it("reads a time as h:mm and a number to one place, the same on every page", () => {
+    expect(formatAverage({ kind: "duration" }, 429.4)).toBe("7:09");
+    expect(formatAverage({ kind: "number" }, 8.25)).toBe("8.3");
+    expect(formatAverage({ kind: "number" }, 8)).toBe("8");
+    expect(formatAverage({ kind: "number" }, 1234.56)).toBe("1234.6");
+  });
 });

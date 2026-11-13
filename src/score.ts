@@ -6,7 +6,7 @@
 // meets every habit. These are the Notion tracker's own rules, so imported years score the same.
 
 import { activeOn, isActive, metOn } from "./habits";
-import { dateRange, daysInMonth, weekday } from "./dates";
+import { dateRange, daysInMonth, monthOf, weekday } from "./dates";
 import type { DayLog, Habit, IsoDate, YearSetup } from "./types";
 
 /** A year as the calculations take it: its setup and its days by date. */
@@ -129,6 +129,40 @@ function statsOf(t: Tracked, dates: IsoDate[]): PeriodStats {
 export function monthStats(t: Tracked, month: number, today: IsoDate): PeriodStats {
   const mm = String(month).padStart(2, "0");
   return periodStats(t, today, `${t.year}-${mm}-01`, `${t.year}-${mm}-${daysInMonth(t.year, month)}`);
+}
+
+/**
+ * How much of a month has gone by, 0 to 100: all of it once it's over, today's share of it now, and
+ * none before it starts. The calendar's, not the tracking's: Notion's "Days Already Passed".
+ */
+export function monthPassed(year: number, month: number, today: IsoDate): number {
+  const mm = String(month).padStart(2, "0");
+  const first = `${year}-${mm}-01`;
+  const days = daysInMonth(year, month);
+  if (today < first) return 0;
+  if (today > `${year}-${mm}-${days}`) return 100;
+  return (Number(today.slice(8, 10)) / days) * 100;
+}
+
+/** How much of the year has gone by, 0 to 100, as monthPassed counts a month. */
+export function yearPassed(year: number, today: IsoDate): number {
+  const first = `${year}-01-01`;
+  const last = `${year}-12-31`;
+  if (today < first) return 0;
+  if (today > last) return 100;
+  const day = (iso: IsoDate) => Date.parse(`${iso}T00:00:00Z`) / 86_400_000;
+  return ((day(today) - day(first) + 1) / (day(last) - day(first) + 1)) * 100;
+}
+
+/** Whether any of a month was tracked: false for a month wholly before the year's start day. */
+export function monthTracked(t: Pick<Tracked, "year" | "start">, month: number): boolean {
+  const mm = String(month).padStart(2, "0");
+  return `${t.year}-${mm}-${daysInMonth(t.year, month)}` >= firstDay(t);
+}
+
+/** The month under way, 1 to 12: null for a year that is over or not begun. */
+export function monthUnderWay(t: Pick<Tracked, "year" | "start">, today: IsoDate): number | null {
+  return lastDay(t, today) === today ? monthOf(today) : null;
 }
 
 export function yearStats(t: Tracked, today: IsoDate): PeriodStats {
@@ -276,6 +310,17 @@ export function level(score: number | null): number | null {
   if (score >= 100) return 5;
   if (score <= 0) return 0;
   return Math.min(4, Math.ceil(score / 25));
+}
+
+/**
+ * A share or score to the nearest whole number, except that only all of it reads 100 and only none
+ * reads 0: a habit met on 299 days of 300 is 99, not 100, and one met once in a year is 1, not 0.
+ */
+export function wholePercent(value: number): number {
+  const n = Math.round(value);
+  if (n >= 100 && value < 100) return 99;
+  if (n <= 0 && value > 0) return 1;
+  return n;
 }
 
 /** A score as people read it: "66.67%". */

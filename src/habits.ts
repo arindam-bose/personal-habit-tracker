@@ -78,6 +78,11 @@ export function formatValue(habit: Pick<Habit, "kind" | "unit">, value: true | n
   return `${value.toLocaleString()}${habit.unit ? ` ${habit.unit}` : ""}`;
 }
 
+/** A time or number habit's average: "7:09" for a time, "8.2" or "8" for a number, to one place. */
+export function formatAverage(habit: Pick<Habit, "kind">, average: number): string {
+  return habit.kind === "duration" ? formatMinutes(average) : average.toFixed(1).replace(/\.0$/, "");
+}
+
 /** "at least 7:30", "at most 6:00", "at least 8 glasses". */
 export function goalText(habit: Pick<Habit, "kind" | "goal" | "unit">): string {
   if (!habit.goal) return "";
