@@ -2075,11 +2075,14 @@ table.compare tr.differs td {
   padding-left: 18px;
 }
 
-/* A file's name, over the problems found in it. */
-.import-notice-text li.file {
-  margin-left: -18px;
-  list-style: none;
+.import-notice-text > * + * {
+  margin-top: 4px;
+}
+
+/* The file's name, over the problems found in it. */
+.import-notice-heading {
   font-weight: 600;
+  color: var(--danger);
 }
 
 .notice-close {

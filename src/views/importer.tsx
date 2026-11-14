@@ -1,12 +1,13 @@
 // Importing a backup from anywhere: the top bar's Import, Settings' Import JSON, or a file dropped
-// on any page. They all go through importFiles (importing.ts) and share one "Replace?" dialog, a
+// on any page. They all go through importFile (importing.ts) and share one "Replace?" dialog, a
 // drop overlay and a notice saying what was imported. ImportLayer is mounted once, in app.tsx.
+// One file at a time, as in the Money Tracker.
 
 import { signal } from "@preact/signals";
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { dateTime } from "../dates";
-import { importFiles } from "../importing";
+import { importFile } from "../importing";
 import type { YearSummary } from "../state";
 import { backupText, lastUpdatedAt } from "../storage";
 import type { YearFile } from "../types";
@@ -105,10 +106,10 @@ function updatedText(iso: string | undefined): string {
 /** An import asking whether to replace a stored year. */
 const replacing = signal<PendingReplace | null>(null);
 /** What the last import did, for the notice; null once closed. */
-const report = signal<{ id: number; imported: string[]; errors: string[] } | null>(null);
+const report = signal<{ id: number; done?: string; heading?: string; errors: string[]; note?: string } | null>(null);
 /** A file is being dragged over the page. */
 const dragging = signal(false);
-/** An import is under way: another waits for it to finish rather than asking two things at once. */
+/** An import is under way: another is ignored rather than asking two things at once. */
 let busy = false;
 
 /** Ask in the dialog; resolves with the answer once it closes. */
@@ -118,33 +119,41 @@ function askReplace(fileName: string, stored: YearSummary, file: YearFile): Prom
   });
 }
 
-/** Import picked or dropped files, then say what happened. Ignored while another import is asking. */
+/**
+ * Import a picked or dropped file, then say what happened. One at a time: of several dropped, the
+ * first is imported and the notice says the rest weren't. Ignored while another import is asking.
+ */
 export async function startImport(files: File[]): Promise<void> {
-  if (!files.length || busy) return;
+  const file = files[0];
+  if (!file || busy) return;
   busy = true;
   report.value = null;
+  const note = files.length > 1 ? `One file at a time: the other ${files.length - 1 === 1 ? "file wasn't" : `${files.length - 1} files weren't`} imported.` : undefined;
   try {
-    const out = await importFiles(files, askReplace);
-    if (out.imported.length || out.errors.length) {
-      report.value = { id: ++asked, imported: out.imported.map((y) => `${y.year} (${plural(y.days, "day")} logged)`), errors: out.errors };
-    }
+    const out = await importFile(file, askReplace);
+    const id = ++asked;
+    if (out.kind === "imported") report.value = { id, done: `Imported ${out.year} (${plural(out.days, "day")} logged) from "${out.fileName}".`, errors: [], note };
+    else if (out.kind === "failed") report.value = { id, heading: `"${out.fileName}" was not imported:`, errors: out.errors, note };
+    else if (note) report.value = { id, errors: [], note };
+  } catch (err) {
+    report.value = { id: ++asked, errors: [err instanceof Error ? err.message : String(err)] };
   } finally {
     busy = false;
   }
 }
 
 /**
- * A button that opens the file picker for backups. The input sits inside the label, so the
+ * A button that opens the file picker for a backup. The input sits inside the label, so the
  * keyboard reaches it and the label's focus ring shows.
  */
 export function ImportButton(props: { class?: string; title?: string; children: ComponentChildren }) {
   return (
     <label class={`button file-button ${props.class ?? ""}`} title={props.title}>
       {props.children}
-      <input type="file" accept=".json,application/json" multiple class="sr-only" onChange={(e) => {
+      <input type="file" accept=".json,application/json" class="sr-only" onChange={(e) => {
         const input = e.currentTarget;
         const files = [...(input.files ?? [])];
-        input.value = "";
+        input.value = ""; // so picking the same file again still fires a change
         void startImport(files);
       }} />
     </label>
@@ -210,15 +219,17 @@ export function ImportLayer() {
           <div class="drop-target">
             <Icon name="import" />
             <strong>Drop a backup to import it</strong>
-            <span class="muted small">A JSON file saved by Backup. You'll be asked before a year is replaced.</span>
+            <span class="muted small">A JSON file saved by Backup, one at a time. You'll be asked before a year is replaced.</span>
           </div>
         </div>
       )}
       {r && (
         <div class={`import-notice ${r.errors.length ? "has-errors" : ""}`} role={r.errors.length ? "alert" : "status"}>
           <div class="import-notice-text">
-            {r.imported.length > 0 && <p class="saved">Imported {r.imported.join(", ")}.</p>}
-            {r.errors.length > 0 && <ul class="errors">{r.errors.map((x) => <li class={x.endsWith(":") ? "file" : undefined}>{x}</li>)}</ul>}
+            {r.done && <p class="saved">{r.done}</p>}
+            {r.heading && <p class="import-notice-heading">{r.heading}</p>}
+            {r.errors.length > 0 && <ul class="errors">{r.errors.map((x) => <li>{x}</li>)}</ul>}
+            {r.note && <p class="muted small">{r.note}</p>}
           </div>
           <button type="button" class="plain-button notice-close" aria-label="Close" onClick={() => (report.value = null)}>×</button>
         </div>

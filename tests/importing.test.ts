@@ -1,9 +1,9 @@
-// Importing from the top bar, Settings or a dropped file all go through importFiles: a file is
-// checked before anything is stored, and a stored year is replaced only when the answer is yes.
+// Importing from the top bar, Settings or a dropped file all go through importFile: the file is
+// checked before anything is asked or stored, and a stored year is replaced only on a yes.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { closeDb, eraseAll, loadYear } from "../src/db";
-import { importFiles, type AskReplace } from "../src/importing";
+import { importFile, type AskReplace } from "../src/importing";
 import { current, openYear, years } from "../src/state";
 import type { YearFile } from "../src/types";
 import { yearFile } from "./helpers";
@@ -21,54 +21,40 @@ beforeEach(async () => {
   await openYear();
 });
 
-describe("importFiles", () => {
+describe("importFile", () => {
   it("imports a new year and opens it", async () => {
-    const out = await importFiles([fileOf("habit-tracker-2026.json", year(2026, 3))], never);
-    expect(out).toEqual({ imported: [{ year: 2026, days: 3 }], errors: [] });
+    const out = await importFile(fileOf("habit-tracker-2026.json", year(2026, 3)), never);
+    expect(out).toEqual({ kind: "imported", fileName: "habit-tracker-2026.json", year: 2026, days: 3 });
     expect(current.value?.setup.year).toBe(2026);
     expect(years.value.map((y) => y.setup.year)).toEqual([2026]);
   });
 
-  it("asks before replacing a stored year, and keeps it on no", async () => {
-    await importFiles([fileOf("old.json", year(2026, 3))], never);
+  it("asks before replacing a stored year, with today's counts, and keeps it on no", async () => {
+    await importFile(fileOf("old.json", year(2026, 3)), never);
     const ask = vi.fn<AskReplace>(async () => false);
-    const out = await importFiles([fileOf("new.json", year(2026, 5))], ask);
+    const out = await importFile(fileOf("new.json", year(2026, 5)), ask);
     expect(ask).toHaveBeenCalledOnce();
-    expect(ask.mock.calls[0]![0]).toBe("new.json");
-    expect(ask.mock.calls[0]![1].days).toBe(3);
-    expect(ask.mock.calls[0]![2].days).toHaveLength(5);
-    expect(out).toEqual({ imported: [], errors: [] });
+    const [name, stored, file] = ask.mock.calls[0]!;
+    expect(name).toBe("new.json");
+    expect(stored.days).toBe(3);
+    expect(file.days).toHaveLength(5);
+    expect(out).toEqual({ kind: "kept", fileName: "new.json", year: 2026 });
     expect((await loadYear(2026))!.days).toHaveLength(3);
   });
 
   it("replaces a stored year on yes", async () => {
-    await importFiles([fileOf("old.json", year(2026, 3))], never);
-    const out = await importFiles([fileOf("new.json", year(2026, 5))], async () => true);
-    expect(out.imported).toEqual([{ year: 2026, days: 5 }]);
+    await importFile(fileOf("old.json", year(2026, 3)), never);
+    const out = await importFile(fileOf("new.json", year(2026, 5)), async () => true);
+    expect(out).toMatchObject({ kind: "imported", days: 5 });
     expect((await loadYear(2026))!.days).toHaveLength(5);
   });
 
-  it("stores nothing from a file that isn't JSON, or isn't a year, and says which file", async () => {
-    const out = await importFiles([fileOf("notes.txt", "not json"), fileOf("other.json", { app: "money-tracker" })], never);
-    expect(out.imported).toEqual([]);
-    expect(out.errors[0]).toBe('"notes.txt" is not a valid JSON file.');
-    expect(out.errors[1]).toBe("other.json:");
-    expect(out.errors.length).toBeGreaterThan(2);
+  it("stores nothing from a file that isn't JSON, or isn't a year, and never asks", async () => {
+    const notJson = await importFile(fileOf("notes.txt", "not json"), never);
+    expect(notJson).toEqual({ kind: "failed", fileName: "notes.txt", errors: ['"notes.txt" is not a valid JSON file.'] });
+    const other = await importFile(fileOf("money.json", { app: "money-tracker" }), never);
+    expect(other.kind).toBe("failed");
+    expect(other.kind === "failed" && other.errors.length).toBeGreaterThan(0);
     expect(years.value).toEqual([]);
-  });
-
-  it("imports several files at once, goes on past a bad one, and opens the last year imported", async () => {
-    const out = await importFiles([fileOf("a.json", year(2025, 2)), fileOf("bad.json", "{"), fileOf("b.json", year(2026, 4))], never);
-    expect(out.imported).toEqual([{ year: 2025, days: 2 }, { year: 2026, days: 4 }]);
-    expect(out.errors).toEqual(['"bad.json" is not a valid JSON file.']);
-    expect(current.value?.setup.year).toBe(2026);
-  });
-
-  it("asks about a year an earlier file in the same import added", async () => {
-    const ask = vi.fn<AskReplace>(async () => false);
-    const out = await importFiles([fileOf("first.json", year(2026, 2)), fileOf("second.json", year(2026, 6))], ask);
-    expect(ask).toHaveBeenCalledOnce();
-    expect(out.imported).toEqual([{ year: 2026, days: 2 }]);
-    expect((await loadYear(2026))!.days).toHaveLength(2);
   });
 });
