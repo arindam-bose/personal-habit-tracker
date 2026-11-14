@@ -21,6 +21,7 @@ export function NoYear() {
         {years.value.length ? "Pick a year in the top bar, or " : ""}
         <a href="#/settings">start a year or import a backup on the Settings page</a>.
       </p>
+      <p class="muted">Moving from another device? Drop its backup file anywhere on this page, or use Import in the top bar.</p>
     </section>
   );
 }

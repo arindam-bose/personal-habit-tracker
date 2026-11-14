@@ -56,6 +56,7 @@ including `noUncheckedIndexedAccess`.
 | `src/backup.ts` | JSON import and export, and backup file names. |
 | `src/storage.ts` | Asking the browser to keep the data; when to remind about a backup; "Last updated". |
 | `src/state.ts` | The open year as Preact signals, and the actions that change it. |
+| `src/importing.ts` | Importing backup files, one after another: checked first, a stored year replaced only on a yes. |
 | `src/routes.ts` | Which page an address opens, including old page names (`#/today`, `#/calendar`, `#/heatmaps`). |
 | `src/demo.ts` | The demo file on the Settings page. |
 | `src/device.ts` | The browser and system, for backup file names. |
@@ -64,7 +65,7 @@ including `noUncheckedIndexedAccess`.
 | `src/install.ts` | Putting the tracker on the home screen. |
 | `src/share.ts` | Share the tracker: the share sheet on a phone, the link copied on a computer; the Buy me a coffee link. |
 | `src/analytics.ts` | Google Analytics, only with consent: the cookie banner's answer, loading and switching off GA. |
-| `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `modal.tsx` (the dialog every popup uses), `help.tsx` (a card's ? with its description, as in the Money Tracker), `about.tsx` (the About card), `support.tsx` (the Support card) and `hooks.ts` (closing a menu). |
+| `src/views/` | One Preact view per page, plus `today.tsx` (the day log at the top of the Dashboard), `chart.tsx` (the ECharts wrapper), `common.tsx` (the no-year notice, the score bar, the year heatmap), `icons.tsx`, `modal.tsx` (the dialog every popup uses), `help.tsx` (a card's ? with its description, as in the Money Tracker), `importer.tsx` (importing from anywhere: the top bar's Import, Settings' Import JSON, a file dropped on any page, the Replace? dialog and the notice), `about.tsx` (the About card), `support.tsx` (the Support card) and `hooks.ts` (closing a menu). |
 | `tools/notion_import.py` | Python: a Notion Habit Tracker export to a year file. |
 | `tests/` | Vitest. `helpers.ts` builds small synthetic years. |
 | `data/` | Your own Notion exports. Git-ignored; never commit it. |

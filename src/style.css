@@ -151,7 +151,8 @@ a {
 }
 
 /* Green like the backup buttons on the Settings page, until a backup is due. The icon is for phones. */
-.backup-btn {
+.backup-btn,
+.button.import-btn {
   --kind: var(--good);
   color: var(--kind);
   background: color-mix(in srgb, var(--kind) 7%, var(--surface));
@@ -160,7 +161,18 @@ a {
   padding: 4px 10px;
 }
 
-.backup-btn:hover {
+/* Import, beside it, in the accent: it brings a backup in where Backup takes one out. */
+.button.import-btn {
+  --kind: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  border-style: solid;
+  border-width: 1px;
+  line-height: normal;
+}
+
+.backup-btn:hover,
+.button.import-btn:hover {
   filter: none;
   background: color-mix(in srgb, var(--kind) 14%, var(--surface));
 }
@@ -170,7 +182,8 @@ a {
   border-color: var(--danger);
 }
 
-.backup-btn .icon {
+.backup-btn .icon,
+.button.import-btn .icon {
   display: none;
 }
 
@@ -240,7 +253,7 @@ a {
   }
 }
 
-/* Phones: the version goes under the title, small, and Backup is just its icon,
+/* Phones: the version goes under the title, small, and Import and Backup are just their icons,
    to leave the bar room for its buttons. */
 @media (max-width: 600px) {
   .topbar h1 {
@@ -253,7 +266,8 @@ a {
     font-size: 11px;
   }
 
-  .backup-btn {
+  .backup-btn,
+  .button.import-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -262,11 +276,12 @@ a {
     padding: 0;
   }
 
-  .backup-btn .icon {
+  .backup-btn .icon,
+  .button.import-btn .icon {
     display: block;
   }
 
-  .backup-label {
+  .bar-label {
     display: none;
   }
 }
@@ -790,7 +805,10 @@ button.icon-action.icon-export {
   width: 100%;
 }
 
+/* Positioned, so what is placed absolutely inside (a header's .sr-only name) stays in the scroll
+   box: otherwise it sits where the table runs on to and widens a phone's page. */
 .table-scroll {
+  position: relative;
   overflow-x: auto;
 }
 
@@ -1985,4 +2003,87 @@ table.compare tr.differs td {
 .ring-fill {
   stroke: rgb(var(--heat));
   stroke-linecap: round;
+}
+
+/* --- Importing from anywhere (views/importer.tsx) --- */
+
+/* While a file is dragged over the page: the whole window is the place to drop it. */
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  pointer-events: none;
+}
+
+.drop-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+  padding: 32px 28px;
+  text-align: center;
+  color: var(--text);
+  background: var(--surface);
+  border: 2px dashed var(--accent);
+  border-radius: 12px;
+}
+
+.drop-target .icon {
+  width: 32px;
+  height: 32px;
+  color: var(--accent);
+}
+
+/* What an import did, under the top bar: goes by itself, unless something went wrong. */
+.import-notice {
+  position: fixed;
+  top: calc(var(--topbar-height) + 12px);
+  right: 16px;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 12px 12px 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--good);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.import-notice.has-errors {
+  border-left-color: var(--danger);
+}
+
+.import-notice-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.import-notice-text p,
+.import-notice-text ul {
+  margin: 0;
+}
+
+.import-notice-text ul {
+  padding-left: 18px;
+}
+
+/* A file's name, over the problems found in it. */
+.import-notice-text li.file {
+  margin-left: -18px;
+  list-style: none;
+  font-weight: 600;
+}
+
+.notice-close {
+  padding: 0 8px;
+  font-size: 18px;
+  line-height: 1.4;
 }

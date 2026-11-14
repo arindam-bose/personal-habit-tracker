@@ -13,6 +13,7 @@ import { DashboardView } from "./views/dashboard";
 import { HabitsView } from "./views/habits";
 import { useDismiss } from "./views/hooks";
 import { Icon } from "./views/icons";
+import { ImportButton, ImportLayer } from "./views/importer";
 import { SettingsView } from "./views/settings";
 
 /** Pages with charts pull in the charting library, so their code is only downloaded when first opened. */
@@ -108,13 +109,17 @@ export function App() {
               <span class="long">v{updateReady.value} is ready · </span>Reload
             </button>
           )}
+          <ImportButton class="import-btn" title="Open a backup (JSON) saved by Backup. You can also drop the file anywhere on the page.">
+            <Icon name="import" />
+            <span class="bar-label">Import</span>
+          </ImportButton>
           {setup && !allYears && (
             <button type="button" class={`backup-btn ${backupReminder ? "backup-nag" : ""}`} onClick={backUpNow}
               aria-label={`${backupReminder ? `${backupReminder}. ` : ""}Back up ${setup.year}`}
               title={`${backupReminder ? `${backupReminder}. ` : ""}Downloads ${setup.year} as a JSON file. Your data lives only in this browser.`}>
               <Icon name="export" />
               {backupReminder && !updateReady.value && <span class="long">{backupReminder} · </span>}
-              <span class="backup-label">Backup</span>
+              <span class="bar-label">Backup</span>
             </button>
           )}
           {allYears ? <span class="muted">All years</span> : years.value.length > 0 && (
@@ -141,6 +146,7 @@ export function App() {
         </p>
         <p>Your log stays in this browser: nothing is uploaded, and it works offline.</p>
       </footer>
+      <ImportLayer />
       {consentAsked.value && <ConsentBanner />}
     </>
   );
