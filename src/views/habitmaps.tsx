@@ -1,4 +1,4 @@
-// Heatmaps: the year day by day. One for the day score, then one for each habit, shaded on the
+// Habitmaps: the year day by day. One for the day score, then one for each habit, shaded on the
 // days it was met. Click a day to open it in the Dashboard's day log.
 
 import { formatValue, goalText, isActive, label, meets } from "../habits";
@@ -6,7 +6,7 @@ import { percent, yearStats } from "../score";
 import { tracked, weekStart } from "../state";
 import { HeatLegend, Heatmap, dayCell, NoYear, plural, refDay } from "./common";
 
-export function HeatmapsView() {
+export function HabitmapsView() {
   const t = tracked.value;
   if (!t) return <NoYear />;
   const ref = refDay(t);

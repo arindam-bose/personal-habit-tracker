@@ -8,11 +8,12 @@ import { pageFor } from "./routes";
 import { updateReady } from "./offline";
 import { backupDue, backupText, lastUpdatedAt, requestPersistence } from "./storage";
 import { backUpYear, current, loadSettings, openYear, persistState, years } from "./state";
-import { HeatmapsView } from "./views/heatmaps";
+import { HabitmapsView } from "./views/habitmaps";
 import { DashboardView } from "./views/dashboard";
 import { HabitsView } from "./views/habits";
 import { useDismiss } from "./views/hooks";
 import { Icon } from "./views/icons";
+import { ImportButton, ImportLayer } from "./views/importer";
 import { SettingsView } from "./views/settings";
 
 /** Pages with charts pull in the charting library, so their code is only downloaded when first opened. */
@@ -39,7 +40,7 @@ function chartPage(load: () => Promise<ComponentType>): ComponentType {
 const PAGES = {
   // The main page: today's log at the top, the year at a glance below it.
   dashboard: { label: "Dashboard", view: DashboardView },
-  heatmaps: { label: "Heatmaps", view: HeatmapsView },
+  habitmaps: { label: "Habitmaps", view: HabitmapsView },
   reports: { label: "Reports", view: chartPage(() => import("./views/reports").then((m) => m.ReportsView)) },
   habits: { label: "Habits", view: HabitsView },
   // Only in the menu with two or more years.
@@ -49,7 +50,7 @@ const PAGES = {
 type Page = keyof typeof PAGES;
 
 /** Old page names, so bookmarks made before a page moved still open the right one. */
-const RENAMED: Record<string, Page> = { today: "dashboard", calendar: "heatmaps" };
+const RENAMED: Record<string, Page> = { today: "dashboard", calendar: "habitmaps", heatmaps: "habitmaps" };
 
 function pageFromHash(): Page {
   return pageFor(location.hash.replace(/^#\/?/, ""), PAGES, RENAMED, "dashboard");
@@ -104,17 +105,22 @@ export function App() {
         </nav>
         <div class="topbar-right">
           {updateReady.value && (
-            <button type="button" class="backup-nag" onClick={() => location.reload()} title="A newer version is downloaded and ready.">
+            <button type="button" class="backup-nag reload-btn" onClick={() => location.reload()} title="A newer version is downloaded and ready.">
               <span class="long">v{updateReady.value} is ready · </span>Reload
             </button>
           )}
+          <ImportButton class="import-btn" label="Import a backup"
+            title="Open a backup (JSON) saved by Backup. You can also drop the file anywhere on the page.">
+            <Icon name="import" />
+            <span class="bar-label">Import</span>
+          </ImportButton>
           {setup && !allYears && (
             <button type="button" class={`backup-btn ${backupReminder ? "backup-nag" : ""}`} onClick={backUpNow}
               aria-label={`${backupReminder ? `${backupReminder}. ` : ""}Back up ${setup.year}`}
               title={`${backupReminder ? `${backupReminder}. ` : ""}Downloads ${setup.year} as a JSON file. Your data lives only in this browser.`}>
               <Icon name="export" />
               {backupReminder && !updateReady.value && <span class="long">{backupReminder} · </span>}
-              <span class="backup-label">Backup</span>
+              <span class="bar-label">Backup</span>
             </button>
           )}
           {allYears ? <span class="muted">All years</span> : years.value.length > 0 && (
@@ -126,6 +132,16 @@ export function App() {
             onClick={() => (menuOpen.value = !menuOpen.value)}>☰</button>
         </div>
       </header>
+      {/* On a phone the bar has no room for Reload beside Import, Backup and the year, so the
+          news takes a line of its own under it (style.css). */}
+      {updateReady.value && (
+        <div class="update-strip">
+          <p>
+            v{updateReady.value} is ready ·{" "}
+            <button type="button" class="link" onClick={() => location.reload()}>Reload</button>
+          </p>
+        </div>
+      )}
       {updated && !allYears && (
         <div class="status-strip">
           <p>Last updated {dateTime(updated)}</p>
@@ -141,6 +157,7 @@ export function App() {
         </p>
         <p>Your log stays in this browser: nothing is uploaded, and it works offline.</p>
       </footer>
+      <ImportLayer />
       {consentAsked.value && <ConsentBanner />}
     </>
   );

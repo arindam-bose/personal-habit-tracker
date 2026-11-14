@@ -1,11 +1,10 @@
 // Settings: your data, a year per row (back up, close, reopen, delete; the year picker in the top
-// bar opens one), importing a backup, starting a year, a demo file, the first day of the week,
+// bar opens one), importing a backup (see importer.tsx), starting a year, a demo file, the first day of the week,
 // light or dark, the offline copy, erasing everything, the home screen, Support, and About.
 
 import { useSignal } from "@preact/signals";
-import { useEffect, useRef } from "preact/hooks";
-import { importYear, readJsonFile, saveYearFile } from "../backup";
-import { dateTime } from "../dates";
+import { useEffect } from "preact/hooks";
+import { saveYearFile } from "../backup";
 import { demoFileName, demoYear } from "../demo";
 import { detectDevice } from "../device";
 import { STARTER_HABITS, label } from "../habits";
@@ -13,16 +12,15 @@ import { installState, installSteps, promptInstall, type InstallState } from "..
 import { checkForUpdates, offlineChanged, offlineStatus, updateReady } from "../offline";
 import {
   backUpYear, closeYear, current, eraseEverything, openYear, persistState, removeYear, reopenYear,
-  saveWeekStart, startYear, today, weekStart, years, type YearSummary,
+  saveWeekStart, startYear, today, weekStart, years,
 } from "../state";
-import { backupText, lastUpdatedAt, requestPersistence } from "../storage";
+import { backupText, requestPersistence } from "../storage";
 import { setTheme, themeChoice, type ThemeChoice } from "../theme";
-import type { Habit, YearFile } from "../types";
-import { validateYearFile } from "../validate";
+import type { Habit } from "../types";
 import { AboutCard } from "./about";
 import { plural } from "./common";
 import { IconButton } from "./icons";
-import { Modal } from "./modal";
+import { ImportButton } from "./importer";
 import { SupportCard } from "./support";
 
 const MAY_CLEAR = "This browser may clear your data on its own - if the site goes unvisited for a while, or space runs low - so keep a backup.";
@@ -32,156 +30,18 @@ const PERSIST_TEXT = {
   unsupported: MAY_CLEAR,
 };
 
-/** An import waiting on "Replace?": the file, as read and checked, the year it would replace, and the answer to give. */
-interface PendingReplace {
-  /** Counts the questions, so each one gets a dialog of its own. */
-  id: number;
-  fileName: string;
-  file: YearFile;
-  stored: YearSummary;
-  answer: (replace: boolean) => void;
-}
-
-/**
- * The question before an import replaces a stored year: what is here now and what the file holds,
- * side by side, with the rows that differ highlighted. Esc, Cancel or a click on the backdrop keeps
- * the stored year. As in the Money Tracker.
- */
-function ReplaceDialog(props: { pending: PendingReplace }) {
-  const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    dialog.current?.showModal();
-  }, []);
-  const { fileName, file, stored, answer } = props.pending;
-  const at = new Date(file.exportedAt);
-  const exported = Number.isNaN(at.getTime())
-    ? "No export date"
-    : `Exported ${at.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}`;
-  // The latest change of either kind, days or setup, as the strip under the top bar shows it.
-  // A file without one was saved before any change, so anything changed here is newer.
-  const here = lastUpdatedAt(stored.setup);
-  const there = lastUpdatedAt(file);
-  // To the second, as the table shows them: a warning under a row that reads the same would confuse.
-  const newerHere = here !== undefined && (there === undefined || toSecond(here) > toSecond(there));
-  const rows: { label: string; now: string; inFile: string; compare: boolean }[] = [
-    { label: "Days logged", now: stored.days.toLocaleString(), inFile: file.days.length.toLocaleString(), compare: true },
-    { label: "Habits", now: stored.setup.habits.length.toLocaleString(), inFile: file.habits.length.toLocaleString(), compare: true },
-    { label: "Last updated", now: updatedText(here), inFile: updatedText(there), compare: true },
-    // A backup and an export are different events, so this row is context, never a difference.
-    { label: "Backup", now: backupText(stored.setup.lastBackupAt), inFile: exported, compare: false },
-  ];
-  // Answered once, however the dialog closes: Replace answers yes, and the close that follows is ignored.
-  const answered = useRef(false);
-  const reply = (replace: boolean) => {
-    if (answered.current) return;
-    answered.current = true;
-    answer(replace);
-  };
-  // Leaving the page with the question open removes the dialog without a close event: that
-  // counts as Cancel, or the import waiting on the answer would never go on.
-  useEffect(() => () => reply(false), []);
-  return (
-    <Modal dialogRef={dialog} title={`Replace your ${file.year} data?`} onClose={() => reply(false)}>
-      <p>"{fileName}" holds {file.year} too. Importing it replaces everything the tracker has for {file.year}.</p>
-      <table class="compare">
-        <thead>
-          <tr>
-            <th></th>
-            <th>In the tracker</th>
-            <th>In the file</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.label} class={r.compare && r.now !== r.inFile ? "differs" : undefined}>
-              <th scope="row">{r.label}</th>
-              <td>{r.now}</td>
-              <td>{r.inFile}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {newerHere && <p class="warn">The tracker has newer changes than this file: replacing it loses them.</p>}
-      <p class="muted">This can't be undone.</p>
-      <div class="form-actions">
-        <button type="button" onClick={() => dialog.current?.close()}>Cancel</button>
-        <button type="button" class="danger-solid" onClick={() => reply(true)}>Replace {file.year}</button>
-      </div>
-    </Modal>
-  );
-}
-
-let asked = 0;
-
-const toSecond = (iso: string) => Math.floor(Date.parse(iso) / 1000);
-
-/** With seconds: two backups taken minutes apart must still read differently. */
-function updatedText(iso: string | undefined): string {
-  return iso ? dateTime(iso, true) : "Unknown";
-}
-
 export function SettingsView() {
-  const message = useSignal<string | null>(null);
-  const errors = useSignal<string[]>([]);
-  /** An import asking whether to replace a stored year. */
-  const replacing = useSignal<PendingReplace | null>(null);
-
-  /** Set when the page is left: an import still going stops asking, and stops. */
-  const left = useRef(false);
-  useEffect(() => () => void (left.current = true), []);
-
-  /** Ask in the dialog; resolves with the answer once it closes, or no once the page is left. */
-  function askReplace(fileName: string, stored: YearSummary, file: YearFile): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (left.current) return resolve(false);
-      replacing.value = { id: ++asked, fileName, stored, file, answer: (yes) => { replacing.value = null; resolve(yes); } };
-    });
-  }
-
-  async function onImport(e: Event) {
-    const input = e.currentTarget as HTMLInputElement;
-    const files = [...(input.files ?? [])];
-    input.value = "";
-    message.value = null;
-    errors.value = [];
-    const done: string[] = [];
-    for (const f of files) {
-      if (left.current) break;
-      try {
-        const data = await readJsonFile(f);
-        const check = validateYearFile(data);
-        if (!check.ok) {
-          errors.value = [...errors.value, `${f.name}:`, ...check.errors];
-          continue;
-        }
-        const stored = years.value.find((y) => y.setup.year === check.file.year);
-        if (stored && !(await askReplace(f.name, stored, check.file))) continue;
-        const r = await importYear(data);
-        if (r.ok) done.push(`${r.file.year} (${plural(r.file.days.length, "day")} logged)`);
-        await openYear(check.file.year);
-      } catch (err) {
-        errors.value = [...errors.value, err instanceof Error ? err.message : String(err)];
-      }
-    }
-    if (done.length) message.value = `Imported ${done.join(", ")}.`;
-  }
-
   return (
     <div class="stack settings">
       <section class="card">
         <h3 class="card-title">Your data</h3>
         {years.value.length ? <YearsTable /> : <p class="muted">Nothing stored yet. Start a year below, or import a backup.</p>}
         <div class="setting-row">
-          <label class="button file-button">
-            Import JSON
-            <input type="file" accept=".json,application/json" multiple class="sr-only" onChange={onImport} />
-          </label>
+          <ImportButton label="Import JSON">Import JSON</ImportButton>
+          <span class="muted small">Or use Import in the top bar, or drop a backup file anywhere in the tracker.</span>
         </div>
         <DemoNote />
-        {message.value && <p class="saved" role="status">{message.value}</p>}
-        {errors.value.length > 0 && <ul class="errors" role="alert">{errors.value.map((x) => <li>{x}</li>)}</ul>}
       </section>
-      {replacing.value && <ReplaceDialog key={replacing.value.id} pending={replacing.value} />}
 
       <StartYearCard />
 

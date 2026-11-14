@@ -68,7 +68,8 @@ export function AboutCard() {
           <p>
             That also means <b>you are the backup</b>. Download a copy of each year now and then with
             <b> Backup</b> in the top bar (it turns red after a week). If you clear your browser data or
-            switch devices, import that file to get everything back.
+            switch devices, bring that file back with <b>Import</b>, beside Backup, or drop it anywhere
+            on the page.
           </p>
         </DialogFact>
         <DialogFact term="How to use this tool" title="How to use Habit Tracker">
@@ -107,7 +108,7 @@ export function AboutCard() {
             <li><b>Dashboard</b>: at the top, log a day, or switch to <b>Week</b> to fill in a whole week as a table.
               Below it: today, this week, this month and the year, the year as a heatmap, the year month by month,
               your streaks, and this month habit by habit.</li>
-            <li><b>Heatmaps</b>: a heatmap for the day score and one for each habit. Click a day to open it on the Dashboard.</li>
+            <li><b>Habitmaps</b>: a heatmap for the day score and one for each habit. Click a day to open it on the Dashboard.</li>
             <li><b>Reports</b>: each month and the year in words and charts, habits month by month, times against
               their goals each month and on each weekday, and which weekdays go best.</li>
             <li><b>Over the years</b>: once two or more years are stored, each year side by side.</li>

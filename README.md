@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 2.0.20** ·
+**Version 3.0.0** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -20,7 +20,8 @@ Google's loads unless you say yes.
 
 That also means **you are the backup**. **Backup** in the top bar downloads the open year (an icon
 on a phone), and turns red a week after your last backup, if anything changed since. If you clear
-your browser data or switch computers, import that file on the Settings page to get everything back.
+your browser data or switch computers, bring that file back with **Import** beside it, or drop the
+file anywhere on the page, one at a time: you're asked before a year you already have is replaced.
 
 Once opened, the tracker keeps a copy of itself in your browser, so it works without a signal too.
 New versions download by themselves; the top bar then offers **Reload**.
@@ -68,7 +69,7 @@ they did there.
   month has gone by, each habit's share of days met, the average time or number, and the score,
   with the year so far beneath;
   every habit's streak, now and best; and how each habit is going this month against the whole year.
-- **Heatmaps**: a heatmap of the day score, and one for each habit. Click a day to open it on the Dashboard.
+- **Habitmaps**: a heatmap of the day score, and one for each habit. Click a day to open it on the Dashboard.
 - **Reports**: the day score through the year, each month's score (to one decimal place) and the
   average by weekday, each with its best and hardest, a report card for every month and for the year, and on **More on this**, habits month by month,
   and times and numbers against their goals, each month and on each weekday. Every chart has its numbers as a table, too.
