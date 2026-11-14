@@ -72,6 +72,13 @@ export function shortDate(iso: IsoDate): string {
 }
 
 /** A moment, e.g. "11 Nov 2026, 17:31", with seconds when asked. */
+/** The strip's "Last updated": the weekday too, as in "Friday, Nov 13, 2026, 06:23 PM". */
+export function updatedAt(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    weekday: "long", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+}
+
 export function dateTime(iso: string, seconds = false): string {
   return new Date(iso).toLocaleString(undefined, {
     day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", ...(seconds ? { second: "2-digit" } : {}),
