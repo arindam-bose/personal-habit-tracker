@@ -887,6 +887,21 @@ button.icon-action.icon-export {
   color: var(--accent);
 }
 
+/* Beside the day on a wide screen; its own line on a phone. */
+.day-nav-tools {
+  display: contents;
+}
+
+/* Outlined, so it reads as a way back to today rather than the badge saying the day is today. */
+button.today-chip {
+  display: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--accent);
+  background: var(--surface);
+}
+
 .day-nav-end {
   display: flex;
   align-items: center;
@@ -1825,22 +1840,38 @@ table.compare tr.differs td {
 /* --- Phones --- */
 
 @media (max-width: 600px) {
-  /* The day and its arrows fill the first line; the date box, Today and Day / Week wrap below. */
+  /* The day and its arrows fill the first line; the date box, Today and Day / Week always take the second. */
   .day-title {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     font-size: 16px;
     min-width: 0;
     white-space: nowrap;
   }
 
-  .day-nav input[type="date"] {
-    flex: 1 1 140px;
+  .day-nav-tools {
+    display: flex;
+    align-items: center;
+    flex: 1 0 100%;
+    gap: 8px;
+    min-width: 0;
   }
 
-  /* On a phone the switch and its ? take the rest of their line, the ? at its right end. */
+  .day-nav input[type="date"] {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  button.today-chip {
+    display: inline-block;
+  }
+
+  .day-nav .today-btn {
+    display: none;
+  }
+
+  /* The switch and its ? sit at the second line's right end; the date box takes what is left. */
   .day-nav-end {
-    flex: 1 0 auto;
-    justify-content: space-between;
+    flex: none;
     margin-left: 0;
   }
 

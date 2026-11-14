@@ -71,22 +71,29 @@ export function TodayView() {
         <h2 class="day-title">
           {mode.value === "day" ? longDate(date) : `Week of ${shortDate(week)}`}
           {date === today.value && mode.value === "day" && <span class="badge today-badge">Today</span>}
+          {/* On a phone, Today sits here, where the badge would be, so the date box keeps its room. */}
+          {date !== today.value && inYear(today.value) && (
+            <button type="button" class="badge today-badge today-chip" onClick={() => go(today.value)}>Today</button>
+          )}
         </h2>
         <button type="button" class="icon-action" aria-label={mode.value === "day" ? "The day after" : "The week after"}
           disabled={!inYear(addDays(mode.value === "day" ? date : addDays(week, 6), 1))}
           onClick={() => go(addDays(date, mode.value === "day" ? 1 : 7))}><Icon name="right" /></button>
-        <input type="date" aria-label="Go to a day" value={date} min={`${year}-01-01`} max={`${year}-12-31`}
-          onChange={(e) => e.currentTarget.value && go(e.currentTarget.value)} />
-        {date !== today.value && inYear(today.value) && (
-          <button type="button" onClick={() => go(today.value)}>Today</button>
-        )}
-        {/* The ? rides with the Day/Week switch, at the row's right end, so its tip opens on screen. */}
-        <div class="day-nav-end">
-          <div class="segmented view-mode" role="group" aria-label="View">
-            <button type="button" class={mode.value === "day" ? "active" : ""} aria-pressed={mode.value === "day"} onClick={() => setMode("day")}>Day</button>
-            <button type="button" class={mode.value === "week" ? "active" : ""} aria-pressed={mode.value === "week"} onClick={() => setMode("week")}>Week</button>
+        {/* On a phone these take the second line, under the day and its arrows. */}
+        <div class="day-nav-tools">
+          <input type="date" aria-label="Go to a day" value={date} min={`${year}-01-01`} max={`${year}-12-31`}
+            onChange={(e) => e.currentTarget.value && go(e.currentTarget.value)} />
+          {date !== today.value && inYear(today.value) && (
+            <button type="button" class="today-btn" onClick={() => go(today.value)}>Today</button>
+          )}
+          {/* The ? rides with the Day/Week switch, at the row's right end, so its tip opens on screen. */}
+          <div class="day-nav-end">
+            <div class="segmented view-mode" role="group" aria-label="View">
+              <button type="button" class={mode.value === "day" ? "active" : ""} aria-pressed={mode.value === "day"} onClick={() => setMode("day")}>Day</button>
+              <button type="button" class={mode.value === "week" ? "active" : ""} aria-pressed={mode.value === "week"} onClick={() => setMode("week")}>Week</button>
+            </div>
+            <Help label="About the day log">Times are typed as h:mm (7:45). Leaving a box saves it.</Help>
           </div>
-          <Help label="About the day log">Times are typed as h:mm (7:45). Leaving a box saves it.</Help>
         </div>
       </div>
       <WeekStrip date={date} week={week} year={year} onPick={go} />
