@@ -105,11 +105,12 @@ export function App() {
         </nav>
         <div class="topbar-right">
           {updateReady.value && (
-            <button type="button" class="backup-nag" onClick={() => location.reload()} title="A newer version is downloaded and ready.">
+            <button type="button" class="backup-nag reload-btn" onClick={() => location.reload()} title="A newer version is downloaded and ready.">
               <span class="long">v{updateReady.value} is ready · </span>Reload
             </button>
           )}
-          <ImportButton class="import-btn" title="Open a backup (JSON) saved by Backup. You can also drop the file anywhere on the page.">
+          <ImportButton class="import-btn" label="Import a backup"
+            title="Open a backup (JSON) saved by Backup. You can also drop the file anywhere on the page.">
             <Icon name="import" />
             <span class="bar-label">Import</span>
           </ImportButton>
@@ -131,6 +132,16 @@ export function App() {
             onClick={() => (menuOpen.value = !menuOpen.value)}>☰</button>
         </div>
       </header>
+      {/* On a phone the bar has no room for Reload beside Import, Backup and the year, so the
+          news takes a line of its own under it (style.css). */}
+      {updateReady.value && (
+        <div class="update-strip">
+          <p>
+            v{updateReady.value} is ready ·{" "}
+            <button type="button" class="link" onClick={() => location.reload()}>Reload</button>
+          </p>
+        </div>
+      )}
       {updated && !allYears && (
         <div class="status-strip">
           <p>Last updated {dateTime(updated)}</p>

@@ -37,7 +37,7 @@ export function SettingsView() {
         <h3 class="card-title">Your data</h3>
         {years.value.length ? <YearsTable /> : <p class="muted">Nothing stored yet. Start a year below, or import a backup.</p>}
         <div class="setting-row">
-          <ImportButton>Import JSON</ImportButton>
+          <ImportButton label="Import JSON">Import JSON</ImportButton>
           <span class="muted small">Or use Import in the top bar, or drop a backup file anywhere in the tracker.</span>
         </div>
         <DemoNote />

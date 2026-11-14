@@ -3,7 +3,7 @@
 // year. One file at a time, as in the Money Tracker.
 
 import { importYear, readJsonFile } from "./backup";
-import { openYear, refreshYears, years, type YearSummary } from "./state";
+import { refreshYears, storeAndOpen, years, type YearSummary } from "./state";
 import type { YearFile } from "./types";
 import { validateYearFile } from "./validate";
 
@@ -36,8 +36,8 @@ export async function importFile(file: File, ask: AskReplace): Promise<ImportOut
   await refreshYears();
   const stored = years.value.find((y) => y.setup.year === year);
   if (stored && !(await ask(file.name, stored, check.file))) return { kind: "kept", fileName: file.name, year };
-  const r = await importYear(data);
+  // Stored and opened in turn with the day log's changes (see storeAndOpen).
+  const r = await storeAndOpen(() => importYear(data), year);
   if (!r.ok) return { kind: "failed", fileName: file.name, errors: r.errors };
-  await openYear(year);
   return { kind: "imported", fileName: file.name, year, days: r.file.days.length };
 }
