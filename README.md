@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 3.0.19** ·
+**Version 3.0.20** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -77,7 +77,7 @@ they did there.
 - **Notes**: every day's note in the year picked in the top bar, newest or oldest first, with a box to search
   them: every word typed must be in the note, in any order, and capitals and accents don't matter
   ("quoted words" are found together). The words found are marked; the ✎ button changes a note right
-  there (a lock shows instead in a closed year), and clicking a day opens it on the Dashboard. Web
+  there (a lock shows instead where it can't be changed, as in a closed year), and clicking a day opens it on the Dashboard. Web
   addresses in a note (http://, https:// or www.) are links, opened in a new tab.
   <kbd>/</kbd> jumps to the search. 30 notes show at a time,
   with **Show 30 more** below.
@@ -95,11 +95,11 @@ still counting on December 31 and the streaks running then. Add more habits ther
 
 | Key | Does |
 |---|---|
-| <kbd>←</kbd> / <kbd>→</kbd> | The day before or after |
-| <kbd>T</kbd> | Today |
-| <kbd>Enter</kbd> | Save a time or number |
-| <kbd>Esc</kbd> | Undo what's typed in a box |
-| <kbd>/</kbd> | Search, on the Notes page |
+| <kbd>←</kbd> / <kbd>→</kbd> | On the Dashboard's Day view: the day before or after |
+| <kbd>T</kbd> | On the Dashboard's Day view: today |
+| <kbd>Enter</kbd> | On the Dashboard: save a time or number |
+| <kbd>Esc</kbd> | On the Dashboard: undo what's typed in a box; on Notes: clear the search |
+| <kbd>/</kbd> | On Notes: jump to the search |
 
 ## Bringing in a Notion tracker
 

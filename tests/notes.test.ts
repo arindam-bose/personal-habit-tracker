@@ -31,6 +31,19 @@ describe("searchNotes", () => {
     expect(searchNotes(DAYS, "cafe").map((h) => h.date)).toEqual(["2025-12-30"]);
     expect(searchNotes([{ date: "2026-01-01", note: "cafe" }], "Café")).toHaveLength(1);
   });
+  it("takes curly quotes as quotes, as an iPhone types them", () => {
+    expect(searchTerms("“cold shower” „sam”")).toEqual(["cold shower", "sam"]);
+    expect(searchNotes(DAYS, "“cold shower”")).toHaveLength(1);
+  });
+  it("finds quoted words split by a line break or several spaces", () => {
+    const days = [{ date: "2026-01-01", note: "Skipped the cold\n\nshower" }, { date: "2026-01-02", note: "cold  shower" }];
+    expect(searchNotes(days, '"cold shower"')).toHaveLength(2);
+    expect(matchNote("Skipped the cold\n\nshower!", ["cold shower"])).toEqual([[12, 24]]);
+  });
+  it("matches Greek's final sigma either way", () => {
+    expect(searchNotes([{ date: "2026-01-01", note: "ΟΔΟΣ" }], "οδος")).toHaveLength(1);
+    expect(searchNotes([{ date: "2026-01-01", note: "οδος" }], "ΟΔΟΣ")).toHaveLength(1);
+  });
   it("matches part of a word, and quoted words only together", () => {
     expect(searchNotes(DAYS, "dent").map((h) => h.date)).toEqual(["2026-03-02"]);
     expect(searchNotes(DAYS, '"cold shower"')).toHaveLength(1);
@@ -76,6 +89,10 @@ describe("findLinks", () => {
     expect(findLinks("(see https://a.org/x), then").map((l) => l.href)).toEqual(["https://a.org/x"]);
     expect(findLinks("https://en.wikipedia.org/wiki/Foo_(bar)!").map((l) => l.href)).toEqual(["https://en.wikipedia.org/wiki/Foo_(bar)"]);
     expect(findLinks("“https://a.org/q”").map((l) => l.href)).toEqual(["https://a.org/q"]);
+  });
+  it("links only an address that starts a word, not the www. in an email address", () => {
+    expect(findLinks("mail me at me@www.foo.com or a.www.b.com or xwww.c.com")).toEqual([]);
+    expect(findLinks("(www.foo.com)").map((l) => l.href)).toEqual(["https://www.foo.com"]);
   });
   it("links nothing else: no other schemes, no bare prefixes", () => {
     expect(findLinks("javascript:alert(1) mailto:a@b.c ftp://x.org https:// www.")).toEqual([]);

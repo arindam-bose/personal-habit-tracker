@@ -12,26 +12,34 @@ export interface NoteHit {
   marks: [number, number][];
 }
 
-/** The words of a search: each word on its own, and "quoted words" as one, folded for comparing. */
+/**
+ * The words of a search: each word on its own, and "quoted words" as one, folded for comparing. Curly
+ * quotes count too (“like these”, as an iPhone types them).
+ */
 export function searchTerms(query: string): string[] {
   const terms: string[] = [];
-  for (const m of query.matchAll(/"([^"]*)"?|(\S+)/g)) {
-    const term = fold(m[1] ?? m[2] ?? "").text.replace(/\s+/g, " ").trim();
+  for (const m of query.matchAll(/["“”„]([^"“”„]*)["“”„]?|(\S+)/g)) {
+    const term = fold(m[1] ?? m[2] ?? "").text.trim();
     if (term) terms.push(term);
   }
   return terms;
 }
 
 /**
- * Text folded for comparing (lower case, accents dropped), with, for each folded character, where
- * it came from in the original: folding can change the length ("ß" is one character, "ﬁ" is too).
+ * Text folded for comparing (lower case, accents dropped, Greek's final ς as σ, and any run of spaces
+ * or line breaks as one space), with, for each folded character, where it came from in the original:
+ * folding can change the length ("ﬁ" is one character, and so is a run of spaces once folded).
  */
 function fold(text: string): { text: string; from: number[] } {
   let out = "";
   const from: number[] = [];
   let i = 0;
   for (const ch of text) {
-    const folded = ch.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
+    if (/\s/.test(ch) && out.endsWith(" ")) {
+      i += ch.length;
+      continue;
+    }
+    const folded = /\s/.test(ch) ? " " : ch.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/ς/g, "σ");
     for (let k = 0; k < folded.length; k++) from.push(i);
     out += folded;
     i += ch.length;
@@ -51,7 +59,10 @@ export function matchNote(note: string, terms: string[]): [number, number][] | n
       // Back to the original: from the first folded character's source to just past the last one's.
       const start = f.from[at]!;
       const lastFrom = f.from[at + term.length - 1]!;
-      const end = f.from.find((x, k) => k >= at + term.length && x > lastFrom) ?? note.length;
+      // Scanned on from the match, not from the start, so a long note with many matches stays quick.
+      let k = at + term.length;
+      while (f.from[k]! <= lastFrom) k++;
+      const end = f.from[k]!;
       spans.push([start, end]);
       at = f.text.indexOf(term, at + term.length);
     }
@@ -103,12 +114,13 @@ export interface NoteLink {
 
 /**
  * The web addresses in a note: http:// and https:// ones, and www. ones (which go to https://). Only
- * those, so a note can never hold a link that runs code. Punctuation ending a sentence stays out,
+ * those, so a note can never hold a link that runs code. An address starts a word: the www. in an
+ * email address (me@www.foo.com) or inside a word isn't one. Punctuation ending a sentence stays out,
  * as does a closing bracket that doesn't close one opened in the address.
  */
 export function findLinks(note: string): NoteLink[] {
   const links: NoteLink[] = [];
-  for (const m of note.matchAll(/\b(?:https?:\/\/|www\.)[^\s<>"]+/gi)) {
+  for (const m of note.matchAll(/(?<![\w@.\/-])(?:https?:\/\/|www\.)[^\s<>"]+/gi)) {
     let url = m[0];
     for (;;) {
       const last = url.slice(-1);

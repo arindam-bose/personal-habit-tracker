@@ -119,11 +119,11 @@ export function AboutCard() {
           <h3>Handy keys</h3>
           <table class="data-table keys">
             <tbody>
-              <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>The day before or after</td></tr>
-              <tr><td><kbd>T</kbd></td><td>Today</td></tr>
-              <tr><td><kbd>Enter</kbd></td><td>Save a time or number</td></tr>
-              <tr><td><kbd>Esc</kbd></td><td>Undo what's typed in a box</td></tr>
-              <tr><td><kbd>/</kbd></td><td>Search, on the Notes page</td></tr>
+              <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>On the Dashboard's Day view: the day before or after</td></tr>
+              <tr><td><kbd>T</kbd></td><td>On the Dashboard's Day view: today</td></tr>
+              <tr><td><kbd>Enter</kbd></td><td>On the Dashboard: save a time or number</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>On the Dashboard: undo what's typed in a box; on Notes: clear the search</td></tr>
+              <tr><td><kbd>/</kbd></td><td>On Notes: jump to the search</td></tr>
             </tbody>
           </table>
         </DialogFact>

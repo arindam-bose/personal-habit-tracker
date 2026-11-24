@@ -6,7 +6,7 @@
 import { signal } from "@preact/signals";
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { longDay, updatedPair } from "../dates";
+import { longDay, toSecond, updatedPair } from "../dates";
 import { importFile } from "../importing";
 import type { YearSummary } from "../state";
 import { backupText, lastUpdatedAt } from "../storage";
@@ -98,7 +98,6 @@ function ReplaceDialog(props: { pending: PendingReplace }) {
 
 let asked = 0;
 
-const toSecond = (iso: string) => Math.floor(Date.parse(iso) / 1000);
 
 /** An import asking whether to replace a stored year. */
 const replacing = signal<PendingReplace | null>(null);

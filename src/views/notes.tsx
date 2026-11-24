@@ -70,11 +70,12 @@ export function NotesView() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const el = e.target as HTMLElement;
-      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey || ["INPUT", "SELECT", "TEXTAREA"].includes(el.tagName)) return;
+      // With no year there's no search, so / is left to the browser (Firefox's Quick Find).
+      if (e.key !== "/" || !searchRef.current || e.ctrlKey || e.metaKey || e.altKey || ["INPUT", "SELECT", "TEXTAREA"].includes(el.tagName)) return;
       // Nor on the cookie question, a ?, or a note open in its dialog: the keys belong there.
       if (el.closest(".consent, .help, dialog")) return;
       e.preventDefault();
-      searchRef.current?.focus();
+      searchRef.current.focus();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -154,7 +155,7 @@ export function NotesView() {
                   </p>
                   {locked ? (
                     // The pen's size, so a closed year's rows are as tall as an open one's.
-                    <span class="notes-lock" role="img" aria-label="Can't be changed" title={locked}><Icon name="close" /></span>
+                    <span class="notes-lock" role="img" aria-label={locked} title={locked}><Icon name="close" /></span>
                   ) : (
                     <IconButton icon="edit" label={`Edit the note for ${longDate(h.date)}`} title="Edit the note"
                       onClick={() => (editing.value = h.date)} />
