@@ -116,13 +116,14 @@ export function AboutCard() {
             <li><b>Settings</b>: start, import, back up, close, reopen and delete years; the first day of the week;
               light or dark; the offline copy; and the home screen.</li>
           </ul>
-          <h3>Handy keys on the Dashboard</h3>
+          <h3>Handy keys</h3>
           <table class="data-table keys">
             <tbody>
               <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>The day before or after</td></tr>
               <tr><td><kbd>T</kbd></td><td>Today</td></tr>
               <tr><td><kbd>Enter</kbd></td><td>Save a time or number</td></tr>
               <tr><td><kbd>Esc</kbd></td><td>Undo what's typed in a box</td></tr>
+              <tr><td><kbd>/</kbd></td><td>Search, on the Notes page</td></tr>
             </tbody>
           </table>
         </DialogFact>

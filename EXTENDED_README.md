@@ -263,7 +263,10 @@ Routing is by URL hash (`#/reports`), which works on any static host.
 
 On the Dashboard: <kbd>←</kbd> / <kbd>→</kbd> the day before or after,
 <kbd>T</kbd> today; in a time or number box, <kbd>Enter</kbd> saves and
-<kbd>Esc</kbd> puts back what was there. The About card lists them too.
+<kbd>Esc</kbd> puts back what was there. On Notes: <kbd>/</kbd> jumps to the search
+(which a mouse or trackpad also starts in, as on the Money Tracker's Ledger, though not a touch
+screen, where it would pop up the keyboard); <kbd>Esc</kbd> clears it, and again leaves it. The
+About card lists them too.
 
 ## Charts
 

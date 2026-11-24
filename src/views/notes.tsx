@@ -3,7 +3,7 @@
 // the year is closed), and a day opens in the Dashboard's day log.
 
 import { signal, useSignal } from "@preact/signals";
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import { longDate } from "../dates";
 import { markedPieces, searchNotes } from "../notes";
 import { firstDay } from "../score";
@@ -34,6 +34,9 @@ function loadOldestFirst(): boolean {
   }
 }
 
+/** A mouse or trackpad leads, so focusing a box won't throw up an on-screen keyboard. */
+const keyboardFirst = () => typeof matchMedia === "function" && matchMedia("(hover: hover) and (pointer: fine)").matches;
+
 /** A new search starts again from the first PAGE notes. */
 function search(text: string): void {
   query.value = text;
@@ -53,6 +56,29 @@ function sortBy(oldest: boolean): void {
 
 export function NotesView() {
   const t = tracked.value;
+  const searchRef = useRef<HTMLInputElement>(null);
+  // Arriving with a mouse or trackpad puts the cursor in the search, ready to type, as on the Money
+  // Tracker's Ledger. Not with a finger: on a phone or tablet a focused box pops the keyboard up over the
+  // page. Once per visit, when the box first appears (the year may still be loading).
+  const searchFocused = useRef(false);
+  useEffect(() => {
+    if (searchFocused.current || !searchRef.current) return;
+    searchFocused.current = true;
+    if (keyboardFirst()) searchRef.current.focus({ preventScroll: true });
+  }, [t === null]);
+  // / jumps to the search from anywhere on the page, while not typing elsewhere.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const el = e.target as HTMLElement;
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey || ["INPUT", "SELECT", "TEXTAREA"].includes(el.tagName)) return;
+      // Nor on the cookie question, a ?, or a note open in its dialog: the keys belong there.
+      if (el.closest(".consent, .help, dialog")) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   // The day whose note is open in the dialog, if any.
   const editing = useSignal<IsoDate | null>(null);
   // Another year starts again from the first PAGE notes; the search stays.
@@ -76,23 +102,30 @@ export function NotesView() {
     <section class="panel notes-page">
       <div class="notes-head">
         <h2>📝 Notes</h2>
-        <Help label="About searching notes">
-          The notes of the year picked in the top bar. Every word typed must be in the note, in any order;
-          capitals and accents don't matter. Put words in "quotes" to find them together. ✎ changes a note
-          here; click a day to open it.
-        </Help>
+        <div class="notes-head-tools">
+          <select value={oldestFirst.value ? "oldest" : "newest"} aria-label="Sort"
+            onChange={(e) => sortBy(e.currentTarget.value === "oldest")}>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+          <Help label="About searching notes">
+            The notes of the year picked in the top bar. Every word typed must be in the note, in any order;
+            capitals and accents don't matter. Put words in "quotes" to find them together. <kbd>/</kbd> jumps
+            to the search. ✎ changes a note here; click a day to open it.
+          </Help>
+        </div>
       </div>
-      <div class="notes-tools">
-        <input type="search" class="notes-search" value={query.value} autoFocus
-          placeholder={`Search the notes of ${t.year}`} aria-label={`Search the notes of ${t.year}`}
-          onInput={(e) => search(e.currentTarget.value)}
-          onKeyDown={(e) => e.key === "Escape" && search("")} />
-        <select value={oldestFirst.value ? "oldest" : "newest"} aria-label="Sort"
-          onChange={(e) => sortBy(e.currentTarget.value === "oldest")}>
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-        </select>
-      </div>
+      {/* Esc clears the search; on an empty box it leaves it. Not while an input method is composing a
+          word (Japanese, Chinese, Korean): that Esc only cancels the word. */}
+      <input ref={searchRef} type="search" class="notes-search" value={query.value}
+        placeholder={`Search the notes of ${t.year}…  /`} aria-label={`Search the notes of ${t.year}`}
+        onInput={(e) => search(e.currentTarget.value)}
+        onKeyDown={(e) => {
+          if (e.key !== "Escape" || e.isComposing) return;
+          e.preventDefault();
+          if (e.currentTarget.value) search("");
+          else e.currentTarget.blur();
+        }} />
       {!noted ? (
         <p class="muted">
           No notes in {t.year} yet.{!readOnly.value && " Write one under the habits in the Dashboard's day log, or with 📝 in its Week view."}
