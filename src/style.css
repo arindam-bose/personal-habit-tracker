@@ -1915,7 +1915,7 @@ table.compare tr.differs td {
 .notes-list li {
   display: grid;
   grid-template-columns: 11em 1fr auto;
-  align-items: baseline;
+  align-items: center;
   gap: 4px 16px;
   padding: 10px 0;
   border-top: 1px solid var(--border);
@@ -1933,10 +1933,6 @@ button.notes-day {
   margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-button.notes-edit {
-  padding: 0;
 }
 
 .notes-text mark {

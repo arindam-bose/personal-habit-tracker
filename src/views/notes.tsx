@@ -1,5 +1,5 @@
 // Notes: every day's note, newest first, across every stored year, with a box to search them, for
-// "when did I last…?". The words found are marked; Edit changes a note in place, in any year that
+// "when did I last…?". The words found are marked; the edit button changes a note in place, in any year that
 // isn't closed, and a day opens in the Dashboard's day log.
 
 import { signal, useSignal } from "@preact/signals";
@@ -12,6 +12,7 @@ import { current, loadAllYears, openYear, years } from "../state";
 import type { IsoDate } from "../types";
 import { NoYear, openDay, plural } from "./common";
 import { Help } from "./help";
+import { IconButton } from "./icons";
 import { NoteDialog, lockedReason } from "./note-dialog";
 
 /** Notes shown at a time; buttons under the list show more or fewer. */
@@ -64,7 +65,7 @@ export function NotesView() {
         <h2>📝 Notes</h2>
         <Help label="About searching notes">
           Every word typed must be in the note, in any order; capitals and accents don't matter.
-          Put words in "quotes" to find them together. Edit changes a note here; click a day to open it.
+          Put words in "quotes" to find them together. ✎ changes a note here; click a day to open it.
         </Help>
       </div>
       <input type="search" class="notes-search" value={query.value} autoFocus
@@ -93,8 +94,8 @@ export function NotesView() {
                 {lockOf(h.date) ? (
                   <span class="notes-locked muted small" title={lockOf(h.date)!}>🔒</span>
                 ) : (
-                  <button type="button" class="link notes-edit" onClick={() => (editing.value = h.date)}
-                    aria-label={`Edit the note for ${longDate(h.date)}`}>Edit</button>
+                  <IconButton icon="edit" label={`Edit the note for ${longDate(h.date)}`} title="Edit the note"
+                    onClick={() => (editing.value = h.date)} />
                 )}
               </li>
             ))}
