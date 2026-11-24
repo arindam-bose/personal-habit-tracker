@@ -172,6 +172,7 @@ export function setValue(date: IsoDate, habitId: string, value: true | number | 
   });
 }
 
+/** Set a day's note; empty clears it. */
 export function setNote(date: IsoDate, note: string): Promise<void> {
   return changeDay(date, ({ note: _old, ...day }) => (note.trim() ? { ...day, note: note.trim() } : day));
 }

@@ -105,23 +105,25 @@ export function AboutCard() {
           </p>
           <h3>The pages</h3>
           <ul>
-            <li><b>Dashboard</b>: at the top, log a day, or switch to <b>Week</b> to fill in the last seven days as a table.
+            <li><b>Dashboard</b>: at the top, log a day, or switch to <b>Week</b> to fill in the last seven days as a table (📝 beside a day opens its note).
               Below it: today, this week, this month and the year, the year as a heatmap, the year month by month,
               your streaks, and this month habit by habit.</li>
             <li><b>Habitmaps</b>: a heatmap for the day score and one for each habit. Click a day to open it on the Dashboard.</li>
             <li><b>Reports</b>: each month and the year in words and charts, habits month by month, times against
               their goals each month and on each weekday, and which weekdays go best.</li>
+            <li><b>Notes</b>: every day's note in the year picked, with a box to search them for when you did something, and ✎ to change one.</li>
             <li><b>Over the years</b>: once two or more years are stored, each year side by side.</li>
             <li><b>Settings</b>: start, import, back up, close, reopen and delete years; the first day of the week;
               light or dark; the offline copy; and the home screen.</li>
           </ul>
-          <h3>Handy keys on the Dashboard</h3>
+          <h3>Handy keys</h3>
           <table class="data-table keys">
             <tbody>
-              <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>The day before or after</td></tr>
-              <tr><td><kbd>T</kbd></td><td>Today</td></tr>
-              <tr><td><kbd>Enter</kbd></td><td>Save a time or number</td></tr>
-              <tr><td><kbd>Esc</kbd></td><td>Undo what's typed in a box</td></tr>
+              <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>On the Dashboard's Day view: the day before or after</td></tr>
+              <tr><td><kbd>T</kbd></td><td>On the Dashboard's Day view: today</td></tr>
+              <tr><td><kbd>Enter</kbd></td><td>On the Dashboard: save a time or number</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>On the Dashboard: undo what's typed in a box; on Notes: clear the search</td></tr>
+              <tr><td><kbd>/</kbd></td><td>On Notes: jump to the search</td></tr>
             </tbody>
           </table>
         </DialogFact>

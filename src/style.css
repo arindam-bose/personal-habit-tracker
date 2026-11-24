@@ -1160,9 +1160,53 @@ textarea:focus-visible {
   color: var(--muted);
 }
 
+/* A day's note in the Week view: 📝 opens it. Without a note, a faint 📝 shows on hover or focus
+   (always, faintly, on a touch screen), to add one. */
 .wt-note {
   margin-left: 4px;
+  padding: 2px 4px;
   font-size: 12px;
+  line-height: 1;
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.wt-note:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.wt-note.add {
+  opacity: 0;
+  filter: grayscale(1);
+}
+
+.week-table tbody tr:hover .wt-note.add,
+.wt-note.add:focus-visible {
+  opacity: 0.45;
+}
+
+@media (hover: none) {
+  .wt-note.add {
+    opacity: 0.3;
+  }
+}
+
+dialog.note-dialog {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.note-dialog textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 8px 0 4px;
+  resize: vertical;
+}
+
+.note-dialog textarea:disabled {
+  opacity: 0.7;
 }
 
 /* --- Dashboard --- */
@@ -1835,6 +1879,130 @@ table.compare tr.differs td {
 .errors {
   color: var(--danger);
   font-size: 14px;
+}
+
+/* --- Notes --- */
+
+.notes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notes-head h2 {
+  margin: 0;
+}
+
+/* The ? and then the order, at the right of the title. The ?'s description opens from the group's
+   right edge, as it would from a ? in the corner, so on a phone it doesn't run off the left. */
+.notes-head-tools {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notes-head-tools .help {
+  position: static;
+}
+
+.notes-search {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 10px 0 6px;
+  padding: 8px 12px;
+}
+
+.notes-count {
+  margin: 0 0 4px;
+}
+
+.notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notes-list li {
+  display: grid;
+  grid-template-columns: 11em 1fr auto;
+  align-items: center;
+  gap: 0 16px;
+  padding: 3px 0;
+  line-height: 1.4;
+  border-top: 1px solid var(--border);
+}
+
+button.notes-day {
+  justify-self: start;
+  padding: 0;
+  text-align: left;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.notes-text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The edit button: just a small pen, no box, so the rows stay compact. A tint shows on hover. */
+.notes-list button.icon-action {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  background: none;
+}
+
+.notes-list button.icon-action:hover:not(:disabled) {
+  background: var(--row-hover);
+}
+
+/* A closed year's lock, in the pen's place and at its size, so every row is as tall. */
+.notes-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--muted);
+}
+
+.notes-lock .icon,
+.notes-list button.icon-action .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.notes-text mark {
+  color: inherit;
+  background: color-mix(in srgb, rgb(var(--heat)) 28%, transparent);
+  border-radius: 2px;
+}
+
+/* Under the list, as under the Money Tracker's Ledger: how many show, and buttons for more or fewer. */
+.more-rows {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0 0;
+}
+
+/* On a phone the day and Edit share the first line, and the note takes the full width below. */
+@media (max-width: 600px) {
+  .notes-list li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .notes-text {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
 }
 
 /* --- Phones --- */

@@ -45,6 +45,6 @@ export function backupDue(setup: Pick<YearSetup, "closed" | "lastBackupAt" | "la
 /** The latest change to a year, to its days or its setup: what "Last updated" shows. */
 export function lastUpdatedAt(setup: Pick<YearSetup, "lastChangedAt" | "setupChangedAt">): string | undefined {
   const { lastChangedAt: a, setupChangedAt: b } = setup;
-  if (!a || !b) return a ?? b;
+  if (!a || !b) return a || b || undefined;
   return Date.parse(a) >= Date.parse(b) ? a : b;
 }

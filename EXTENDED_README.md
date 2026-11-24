@@ -49,6 +49,7 @@ including `noUncheckedIndexedAccess`.
 | `src/types.ts` | The data model. Read this first. |
 | `src/dates.ts` | `YYYY-MM-DD` dates: ranges, weeks, months, and how they read. All arithmetic in UTC. |
 | `src/habits.ts` | What a habit is: when a value meets its goal, reading typed times and numbers, how values read, new ids, the starter habits. |
+| `src/notes.ts` | Searching the notes: every word in any order, case and accents folded, "quoted words" together; where each match is, to mark it. The web addresses in a note (`findLinks`: http, https and www only, so no other kind of link), for the Notes page to link. |
 | `src/score.ts` | Every score, streak and report figure. Plain functions, no UI. |
 | `src/setup.ts` | Changing a year's habits and start day, and what the next year starts with when one is closed. Pure functions. |
 | `src/validate.ts` | Checks an imported file before anything is stored. |
@@ -251,6 +252,7 @@ page downloads the year's backup first. A closed year can be reopened.
 | Dashboard | `views/dashboard.tsx`, `views/today.tsx` | The main page. The day log on top (Day or Week view), the year at a glance below: the score tiles, the heatmap, the year month by month (`monthPassed`, `monthStats`), the streaks and the month by habit. Old `#/today` links open it. |
 | Habitmaps | `views/habitmaps.tsx` | A heatmap of the day score, then one per habit. Clicking a day opens it on the Dashboard (`selectedDay`). Old `#/calendar` and `#/heatmaps` links open it. |
 | Reports | `views/reports.tsx` | Loaded on demand (see Charts). Overview (ending with the year's report card), a report card for every month, and More on this: habits month by month, and times and numbers against their goals by month and by weekday (`weekdayStats`, counted as a month's are). |
+| Notes | `views/notes.tsx` | Every day's note in the open year, newest first or oldest first (a choice kept for the tab, as on the Money Tracker's Ledger), with a search box (`searchNotes` in `notes.ts`) that keeps what's typed while the tab is open. 30 notes show at a time (`PAGE`), with Show more and Show fewer below, as on the Money Tracker's Ledger; a new search, order or year starts again from 30. The edit button (✎) opens the note in the Week view's dialog (`views/note-dialog.tsx`) and saves it with `setNote`; where the day can't be changed (`lockedReason`: a closed year, or a day before tracking starts or still to come) a lock takes its place, at the same size, saying why on hover and to screen readers. Clicking a day opens it on the Dashboard. |
 | Habits | `views/habits.tsx` | Add, change, reorder, stop and delete habits; the day tracking starts. |
 | Over the years | `views/years.tsx` | In the menu only with two or more years; the year picker shows "All years" there. Loads every year (`loadAllYears`). The year still under way is marked *. Loaded on demand with the charts. |
 | Settings | `views/settings.tsx`, `views/about.tsx` | Your data (back up, close, reopen, delete years), import, start a year, the demo file, the first day of the week, appearance, offline, the home screen, erase everything, Support the tracker, About. |
@@ -259,9 +261,12 @@ Routing is by URL hash (`#/reports`), which works on any static host.
 
 ### Keyboard
 
-On the Dashboard: <kbd>←</kbd> / <kbd>→</kbd> the day before or after,
+On the Dashboard's Day view: <kbd>←</kbd> / <kbd>→</kbd> the day before or after,
 <kbd>T</kbd> today; in a time or number box, <kbd>Enter</kbd> saves and
-<kbd>Esc</kbd> puts back what was there. The About card lists them too.
+<kbd>Esc</kbd> puts back what was there. On Notes: <kbd>/</kbd> jumps to the search
+(which a mouse or trackpad also starts in, as on the Money Tracker's Ledger, though not a touch
+screen, where it would pop up the keyboard); <kbd>Esc</kbd> clears it, and again leaves it. The
+About card lists them too.
 
 ## Charts
 
