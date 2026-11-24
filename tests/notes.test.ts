@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { markedPieces, matchNote, searchNotes, searchTerms } from "../src/notes";
+import { findLinks, markedPieces, matchNote, noteChunks, searchNotes, searchTerms } from "../src/notes";
 
 const DAYS = [
   { date: "2025-12-30", note: "Dinner at the Café with Sam" },
@@ -58,5 +58,41 @@ describe("markedPieces", () => {
       { text: "Ran", marked: true }, { text: " in the ", marked: false }, { text: "park", marked: true },
     ]);
     expect(markedPieces("note", [])).toEqual([{ text: "note", marked: false }]);
+  });
+});
+
+describe("findLinks", () => {
+  it("finds http, https and www addresses; www ones go to https", () => {
+    expect(findLinks("Hike at https://maps.app.goo.gl/B8z2pum1SDuye9wF6 today")).toEqual([
+      { start: 8, end: 49, href: "https://maps.app.goo.gl/B8z2pum1SDuye9wF6" },
+    ]);
+    expect(findLinks("see www.example.com and HTTP://a.org/x?y=1&z=2#top")).toEqual([
+      { start: 4, end: 19, href: "https://www.example.com" },
+      { start: 24, end: 50, href: "HTTP://a.org/x?y=1&z=2#top" },
+    ]);
+  });
+  it("leaves out punctuation ending a sentence, and brackets it doesn't open", () => {
+    expect(findLinks("Went to https://a.org/park.").map((l) => l.href)).toEqual(["https://a.org/park"]);
+    expect(findLinks("(see https://a.org/x), then").map((l) => l.href)).toEqual(["https://a.org/x"]);
+    expect(findLinks("https://en.wikipedia.org/wiki/Foo_(bar)!").map((l) => l.href)).toEqual(["https://en.wikipedia.org/wiki/Foo_(bar)"]);
+    expect(findLinks("“https://a.org/q”").map((l) => l.href)).toEqual(["https://a.org/q"]);
+  });
+  it("links nothing else: no other schemes, no bare prefixes", () => {
+    expect(findLinks("javascript:alert(1) mailto:a@b.c ftp://x.org https:// www.")).toEqual([]);
+  });
+});
+
+describe("noteChunks", () => {
+  it("cuts a note into text and links, keeping marks inside a link", () => {
+    const note = "Hike at https://maps.app/park park";
+    const marks = matchNote(note, ["park"])!;
+    expect(noteChunks(note, marks)).toEqual([
+      { pieces: [{ text: "Hike at ", marked: false }] },
+      { href: "https://maps.app/park", pieces: [{ text: "https://maps.app/", marked: false }, { text: "park", marked: true }] },
+      { pieces: [{ text: " ", marked: false }, { text: "park", marked: true }] },
+    ]);
+  });
+  it("is one plain chunk without links", () => {
+    expect(noteChunks("Ran", [])).toEqual([{ pieces: [{ text: "Ran", marked: false }] }]);
   });
 });

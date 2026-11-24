@@ -5,7 +5,7 @@
 import { signal, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 import { longDate } from "../dates";
-import { markedPieces, searchNotes } from "../notes";
+import { noteChunks, searchNotes } from "../notes";
 import { firstDay } from "../score";
 import { readOnly, tracked } from "../state";
 import type { IsoDate } from "../types";
@@ -106,7 +106,7 @@ export function NotesView() {
           <Help label="About searching notes">
             The notes of the year picked in the top bar. Every word typed must be in the note, in any order;
             capitals and accents don't matter. Put words in "quotes" to find them together. <kbd>/</kbd> jumps
-            to the search. ✎ changes a note here; click a day to open it.
+            to the search. ✎ changes a note here; click a day to open it, or a web address to visit it.
           </Help>
           <select value={oldestFirst.value ? "oldest" : "newest"} aria-label="Sort"
             onChange={(e) => sortBy(e.currentTarget.value === "oldest")}>
@@ -146,7 +146,11 @@ export function NotesView() {
                     {longDate(h.date)}
                   </button>
                   <p class="notes-text">
-                    {markedPieces(h.note, h.marks).map((p) => (p.marked ? <mark>{p.text}</mark> : p.text))}
+                    {/* Web addresses are links, opened in a new tab; the words found stay marked, in them too. */}
+                    {noteChunks(h.note, h.marks).map((c) => {
+                      const text = c.pieces.map((p) => (p.marked ? <mark>{p.text}</mark> : p.text));
+                      return c.href ? <a href={c.href} target="_blank" rel="noopener noreferrer">{text}</a> : text;
+                    })}
                   </p>
                   {locked ? (
                     // The pen's size, so a closed year's rows are as tall as an open one's.

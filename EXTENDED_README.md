@@ -49,7 +49,7 @@ including `noUncheckedIndexedAccess`.
 | `src/types.ts` | The data model. Read this first. |
 | `src/dates.ts` | `YYYY-MM-DD` dates: ranges, weeks, months, and how they read. All arithmetic in UTC. |
 | `src/habits.ts` | What a habit is: when a value meets its goal, reading typed times and numbers, how values read, new ids, the starter habits. |
-| `src/notes.ts` | Searching the notes: every word in any order, case and accents folded, "quoted words" together; where each match is, to mark it. |
+| `src/notes.ts` | Searching the notes: every word in any order, case and accents folded, "quoted words" together; where each match is, to mark it. The web addresses in a note (`findLinks`: http, https and www only, so no other kind of link), for the Notes page to link. |
 | `src/score.ts` | Every score, streak and report figure. Plain functions, no UI. |
 | `src/setup.ts` | Changing a year's habits and start day, and what the next year starts with when one is closed. Pure functions. |
 | `src/validate.ts` | Checks an imported file before anything is stored. |
