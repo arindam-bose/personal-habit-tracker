@@ -42,9 +42,9 @@ const PAGES = {
   // The main page: today's log at the top, the year at a glance below it.
   dashboard: { label: "Dashboard", view: DashboardView },
   habitmaps: { label: "Habitmaps", view: HabitmapsView },
-  // Every day's note, across every year, to search.
-  notes: { label: "Notes", view: NotesView },
   reports: { label: "Reports", view: chartPage(() => import("./views/reports").then((m) => m.ReportsView)) },
+  // Every day's note in the open year, to search.
+  notes: { label: "Notes", view: NotesView },
   habits: { label: "Habits", view: HabitsView },
   // Only in the menu with two or more years.
   years: { label: "Over the years", view: chartPage(() => import("./views/years").then((m) => m.YearsView)) },
