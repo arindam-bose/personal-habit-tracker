@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, dateRange, stretchOf } from "../src/dates";
+import { addDays, dateRange, dayDate, stretchOf } from "../src/dates";
 
 describe("the day log's seven days", () => {
   const today = "2026-11-23";
@@ -32,5 +32,16 @@ describe("the day log's seven days", () => {
       const start = stretchOf(d, today);
       expect(d >= start && d <= addDays(start, 6)).toBe(true);
     }
+  });
+});
+
+describe("the Week table's days", () => {
+  it("name the weekday, the month and the day, on that day wherever the clock is", () => {
+    const want = new Date(Date.UTC(2026, 10, 17)).toLocaleDateString(undefined,
+      { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+    expect(dayDate("2026-11-17")).toBe(want);
+    expect(want).toMatch(/Tue/);
+    expect(want).toMatch(/Nov/);
+    expect(want).toMatch(/17/);
   });
 });

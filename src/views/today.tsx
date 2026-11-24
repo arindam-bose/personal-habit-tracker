@@ -5,7 +5,7 @@
 
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { WEEKDAYS_SHORT, addDays, longDate, shortDate, stretchOf, weekday } from "../dates";
+import { WEEKDAYS_SHORT, addDays, dayDate, longDate, shortDate, stretchOf, weekday } from "../dates";
 import { formatMinutes, formatValue, goalShort, goalText, isActive, label, meets, parseCount, parseDuration } from "../habits";
 import { dayScore, firstDay, habitStreakAcross, level, percent } from "../score";
 import { chain, current, readOnly, selectedDay, setNote, setValue, today, tracked } from "../state";
@@ -289,7 +289,7 @@ function WeekTable({ week }: { week: IsoDate }) {
                       selectedDay.value = d;
                       setMode("day");
                     }} title={day?.note ? `Note: ${day.note}` : "Open the day"}>
-                      {WEEKDAYS_SHORT[weekday(d)]} {Number(d.slice(8))}
+                      {dayDate(d)}
                     </button>
                     {day?.note && <span class="wt-note" title={day.note} aria-label={`Note: ${day.note}`}>📝</span>}
                   </th>
