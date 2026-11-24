@@ -1894,11 +1894,16 @@ table.compare tr.differs td {
   margin: 0;
 }
 
-.notes-search {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
+/* The search takes the row; the order sits at its right. */
+.notes-tools {
+  display: flex;
+  gap: 8px;
   margin: 8px 0 6px;
+}
+
+.notes-search {
+  flex: 1;
+  box-sizing: border-box;
   padding: 8px 12px;
 }
 

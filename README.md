@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 3.0.13** ·
+**Version 3.0.14** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -71,7 +71,7 @@ they did there.
   with the year so far beneath;
   every habit's streak, now and best; and how each habit is going this month against the whole year.
 - **Habitmaps**: a heatmap of the day score, and one for each habit. Click a day to open it on the Dashboard.
-- **Notes**: every day's note in the year picked in the top bar, newest first, with a box to search
+- **Notes**: every day's note in the year picked in the top bar, newest or oldest first, with a box to search
   them: every word typed must be in the note, in any order, and capitals and accents don't matter
   ("quoted words" are found together). The words found are marked; the ✎ button changes a note right
   there (a lock shows instead in a closed year), and clicking a day opens it on the Dashboard. 30 notes show at a time,

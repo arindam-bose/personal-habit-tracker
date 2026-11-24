@@ -1,4 +1,4 @@
-// Notes: every day's note in the open year, newest first, with a box to search them, for "when did
+// Notes: every day's note in the open year, newest or oldest first, with a box to search them, for "when did
 // I last…?". The words found are marked; the pen changes a note in place (a lock shows instead when
 // the year is closed), and a day opens in the Dashboard's day log.
 
@@ -19,13 +19,36 @@ const PAGE = 30;
 
 /** What's typed in the box: kept while the tab is open, so coming back from a day finds the same list. */
 const query = signal("");
-/** How many of the matching notes are shown, newest first: kept with the search, and back to PAGE when it changes. */
+/** How many of the matching notes are shown: kept with the search, and back to PAGE when it changes. */
 const shown = signal(PAGE);
+
+// The order, as on the Money Tracker's Ledger: kept for the tab, newest first until changed.
+const SORT_KEY = "habit-tracker-notes-sort";
+const oldestFirst = signal(loadOldestFirst());
+
+function loadOldestFirst(): boolean {
+  try {
+    return sessionStorage.getItem(SORT_KEY) === "oldest";
+  } catch {
+    return false;
+  }
+}
 
 /** A new search starts again from the first PAGE notes. */
 function search(text: string): void {
   query.value = text;
   shown.value = PAGE;
+}
+
+/** Another order starts again from the first PAGE notes, too. */
+function sortBy(oldest: boolean): void {
+  oldestFirst.value = oldest;
+  shown.value = PAGE;
+  try {
+    sessionStorage.setItem(SORT_KEY, oldest ? "oldest" : "newest");
+  } catch {
+    // Not kept; the order still applies until the page is left.
+  }
 }
 
 export function NotesView() {
@@ -43,7 +66,8 @@ export function NotesView() {
   if (!t) return <NoYear />;
   const days = [...t.days.values()];
   const noted = days.filter((d) => d.note).length;
-  const hits = searchNotes(days, query.value);
+  const newest = searchNotes(days, query.value);
+  const hits = oldestFirst.value ? newest.reverse() : newest;
   const searching = query.value.trim() !== "";
   /** Why a day's note can't be changed (the year is closed), or null. */
   const lockOf = (date: IsoDate) => lockedReason(date, firstDay(t), readOnly.value, t.year);
@@ -58,10 +82,17 @@ export function NotesView() {
           here; click a day to open it.
         </Help>
       </div>
-      <input type="search" class="notes-search" value={query.value} autoFocus
-        placeholder={`Search the notes of ${t.year}`} aria-label={`Search the notes of ${t.year}`}
-        onInput={(e) => search(e.currentTarget.value)}
-        onKeyDown={(e) => e.key === "Escape" && search("")} />
+      <div class="notes-tools">
+        <input type="search" class="notes-search" value={query.value} autoFocus
+          placeholder={`Search the notes of ${t.year}`} aria-label={`Search the notes of ${t.year}`}
+          onInput={(e) => search(e.currentTarget.value)}
+          onKeyDown={(e) => e.key === "Escape" && search("")} />
+        <select value={oldestFirst.value ? "oldest" : "newest"} aria-label="Sort"
+          onChange={(e) => sortBy(e.currentTarget.value === "oldest")}>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+      </div>
       {!noted ? (
         <p class="muted">
           No notes in {t.year} yet.{!readOnly.value && " Write one under the habits in the Dashboard's day log, or with 📝 in its Week view."}
@@ -71,7 +102,7 @@ export function NotesView() {
           <p class="muted small notes-count" role="status">
             {searching
               ? hits.length ? `${plural(hits.length, "day")} of ${noted} with notes in ${t.year}` : `No note in ${t.year} has all of “${query.value.trim()}”.`
-              : `${plural(noted, "day")} with notes in ${t.year}, newest first`}
+              : `${plural(noted, "day")} with notes in ${t.year}`}
           </p>
           <ul class="notes-list">
             {hits.slice(0, shown.value).map((h) => {
