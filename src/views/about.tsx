@@ -105,7 +105,7 @@ export function AboutCard() {
           </p>
           <h3>The pages</h3>
           <ul>
-            <li><b>Dashboard</b>: at the top, log a day, or switch to <b>Week</b> to fill in a whole week as a table.
+            <li><b>Dashboard</b>: at the top, log a day, or switch to <b>Week</b> to fill in the last seven days as a table.
               Below it: today, this week, this month and the year, the year as a heatmap, the year month by month,
               your streaks, and this month habit by habit.</li>
             <li><b>Habitmaps</b>: a heatmap for the day score and one for each habit. Click a day to open it on the Dashboard.</li>

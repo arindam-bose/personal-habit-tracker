@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 3.0.2** ·
+**Version 3.0.3** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -63,8 +63,8 @@ they did there.
 ## What's in it
 
 - **Dashboard**, the main page. At the top, the day to log: a card per habit to tick or fill in,
-  the day's score, a note, and the week as a strip of days. **Week** shows the whole week as a
-  table, for catching up on several days at once. Below it, the year at a glance: today, this week,
+  the day's score, a note, and the last seven days as a strip, today last. **Week** shows those
+  seven days as a table, for catching up on several days at once; the arrows step seven days at a time. Below it, the year at a glance: today, this week,
   this month and the year; the year as a heatmap; the year month by month, with how much of each
   month has gone by, each habit's share of days met, the average time or number, and the score,
   with the year so far beneath;

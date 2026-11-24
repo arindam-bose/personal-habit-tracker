@@ -55,6 +55,16 @@ export function weekOf(iso: IsoDate, weekStart: 0 | 1): IsoDate {
   return addDays(iso, -((weekday(iso) - weekStart + 7) % 7));
 }
 
+/**
+ * The first day of the seven days holding `iso`, the days being cut into sevens back to back so that
+ * one of them ends on `last`. With `last` today: the last seven days including today, the seven
+ * before those, and so on, whatever day the week starts on.
+ */
+export function stretchOf(iso: IsoDate, last: IsoDate): IsoDate {
+  const behind = Math.round((utc(last).getTime() - utc(iso).getTime()) / DAY_MS);
+  return addDays(last, -7 * Math.floor(behind / 7) - 6);
+}
+
 export function isIsoDate(s: unknown): s is IsoDate {
   if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const d = utc(s);

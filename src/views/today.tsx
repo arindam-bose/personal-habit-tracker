@@ -1,13 +1,14 @@
 // The day log, at the top of the Dashboard: log a day. A card per habit (tap a check, type a time or a number), the day's score,
-// a note, and a strip of the week to move between days. The Week view is a table of the whole
-// week, for catching up on several days at once.
+// a note, and a strip of seven days to move between days. The Week view is a table of those seven
+// days, for catching up on several at once. The seven end on today, so today is always the last
+// day; the arrows step back and forth seven days at a time.
 
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { WEEKDAYS_SHORT, addDays, longDate, shortDate, weekOf, weekday } from "../dates";
+import { WEEKDAYS_SHORT, addDays, longDate, shortDate, stretchOf, weekday } from "../dates";
 import { formatMinutes, formatValue, goalShort, goalText, isActive, label, meets, parseCount, parseDuration } from "../habits";
 import { dayScore, firstDay, habitStreakAcross, level, percent } from "../score";
-import { chain, current, readOnly, selectedDay, setNote, setValue, today, tracked, weekStart } from "../state";
+import { chain, current, readOnly, selectedDay, setNote, setValue, today, tracked } from "../state";
 import type { Habit, IsoDate } from "../types";
 import { NoYear, ScoreBar, mode, setMode } from "./common";
 import { Help } from "./help";
@@ -60,24 +61,27 @@ export function TodayView() {
   const inYear = (d: IsoDate) => d.startsWith(`${year}-`);
   // A week that runs over New Year moves to the year's first or last day, not outside the year.
   const go = (d: IsoDate) => (selectedDay.value = d < `${year}-01-01` ? `${year}-01-01` : d > `${year}-12-31` ? `${year}-12-31` : d);
-  const week = weekOf(date, weekStart.value);
+  // The seven days holding the chosen day, cut so that one seven ends on today (or, in a year
+  // that doesn't hold today, on its last day).
+  const week = stretchOf(date, inYear(today.value) ? today.value : `${year}-12-31`);
+  const weekEnd = addDays(week, 6);
 
   return (
     <div class="today">
       <div class="day-nav">
-        <button type="button" class="icon-action" aria-label={mode.value === "day" ? "The day before" : "The week before"}
+        <button type="button" class="icon-action" aria-label={mode.value === "day" ? "The day before" : "The seven days before"}
           disabled={!inYear(addDays(mode.value === "day" ? date : week, -1))}
           onClick={() => go(addDays(date, mode.value === "day" ? -1 : -7))}><Icon name="left" /></button>
         <h2 class="day-title">
-          {mode.value === "day" ? longDate(date) : `Week of ${shortDate(week)}`}
+          {mode.value === "day" ? longDate(date) : `${shortDate(week)} – ${shortDate(weekEnd)}`}
           {date === today.value && mode.value === "day" && <span class="badge today-badge">Today</span>}
           {/* On a phone, Today sits here, where the badge would be, so the date box keeps its room. */}
           {date !== today.value && inYear(today.value) && (
             <button type="button" class="badge today-badge today-chip" onClick={() => go(today.value)}>Today</button>
           )}
         </h2>
-        <button type="button" class="icon-action" aria-label={mode.value === "day" ? "The day after" : "The week after"}
-          disabled={!inYear(addDays(mode.value === "day" ? date : addDays(week, 6), 1))}
+        <button type="button" class="icon-action" aria-label={mode.value === "day" ? "The day after" : "The seven days after"}
+          disabled={!inYear(addDays(mode.value === "day" ? date : weekEnd, 1))}
           onClick={() => go(addDays(date, mode.value === "day" ? 1 : 7))}><Icon name="right" /></button>
         {/* On a phone these take the second line, under the day and its arrows. */}
         <div class="day-nav-tools">
@@ -102,12 +106,12 @@ export function TodayView() {
   );
 }
 
-/** The seven days of the week, each shaded by its score; the chosen one is outlined. */
+/** The seven days, each shaded by its score; the chosen one is outlined. */
 function WeekStrip(props: { date: IsoDate; week: IsoDate; year: number; onPick: (d: IsoDate) => void }) {
   const t = tracked.value!;
   const start = firstDay(t);
   return (
-    <div class="week-strip" role="group" aria-label="This week">
+    <div class="week-strip" role="group" aria-label="Seven days">
       {[0, 1, 2, 3, 4, 5, 6].map((i) => {
         const d = addDays(props.week, i);
         const out = !d.startsWith(`${props.year}-`);
@@ -249,13 +253,13 @@ function NoteField(props: { date: IsoDate; note: string; locked: boolean }) {
   );
 }
 
-/** The week as a table: a row per day, a column per habit, like a paper tracker. */
+/** The seven days as a table: a row per day, a column per habit, like a paper tracker. */
 function WeekTable({ week }: { week: IsoDate }) {
   const t = tracked.value!;
   const start = firstDay(t);
   const dates = [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(week, i)).filter((d) => d.startsWith(`${t.year}-`));
   const habits = t.habits.filter((h) => dates.some((d) => isActive(h, d)));
-  if (!habits.length) return <section class="panel empty-state"><p>No habits count this week. <a href="#/habits">Add your habits</a>.</p></section>;
+  if (!habits.length) return <section class="panel empty-state"><p>No habits count on these days. <a href="#/habits">Add your habits</a>.</p></section>;
   return (
     <section class="panel week-table-panel">
       <div class="table-scroll">
