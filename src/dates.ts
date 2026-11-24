@@ -55,6 +55,16 @@ export function weekOf(iso: IsoDate, weekStart: 0 | 1): IsoDate {
   return addDays(iso, -((weekday(iso) - weekStart + 7) % 7));
 }
 
+/**
+ * The first day of the seven days holding `iso`, the days being cut into sevens back to back so that
+ * one of them ends on `last`. With `last` today: the last seven days including today, the seven
+ * before those, and so on, whatever day the week starts on.
+ */
+export function stretchOf(iso: IsoDate, last: IsoDate): IsoDate {
+  const behind = Math.round((utc(last).getTime() - utc(iso).getTime()) / DAY_MS);
+  return addDays(last, -7 * Math.floor(behind / 7) - 6);
+}
+
 export function isIsoDate(s: unknown): s is IsoDate {
   if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const d = utc(s);
@@ -71,16 +81,33 @@ export function shortDate(iso: IsoDate): string {
   return utc(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", timeZone: "UTC" });
 }
 
-/** A moment, e.g. "11 Nov 2026, 17:31", with seconds when asked. */
-/** The strip's "Last updated": the weekday too, as in "Friday, Nov 13, 2026, 06:23 PM". */
-export function updatedAt(iso: string): string {
+/** "Tue, Nov 17" (in the reader's own date order, or `locale`'s): the Week table's days. */
+export function dayDate(iso: IsoDate, locale?: string): string {
+  return utc(iso).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+}
+
+/** The strip's "Last updated": the weekday too, as in "Friday, Nov 13, 2026, 06:23 PM", with seconds when asked. */
+export function updatedAt(iso: string, seconds = false): string {
   return new Date(iso).toLocaleString(undefined, {
     weekday: "long", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+    ...(seconds ? { second: "2-digit" } : {}),
   });
 }
 
-export function dateTime(iso: string, seconds = false): string {
-  return new Date(iso).toLocaleString(undefined, {
-    day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", ...(seconds ? { second: "2-digit" } : {}),
-  });
+/**
+ * Two moments side by side, as the import dialog's Last updated row shows the tracker's and the file's:
+ * as updatedAt, to the minute, unless both fall in the same minute seconds apart. Then both get their
+ * seconds, so the warning that one is newer (worked out to the second) never sits under two that read the same.
+ */
+export function updatedPair(a: string | undefined, b: string | undefined): [string, string] {
+  const second = (iso: string) => Math.floor(Date.parse(iso) / 1000);
+  const seconds = a !== undefined && b !== undefined
+    && Math.floor(second(a) / 60) === Math.floor(second(b) / 60) && second(a) !== second(b);
+  const text = (iso: string | undefined) => (iso === undefined ? "Unknown" : updatedAt(iso, seconds));
+  return [text(a), text(b)];
+}
+
+/** A day as "Sunday, Nov 8, 2026": updatedAt without the time. The import dialog's export date. */
+export function longDay(at: Date): string {
+  return at.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short", year: "numeric" });
 }

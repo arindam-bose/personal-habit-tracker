@@ -1840,12 +1840,17 @@ table.compare tr.differs td {
 /* --- Phones --- */
 
 @media (max-width: 600px) {
-  /* The day and its arrows fill the first line; the date box, Today and Day / Week always take the second. */
+  /* The day, Today and the arrows fill the first line; the date box and Day / Week always take the
+     second. Should the day ever outgrow its room (a long date in another language), it ends in "…"
+     rather than running under Today or the arrow. */
   .day-title {
     flex: 1 1 0;
     font-size: 16px;
     min-width: 0;
+    margin: 0;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .day-nav-tools {
@@ -1861,8 +1866,18 @@ table.compare tr.differs td {
     min-width: 0;
   }
 
+  /* The narrowest phones: a point smaller, so a long day and Today still fit whole beside the arrows. */
+  @media (max-width: 359px) {
+    .day-title {
+      font-size: 15px;
+    }
+  }
+
+  /* Its own item in the row now, so the row's gap spaces it, not the badge's margin. */
   button.today-chip {
     display: inline-block;
+    flex: none;
+    margin-left: 0;
   }
 
   .day-nav .today-btn {
