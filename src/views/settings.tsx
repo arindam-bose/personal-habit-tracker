@@ -52,7 +52,7 @@ export function SettingsView() {
             <button type="button" class={weekStart.value === v ? "active" : ""} aria-pressed={weekStart.value === v} onClick={() => saveWeekStart(v)}>{name}</button>
           ))}
         </div>
-        <p class="muted small">For the week strip and This week on the Dashboard, and the heatmaps' rows.</p>
+        <p class="muted small">For This week on the Dashboard and the heatmaps' rows. The day log shows the last seven days, whatever this says.</p>
       </section>
 
       <section class="card">

@@ -65,6 +65,12 @@ export function TodayView() {
   // that doesn't hold today, on its last day).
   const week = stretchOf(date, inYear(today.value) ? today.value : `${year}-12-31`);
   const weekEnd = addDays(week, 6);
+  // The title names only the days the year holds: the last seven can run past December 31.
+  const first = week < `${year}-01-01` ? `${year}-01-01` : week;
+  const last = weekEnd > `${year}-12-31` ? `${year}-12-31` : weekEnd;
+  // Today shows where it would change what's on screen: not on today, nor on the seven holding it.
+  const offToday = inYear(today.value)
+    && (mode.value === "day" ? date !== today.value : today.value < week || today.value > weekEnd);
 
   return (
     <div class="today">
@@ -73,13 +79,14 @@ export function TodayView() {
           disabled={!inYear(addDays(mode.value === "day" ? date : week, -1))}
           onClick={() => go(addDays(date, mode.value === "day" ? -1 : -7))}><Icon name="left" /></button>
         <h2 class="day-title">
-          {mode.value === "day" ? longDate(date) : `${shortDate(week)} – ${shortDate(weekEnd)}`}
+          {mode.value === "day" ? longDate(date) : `${shortDate(first)} – ${shortDate(last)}`}
           {date === today.value && mode.value === "day" && <span class="badge today-badge">Today</span>}
-          {/* On a phone, Today sits here, where the badge would be, so the date box keeps its room. */}
-          {date !== today.value && inYear(today.value) && (
-            <button type="button" class="badge today-badge today-chip" onClick={() => go(today.value)}>Today</button>
-          )}
         </h2>
+        {/* On a phone, Today sits here, beside the day where the badge would be, so the date box keeps its
+            room. Outside the heading, so the heading reads as the day alone. */}
+        {offToday && (
+          <button type="button" class="badge today-badge today-chip" onClick={() => go(today.value)}>Today</button>
+        )}
         <button type="button" class="icon-action" aria-label={mode.value === "day" ? "The day after" : "The seven days after"}
           disabled={!inYear(addDays(mode.value === "day" ? date : weekEnd, 1))}
           onClick={() => go(addDays(date, mode.value === "day" ? 1 : 7))}><Icon name="right" /></button>
@@ -87,7 +94,7 @@ export function TodayView() {
         <div class="day-nav-tools">
           <input type="date" aria-label="Go to a day" value={date} min={`${year}-01-01`} max={`${year}-12-31`}
             onChange={(e) => e.currentTarget.value && go(e.currentTarget.value)} />
-          {date !== today.value && inYear(today.value) && (
+          {offToday && (
             <button type="button" class="today-btn" onClick={() => go(today.value)}>Today</button>
           )}
           {/* The ? rides with the Day/Week switch, at the row's right end, so its tip opens on screen. */}

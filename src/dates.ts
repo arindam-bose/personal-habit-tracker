@@ -81,9 +81,9 @@ export function shortDate(iso: IsoDate): string {
   return utc(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", timeZone: "UTC" });
 }
 
-/** "Tue, Nov 17" (in the reader's own date order): the Week table's days. */
-export function dayDate(iso: IsoDate): string {
-  return utc(iso).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+/** "Tue, Nov 17" (in the reader's own date order, or `locale`'s): the Week table's days. */
+export function dayDate(iso: IsoDate, locale?: string): string {
+  return utc(iso).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 }
 
 /** The strip's "Last updated": the weekday too, as in "Friday, Nov 13, 2026, 06:23 PM". */

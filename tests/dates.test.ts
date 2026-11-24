@@ -36,12 +36,14 @@ describe("the day log's seven days", () => {
 });
 
 describe("the Week table's days", () => {
-  it("name the weekday, the month and the day, on that day wherever the clock is", () => {
-    const want = new Date(Date.UTC(2026, 10, 17)).toLocaleDateString(undefined,
-      { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
-    expect(dayDate("2026-11-17")).toBe(want);
-    expect(want).toMatch(/Tue/);
-    expect(want).toMatch(/Nov/);
-    expect(want).toMatch(/17/);
+  // A fixed language, so the test reads the same whatever language the machine running it is in.
+  it("name the weekday, the month and the day", () => {
+    expect(dayDate("2026-11-17", "en-US")).toBe("Tue, Nov 17");
+    expect(dayDate("2026-01-01", "en-US")).toBe("Thu, Jan 1");
+  });
+
+  it("stay on their own day wherever the clock is", () => {
+    expect(dayDate("2026-03-08", "en-US")).toBe("Sun, Mar 8");
+    expect(dayDate("2026-11-01", "en-US")).toBe("Sun, Nov 1");
   });
 });
