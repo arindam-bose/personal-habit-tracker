@@ -1,15 +1,18 @@
 // Notes: every day's note, newest first, across every stored year, with a box to search them, for
-// "when did I last…?". The words found are marked; a day opens in the Dashboard's day log.
+// "when did I last…?". The words found are marked; Edit changes a note in place, in any year that
+// isn't closed, and a day opens in the Dashboard's day log.
 
 import { signal, useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import type { YearData } from "../db";
 import { longDate } from "../dates";
 import { markedPieces, searchNotes } from "../notes";
+import { firstDay, trackedOf } from "../score";
 import { current, loadAllYears, openYear, years } from "../state";
 import type { IsoDate } from "../types";
 import { NoYear, openDay, plural } from "./common";
 import { Help } from "./help";
+import { NoteDialog, lockedReason } from "./note-dialog";
 
 /** Notes shown at a time; buttons under the list show more or fewer. */
 const PAGE = 30;
@@ -34,6 +37,8 @@ function search(text: string): void {
 
 export function NotesView() {
   const all = useSignal<YearData[] | null>(null);
+  // The day whose note is open in the dialog, if any.
+  const editing = useSignal<IsoDate | null>(null);
   // Reloaded when a year is added, removed or changed, so the list is never behind.
   useEffect(() => {
     let live = true;
@@ -47,6 +52,11 @@ export function NotesView() {
   const hits = searchNotes(days, query.value);
   const searching = query.value.trim() !== "";
   const multiYear = (all.value?.length ?? 0) > 1;
+  /** Why a day's note can't be changed (its year is closed), or null. */
+  const lockOf = (date: IsoDate): string | null => {
+    const y = all.value?.find((d) => d.setup.year === Number(date.slice(0, 4)));
+    return y ? lockedReason(date, firstDay(trackedOf(y)), !!y.setup.closed, y.setup.year) : null;
+  };
 
   return (
     <section class="panel notes-page">
@@ -54,7 +64,7 @@ export function NotesView() {
         <h2>📝 Notes</h2>
         <Help label="About searching notes">
           Every word typed must be in the note, in any order; capitals and accents don't matter.
-          Put words in "quotes" to find them together. Click a day to open it.
+          Put words in "quotes" to find them together. Edit changes a note here; click a day to open it.
         </Help>
       </div>
       <input type="search" class="notes-search" value={query.value} autoFocus
@@ -80,6 +90,12 @@ export function NotesView() {
                 <p class="notes-text">
                   {markedPieces(h.note, h.marks).map((p) => (p.marked ? <mark>{p.text}</mark> : p.text))}
                 </p>
+                {lockOf(h.date) ? (
+                  <span class="notes-locked muted small" title={lockOf(h.date)!}>🔒</span>
+                ) : (
+                  <button type="button" class="link notes-edit" onClick={() => (editing.value = h.date)}
+                    aria-label={`Edit the note for ${longDate(h.date)}`}>Edit</button>
+                )}
               </li>
             ))}
           </ul>
@@ -97,6 +113,10 @@ export function NotesView() {
             </div>
           )}
         </>
+      )}
+      {editing.value && (
+        <NoteDialog key={editing.value} date={editing.value} note={days.find((d) => d.date === editing.value)?.note ?? ""}
+          locked={lockOf(editing.value)} onClose={() => (editing.value = null)} />
       )}
     </section>
   );

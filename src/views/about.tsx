@@ -109,7 +109,7 @@ export function AboutCard() {
               Below it: today, this week, this month and the year, the year as a heatmap, the year month by month,
               your streaks, and this month habit by habit.</li>
             <li><b>Habitmaps</b>: a heatmap for the day score and one for each habit. Click a day to open it on the Dashboard.</li>
-            <li><b>Notes</b>: every day's note, from every year, with a box to search them for when you did something.</li>
+            <li><b>Notes</b>: every day's note, from every year, with a box to search them for when you did something, and Edit to change one.</li>
             <li><b>Reports</b>: each month and the year in words and charts, habits month by month, times against
               their goals each month and on each weekday, and which weekdays go best.</li>
             <li><b>Over the years</b>: once two or more years are stored, each year side by side.</li>

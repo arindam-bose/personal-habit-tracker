@@ -1914,7 +1914,8 @@ table.compare tr.differs td {
 
 .notes-list li {
   display: grid;
-  grid-template-columns: 11em 1fr;
+  grid-template-columns: 11em 1fr auto;
+  align-items: baseline;
   gap: 4px 16px;
   padding: 10px 0;
   border-top: 1px solid var(--border);
@@ -1934,6 +1935,10 @@ button.notes-day {
   overflow-wrap: anywhere;
 }
 
+button.notes-edit {
+  padding: 0;
+}
+
 .notes-text mark {
   color: inherit;
   background: color-mix(in srgb, rgb(var(--heat)) 28%, transparent);
@@ -1950,9 +1955,15 @@ button.notes-day {
   margin: 16px 0 0;
 }
 
+/* On a phone the day and Edit share the first line, and the note takes the full width below. */
 @media (max-width: 600px) {
   .notes-list li {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto;
+  }
+
+  .notes-text {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 }
 
