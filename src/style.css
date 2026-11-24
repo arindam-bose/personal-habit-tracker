@@ -1940,6 +1940,16 @@ button.notes-day {
   border-radius: 2px;
 }
 
+/* Under the list, as under the Money Tracker's Ledger: how many show, and buttons for more or fewer. */
+.more-rows {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0 0;
+}
+
 @media (max-width: 600px) {
   .notes-list li {
     grid-template-columns: 1fr;

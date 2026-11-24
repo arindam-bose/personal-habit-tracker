@@ -11,14 +11,25 @@ import type { IsoDate } from "../types";
 import { NoYear, openDay, plural } from "./common";
 import { Help } from "./help";
 
+/** Notes shown at a time; buttons under the list show more or fewer. */
+const PAGE = 30;
+
 /** What's typed in the box: kept while the tab is open, so coming back from a day finds the same list. */
 const query = signal("");
+/** How many of the matching notes are shown, newest first: kept with the search, and back to PAGE when it changes. */
+const shown = signal(PAGE);
 
 /** Open a day of any year in the day log. */
 async function open(date: IsoDate): Promise<void> {
   const year = Number(date.slice(0, 4));
   if (current.value?.setup.year !== year) await openYear(year);
   openDay(date);
+}
+
+/** A new search starts again from the first PAGE notes. */
+function search(text: string): void {
+  query.value = text;
+  shown.value = PAGE;
 }
 
 export function NotesView() {
@@ -48,8 +59,8 @@ export function NotesView() {
       </div>
       <input type="search" class="notes-search" value={query.value} autoFocus
         placeholder={multiYear ? "Search the notes of every year" : "Search the notes"} aria-label="Search the notes"
-        onInput={(e) => (query.value = e.currentTarget.value)}
-        onKeyDown={(e) => e.key === "Escape" && (query.value = "")} />
+        onInput={(e) => search(e.currentTarget.value)}
+        onKeyDown={(e) => e.key === "Escape" && search("")} />
       {!all.value ? (
         <p class="muted">Loading…</p>
       ) : !noted ? (
@@ -62,7 +73,7 @@ export function NotesView() {
               : `${plural(noted, "day")} with notes, newest first`}
           </p>
           <ul class="notes-list">
-            {hits.map((h) => (
+            {hits.slice(0, shown.value).map((h) => (
               <li key={h.date}>
                 <button type="button" class="link notes-day" onClick={() => open(h.date).catch(() => undefined)}
                   title="Open the day">{longDate(h.date)}</button>
@@ -72,6 +83,19 @@ export function NotesView() {
               </li>
             ))}
           </ul>
+          {hits.length > PAGE && (
+            <div class="more-rows">
+              <span class="muted">Showing {Math.min(shown.value, hits.length)} of {hits.length}</span>
+              {shown.value > PAGE && (
+                <button type="button" onClick={() => (shown.value = Math.max(PAGE, shown.value - PAGE))}>Show {PAGE} fewer</button>
+              )}
+              {shown.value < hits.length && (
+                <button type="button" onClick={() => (shown.value += PAGE)}>
+                  Show {Math.min(PAGE, hits.length - shown.value)} more
+                </button>
+              )}
+            </div>
+          )}
         </>
       )}
     </section>
