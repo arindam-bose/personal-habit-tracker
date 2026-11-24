@@ -85,25 +85,6 @@ it("counts streaks through earlier stored years, closed or not", async () => {
   expect(habitStreakAcross(chain.value, "h_med", today.value).current).toBe(3);
 });
 
-it("saves a note into another stored year without switching to it, unless that year is closed", async () => {
-  await importYear(yearFile([{ date: "2025-06-01", values: { h_med: true }, note: "Old" }], { year: 2025 }));
-  await importYear(yearFile([{ date: "2024-06-01", values: {}, note: "Closed" }], { year: 2024, closed: true }));
-  await importYear(yearFile([]));
-  await openYear(2026);
-  await setNote("2025-06-01", "  Changed  ");
-  expect(current.value!.setup.year).toBe(2026);
-  const y2025 = (await loadYear(2025))!;
-  expect(y2025.days).toEqual([{ date: "2025-06-01", values: { h_med: true }, note: "Changed" }]);
-  expect(y2025.setup.lastChangedAt).toBeDefined();
-  // Cleared, the day still holds its tick; a day left with nothing goes.
-  await setNote("2025-06-01", "");
-  expect((await loadYear(2025))!.days).toEqual([{ date: "2025-06-01", values: { h_med: true } }]);
-  await expect(setNote("2024-06-01", "New")).rejects.toThrow("2024 is closed");
-  await expect(setNote("2023-06-01", "New")).rejects.toThrow("2023 isn't stored");
-  // Ticks stay on the open year only.
-  await expect(setValue("2025-06-02", "h_med", true)).rejects.toThrow("isn't in 2026");
-});
-
 it("doesn't put back a year switched away from while a save was on its way", async () => {
   await importYear(yearFile([], { year: 2025 }));
   await importYear(yearFile([]));

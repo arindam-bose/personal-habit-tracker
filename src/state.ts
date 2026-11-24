@@ -147,26 +147,10 @@ function show(data: YearData): void {
   if (current.value?.setup.year === data.setup.year) current.value = data;
 }
 
-/**
- * The stored year that holds `date`, for a change to it: the open one, or another loaded from storage
- * (a note edited on the Notes page), which must not be closed either.
- */
-async function editableFor(date: IsoDate): Promise<YearData> {
-  const year = Number(date.slice(0, 4));
-  if (current.value?.setup.year === year) return editable();
-  const data = await loadYear(year);
-  if (!data) throw new Error(`${year} isn't stored.`);
-  if (data.setup.closed) throw new Error(`${year} is closed and can't be changed.`);
-  return data;
-}
-
-/**
- * Change one day's log with `edit`. A day left with nothing is removed. The day must be in the open
- * year, unless `anyYear`: then it can be in any stored year, and the open year stays open.
- */
-function changeDay(date: IsoDate, edit: (day: DayLog) => DayLog, anyYear = false): Promise<void> {
+/** Change one day's log with `edit`. A day left with nothing is removed. */
+function changeDay(date: IsoDate, edit: (day: DayLog) => DayLog): Promise<void> {
   return inTurn(async () => {
-    const data = anyYear ? await editableFor(date) : editable();
+    const data = editable();
     const { year, start } = data.setup;
     if (!date.startsWith(`${year}-`)) throw new Error(`${date} isn't in ${year}.`);
     if (start && date < start) throw new Error(`Tracking starts on ${start}.`);
@@ -177,8 +161,6 @@ function changeDay(date: IsoDate, edit: (day: DayLog) => DayLog, anyYear = false
     const setup = { ...data.setup, lastChangedAt: stamp() };
     if (isEmptyDay(next)) await saveDays(data, [], [date], setup);
     else await saveDays(data, [next], [], setup);
-    // Another year changed: its summary (days logged, last change) is new, and pages that read every year reload.
-    if (current.value?.setup.year !== year) await refreshYears();
   });
 }
 
@@ -190,9 +172,9 @@ export function setValue(date: IsoDate, habitId: string, value: true | number | 
   });
 }
 
-/** Set a day's note; empty clears it. The day can be in any stored year (the Notes page edits them all). */
+/** Set a day's note; empty clears it. */
 export function setNote(date: IsoDate, note: string): Promise<void> {
-  return changeDay(date, ({ note: _old, ...day }) => (note.trim() ? { ...day, note: note.trim() } : day), true);
+  return changeDay(date, ({ note: _old, ...day }) => (note.trim() ? { ...day, note: note.trim() } : day));
 }
 
 /** Save a setup change (habits, start day), stamped, unless it changes nothing. */

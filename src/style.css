@@ -1947,6 +1947,17 @@ button.notes-day {
   background: var(--row-hover);
 }
 
+/* A closed year's lock, in the pen's place and at its size, so every row is as tall. */
+.notes-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--muted);
+}
+
+.notes-lock .icon,
 .notes-list button.icon-action .icon {
   width: 14px;
   height: 14px;
