@@ -49,6 +49,7 @@ including `noUncheckedIndexedAccess`.
 | `src/types.ts` | The data model. Read this first. |
 | `src/dates.ts` | `YYYY-MM-DD` dates: ranges, weeks, months, and how they read. All arithmetic in UTC. |
 | `src/habits.ts` | What a habit is: when a value meets its goal, reading typed times and numbers, how values read, new ids, the starter habits. |
+| `src/notes.ts` | Searching the notes: every word in any order, case and accents folded, "quoted words" together; where each match is, to mark it. |
 | `src/score.ts` | Every score, streak and report figure. Plain functions, no UI. |
 | `src/setup.ts` | Changing a year's habits and start day, and what the next year starts with when one is closed. Pure functions. |
 | `src/validate.ts` | Checks an imported file before anything is stored. |
@@ -250,6 +251,7 @@ page downloads the year's backup first. A closed year can be reopened.
 |---|---|---|
 | Dashboard | `views/dashboard.tsx`, `views/today.tsx` | The main page. The day log on top (Day or Week view), the year at a glance below: the score tiles, the heatmap, the year month by month (`monthPassed`, `monthStats`), the streaks and the month by habit. Old `#/today` links open it. |
 | Habitmaps | `views/habitmaps.tsx` | A heatmap of the day score, then one per habit. Clicking a day opens it on the Dashboard (`selectedDay`). Old `#/calendar` and `#/heatmaps` links open it. |
+| Notes | `views/notes.tsx` | Every day's note from every year (`loadAllYears`), newest first, with a search box (`searchNotes` in `notes.ts`) that keeps what's typed while the tab is open. Clicking a day opens its year if need be, then the day on the Dashboard. |
 | Reports | `views/reports.tsx` | Loaded on demand (see Charts). Overview (ending with the year's report card), a report card for every month, and More on this: habits month by month, and times and numbers against their goals by month and by weekday (`weekdayStats`, counted as a month's are). |
 | Habits | `views/habits.tsx` | Add, change, reorder, stop and delete habits; the day tracking starts. |
 | Over the years | `views/years.tsx` | In the menu only with two or more years; the year picker shows "All years" there. Loads every year (`loadAllYears`). The year still under way is marked *. Loaded on demand with the charts. |

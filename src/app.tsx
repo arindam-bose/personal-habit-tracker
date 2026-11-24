@@ -14,6 +14,7 @@ import { HabitsView } from "./views/habits";
 import { useDismiss } from "./views/hooks";
 import { Icon } from "./views/icons";
 import { ImportButton, ImportLayer } from "./views/importer";
+import { NotesView } from "./views/notes";
 import { SettingsView } from "./views/settings";
 
 /** Pages with charts pull in the charting library, so their code is only downloaded when first opened. */
@@ -41,6 +42,8 @@ const PAGES = {
   // The main page: today's log at the top, the year at a glance below it.
   dashboard: { label: "Dashboard", view: DashboardView },
   habitmaps: { label: "Habitmaps", view: HabitmapsView },
+  // Every day's note, across every year, to search.
+  notes: { label: "Notes", view: NotesView },
   reports: { label: "Reports", view: chartPage(() => import("./views/reports").then((m) => m.ReportsView)) },
   habits: { label: "Habits", view: HabitsView },
   // Only in the menu with two or more years.

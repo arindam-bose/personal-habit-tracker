@@ -1881,6 +1881,71 @@ table.compare tr.differs td {
   font-size: 14px;
 }
 
+/* --- Notes --- */
+
+.notes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notes-head h2 {
+  margin: 0;
+}
+
+.notes-search {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 8px 0 6px;
+  padding: 8px 12px;
+}
+
+.notes-count {
+  margin: 0 0 4px;
+}
+
+.notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notes-list li {
+  display: grid;
+  grid-template-columns: 11em 1fr;
+  gap: 4px 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+button.notes-day {
+  justify-self: start;
+  padding: 0;
+  text-align: left;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.notes-text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.notes-text mark {
+  color: inherit;
+  background: color-mix(in srgb, rgb(var(--heat)) 28%, transparent);
+  border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+  .notes-list li {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- Phones --- */
 
 @media (max-width: 600px) {
