@@ -103,16 +103,16 @@ export function NotesView() {
       <div class="notes-head">
         <h2>📝 Notes</h2>
         <div class="notes-head-tools">
-          <select value={oldestFirst.value ? "oldest" : "newest"} aria-label="Sort"
-            onChange={(e) => sortBy(e.currentTarget.value === "oldest")}>
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-          </select>
           <Help label="About searching notes">
             The notes of the year picked in the top bar. Every word typed must be in the note, in any order;
             capitals and accents don't matter. Put words in "quotes" to find them together. <kbd>/</kbd> jumps
             to the search. ✎ changes a note here; click a day to open it.
           </Help>
+          <select value={oldestFirst.value ? "oldest" : "newest"} aria-label="Sort"
+            onChange={(e) => sortBy(e.currentTarget.value === "oldest")}>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
         </div>
       </div>
       {/* Esc clears the search; on an empty box it leaves it. Not while an input method is composing a
