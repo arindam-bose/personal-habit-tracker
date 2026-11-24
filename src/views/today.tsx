@@ -4,7 +4,7 @@
 // day; the arrows step back and forth seven days at a time.
 
 import { useSignal } from "@preact/signals";
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import { WEEKDAYS_SHORT, addDays, dayDate, longDate, shortDate, stretchOf, weekday } from "../dates";
 import { formatMinutes, formatValue, goalShort, goalText, isActive, label, meets, parseCount, parseDuration } from "../habits";
 import { dayScore, firstDay, habitStreakAcross, level, percent } from "../score";
@@ -13,6 +13,7 @@ import type { Habit, IsoDate } from "../types";
 import { NoYear, ScoreBar, mode, setMode } from "./common";
 import { Help } from "./help";
 import { Icon } from "./icons";
+import { Modal } from "./modal";
 
 /** Why a day can't be logged, or null when it can. */
 function lockedReason(date: IsoDate, start: IsoDate, closed: boolean, year: number): string | null {
@@ -103,7 +104,7 @@ export function TodayView() {
               <button type="button" class={mode.value === "day" ? "active" : ""} aria-pressed={mode.value === "day"} onClick={() => setMode("day")}>Day</button>
               <button type="button" class={mode.value === "week" ? "active" : ""} aria-pressed={mode.value === "week"} onClick={() => setMode("week")}>Week</button>
             </div>
-            <Help label="About the day log">Times are typed as h:mm (7:45). Leaving a box saves it.</Help>
+            <Help label="About the day log">Times are typed as h:mm (7:45). Leaving a box saves it. In Week, 📝 beside a day opens its note.</Help>
           </div>
         </div>
       </div>
@@ -266,6 +267,8 @@ function WeekTable({ week }: { week: IsoDate }) {
   const start = firstDay(t);
   const dates = [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(week, i)).filter((d) => d.startsWith(`${t.year}-`));
   const habits = t.habits.filter((h) => dates.some((d) => isActive(h, d)));
+  // The day whose note is open in the dialog, if any.
+  const noteDay = useSignal<IsoDate | null>(null);
   if (!habits.length) return <section class="panel empty-state"><p>No habits count on these days. <a href="#/habits">Add your habits</a>.</p></section>;
   return (
     <section class="panel week-table-panel">
@@ -295,10 +298,18 @@ function WeekTable({ week }: { week: IsoDate }) {
                     <button type="button" class="link" onClick={() => {
                       selectedDay.value = d;
                       setMode("day");
-                    }} title={day?.note ? `Note: ${day.note}` : "Open the day"}>
+                    }} title="Open the day">
                       {dayDate(d)}
                     </button>
-                    {day?.note && <span class="wt-note" title={day.note} aria-label={`Note: ${day.note}`}>📝</span>}
+                    {/* A day with a note shows 📝, to read or change it; one without shows a faint 📝 on
+                        hover, to add one, unless the day can't be logged. */}
+                    {(day?.note || !locked) && (
+                      <button type="button" class={`wt-note ${day?.note ? "" : "add"}`} onClick={() => (noteDay.value = d)}
+                        title={day?.note ? `Note: ${day.note}` : "Add a note"}
+                        aria-label={day?.note ? `Note for ${longDate(d)}: ${day.note}` : `Add a note for ${longDate(d)}`}>
+                        📝
+                      </button>
+                    )}
                   </th>
                   {habits.map((h) => {
                     if (!isActive(h, d)) return <td class="wt-off" aria-label="Doesn't count this day">·</td>;
@@ -326,6 +337,58 @@ function WeekTable({ week }: { week: IsoDate }) {
           </tbody>
         </table>
       </div>
+      {noteDay.value && (
+        <NoteDialog key={noteDay.value} date={noteDay.value} note={t.days.get(noteDay.value)?.note ?? ""}
+          locked={lockedReason(noteDay.value, start, readOnly.value, t.year)} onClose={() => (noteDay.value = null)} />
+      )}
     </section>
+  );
+}
+
+/**
+ * A day's note, from the Week view: read it, or write and save it. Save (or Ctrl+Enter) keeps it;
+ * Cancel, Esc or a click outside leaves it as it was. A day that can't be logged only shows it.
+ */
+function NoteDialog(props: { date: IsoDate; note: string; locked: string | null; onClose: () => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
+  const text = useSignal(props.note);
+  useEffect(() => {
+    dialog.current?.showModal();
+    // Writing is what it's for, so start in the box, after what's there.
+    const el = box.current;
+    if (el && !props.locked) {
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    }
+  }, []);
+  function save() {
+    const changed = text.value.trim() !== props.note;
+    dialog.current?.close();
+    if (changed) setNote(props.date, text.value).catch(failed);
+  }
+  return (
+    <Modal dialogRef={dialog} title={`📝 ${longDate(props.date)}`} class="note-dialog" onClose={props.onClose}>
+      {props.locked && <p class="muted small">{props.locked}</p>}
+      <textarea ref={box} rows={5} value={text.value} disabled={!!props.locked} aria-label={`Note for ${longDate(props.date)}`}
+        placeholder={props.locked ? "" : "Anything worth remembering about the day"}
+        onInput={(e) => (text.value = e.currentTarget.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            save();
+          }
+        }} />
+      <div class="form-actions">
+        {props.locked ? (
+          <button type="button" onClick={() => dialog.current?.close()}>Close</button>
+        ) : (
+          <>
+            <button type="button" onClick={() => dialog.current?.close()}>Cancel</button>
+            <button type="button" class="primary" onClick={save}>Save</button>
+          </>
+        )}
+      </div>
+    </Modal>
   );
 }
