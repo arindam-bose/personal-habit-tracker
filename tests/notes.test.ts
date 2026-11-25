@@ -44,6 +44,10 @@ describe("searchNotes", () => {
     expect(searchNotes([{ date: "2026-01-01", note: "ΟΔΟΣ" }], "οδος")).toHaveLength(1);
     expect(searchNotes([{ date: "2026-01-01", note: "οδος" }], "ΟΔΟΣ")).toHaveLength(1);
   });
+  it("matches ß and ss either way", () => {
+    expect(searchNotes([{ date: "2026-01-01", note: "Straße" }], "strasse")).toHaveLength(1);
+    expect(searchNotes([{ date: "2026-01-01", note: "STRASSE" }], "straße")).toHaveLength(1);
+  });
   it("matches part of a word, and quoted words only together", () => {
     expect(searchNotes(DAYS, "dent").map((h) => h.date)).toEqual(["2026-03-02"]);
     expect(searchNotes(DAYS, '"cold shower"')).toHaveLength(1);
@@ -59,9 +63,9 @@ describe("matchNote", () => {
     expect(matchNote("abcdef", ["abc", "cde"])).toEqual([[0, 5]]);
   });
   it("maps back through characters that fold to more than one", () => {
-    // "ﬁ" (one character) folds to "fi"; "Straße" keeps its ß.
+    // "ﬁ" (one character) folds to "fi", and "ß" to "ss".
     expect(matchNote("a ﬁne day", ["fine"])).toEqual([[2, 5]]);
-    expect(matchNote("Straße", ["straße"])).toEqual([[0, 6]]);
+    expect(matchNote("Straße", ["strasse"])).toEqual([[0, 6]]);
   });
 });
 
