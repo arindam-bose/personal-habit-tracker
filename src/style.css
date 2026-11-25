@@ -2208,9 +2208,11 @@ button.notes-day {
   max-width: 11ch;
 }
 
+/* "≥ 7:30 hrs" stays whole on one line. */
 .month-table thead .goal {
   display: block;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 /* Overall, the year so far, sits under December. */
