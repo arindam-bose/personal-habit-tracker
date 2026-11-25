@@ -560,6 +560,8 @@ button.help-btn:focus-visible {
   right: 0;
   z-index: 30;
   width: max-content;
+  /* Padding and border inside the cap, so on a phone the whole tip fits. */
+  box-sizing: border-box;
   max-width: min(360px, calc(100vw - 64px));
   padding: 8px 10px;
   font-size: 13px;
@@ -1129,8 +1131,13 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
-.week-table tr.is-today th button {
-  font-weight: 700;
+/* Today's date gets the Today badge's soft accent behind it; the rest of the row is as any other.
+   The negative margin keeps the column as wide as the other days need. */
+.week-table tr.is-today th button.link {
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: -1px -4px;
 }
 
 .week-table td.met {
@@ -1896,8 +1903,8 @@ table.compare tr.differs td {
   margin: 0;
 }
 
-/* The ? and then the order, at the right of the title. The ?'s description opens from the group's
-   right edge, as it would from a ? in the corner, so on a phone it doesn't run off the left. */
+/* The order and then the ?, at the right of the title. The ?'s description opens from the group's
+   right edge, so on a phone it doesn't run off the left. */
 .notes-head-tools {
   position: relative;
   display: flex;

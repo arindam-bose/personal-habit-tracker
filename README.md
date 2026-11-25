@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 4.0.0** ·
+**Version 4.0.3** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
