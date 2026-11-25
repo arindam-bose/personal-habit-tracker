@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 3.0.27** ·
+**Version 3.0.28** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -130,4 +130,4 @@ The build is static: copy `dist/` to any web host, in any folder.
 ---
 
 For how it's built, and how to run, test or change it, see the
-[extended README](EXTENDED_README.md).
+[extended README](README_EXTENDED.md).
