@@ -21,6 +21,8 @@ const PAGE = 30;
 const query = signal("");
 /** How many of the matching notes are shown: kept with the search, and back to PAGE when it changes. */
 const shown = signal(PAGE);
+/** The year the list was last shown for: another year starts again from the first PAGE notes. */
+let shownYear: number | undefined;
 
 // The order, as on the Money Tracker's Ledger: kept for the tab, newest first until changed.
 const SORT_KEY = "habit-tracker-notes-sort";
@@ -82,12 +84,11 @@ export function NotesView() {
   }, []);
   // The day whose note is open in the dialog, if any.
   const editing = useSignal<IsoDate | null>(null);
-  // Another year starts again from the first PAGE notes; the search stays.
+  // Another year starts again from the first PAGE notes, even one opened from another page; the search stays.
   const year = t?.year;
-  const seen = useSignal(year);
   useEffect(() => {
-    if (seen.value !== year) shown.value = PAGE;
-    seen.value = year;
+    if (shownYear !== undefined && shownYear !== year) shown.value = PAGE;
+    shownYear = year;
   }, [year]);
 
   if (!t) return <NoYear />;
