@@ -1901,8 +1901,8 @@ table.compare tr.differs td {
   margin: 0;
 }
 
-/* The ? and then the order, at the right of the title. The ?'s description opens from the group's
-   right edge, as it would from a ? in the corner, so on a phone it doesn't run off the left. */
+/* The order and then the ?, at the right of the title. The ?'s description opens from the group's
+   right edge, so on a phone it doesn't run off the left. */
 .notes-head-tools {
   position: relative;
   display: flex;
