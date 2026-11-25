@@ -120,7 +120,8 @@ export interface NoteLink {
  */
 export function findLinks(note: string): NoteLink[] {
   const links: NoteLink[] = [];
-  for (const m of note.matchAll(/(?<![\w@.\/-])(?:https?:\/\/|www\.)[^\s<>"]+/gi)) {
+  // An address ends at a space, or at a comma that starts another one ("http://a.com,http://b.com").
+  for (const m of note.matchAll(/(?<![\w@.\/-])(?:https?:\/\/|www\.)[^\s<>"]+?(?=,(?:https?:\/\/|www\.)|[\s<>"]|$)/gi)) {
     let url = m[0];
     for (;;) {
       const last = url.slice(-1);
@@ -129,7 +130,8 @@ export function findLinks(note: string): NoteLink[] {
       else if (last === "]" && count(url, "[") < count(url, "]")) url = url.slice(0, -1);
       else break;
     }
-    if (/^(https?:\/\/|www\.)$/i.test(url)) continue;
+    // Nothing but the prefix, once its trailing dots are gone ("www.", "www...", "https://").
+    if (!/^(?:https?:\/\/|www\.)[\p{L}\p{N}]/iu.test(url)) continue;
     links.push({ start: m.index, end: m.index + url.length, href: /^www\./i.test(url) ? `https://${url}` : url });
   }
   return links;

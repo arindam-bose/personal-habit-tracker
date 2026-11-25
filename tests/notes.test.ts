@@ -96,6 +96,11 @@ describe("findLinks", () => {
   });
   it("links nothing else: no other schemes, no bare prefixes", () => {
     expect(findLinks("javascript:alert(1) mailto:a@b.c ftp://x.org https:// www.")).toEqual([]);
+    expect(findLinks("see www... and www., or (www.)")).toEqual([]);
+  });
+  it("splits two addresses joined by a comma", () => {
+    expect(findLinks("http://a.com,http://b.com,www.c.com, done").map((l) => l.href)).toEqual(["http://a.com", "http://b.com", "https://www.c.com"]);
+    expect(findLinks("https://a.org/x?a=1,2 next").map((l) => l.href)).toEqual(["https://a.org/x?a=1,2"]);
   });
 });
 
