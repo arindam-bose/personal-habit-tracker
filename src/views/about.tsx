@@ -84,7 +84,7 @@ export function AboutCard() {
           <ul>
             <li><b>Done / not done</b>: tick it on the days you do it (Meditation, No smoking).</li>
             <li><b>Time</b>: type the day's time as h:mm, with a goal of at least or at most
-              (Sleep at least 7:30, Screen time at most 6:00).</li>
+              (Sleep at least 7:30 hrs, Screen time at most 6:00 hrs).</li>
             <li><b>Number</b>: type the day's count, with a goal (Water at least 8 glasses).</li>
           </ul>
           <p>

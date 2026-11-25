@@ -1,6 +1,6 @@
 # Habit Tracker
 
-**Version 3.0.22** ·
+**Version 3.0.23** ·
 [Use it online](https://arindambose.com/personal-habit-tracker/)
 
 Track your daily habits for a year, January to December, and see how you're doing.
@@ -40,7 +40,7 @@ Want to look around first? On the Settings page, **Download a demo file** and im
 
 - **Done / not done**: tick it on the days you do it (Meditation, No smoking).
 - **Time**: the day's time as h:mm, met when it's at least or at most a goal
-  (Sleep at least 7:30, Screen time at most 6:00). Typing 7:45, 7h45 or 7.75 all work.
+  (Sleep at least 7:30 hrs, Screen time at most 6:00 hrs). Typing 7:45, 7h45 or 7.75 all work.
 - **Number**: the day's count, with a goal (Water at least 8 glasses).
 
 A habit added partway through the year counts from the day it's added, so the days before don't
