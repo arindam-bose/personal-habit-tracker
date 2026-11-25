@@ -44,7 +44,7 @@ describe("goals", () => {
     expect(meets({ kind: "check" }, true)).toBe(true);
   });
   it("says the goal", () => {
-    expect(goalText(sleep)).toBe("at least 7:30");
+    expect(goalText(sleep)).toBe("at least 7:30 hrs");
     expect(goalText({ kind: "number", unit: "glasses", goal: { op: "atLeast", value: 8 } })).toBe("at least 8 glasses");
   });
 });

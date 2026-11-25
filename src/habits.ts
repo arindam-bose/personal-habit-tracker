@@ -83,17 +83,17 @@ export function formatAverage(habit: Pick<Habit, "kind">, average: number): stri
   return habit.kind === "duration" ? formatMinutes(average) : average.toFixed(1).replace(/\.0$/, "");
 }
 
-/** "at least 7:30", "at most 6:00", "at least 8 glasses". */
+/** "at least 7:30 hrs", "at most 6:00 hrs", "at least 8 glasses". */
 export function goalText(habit: Pick<Habit, "kind" | "goal" | "unit">): string {
   if (!habit.goal) return "";
-  const value = habit.kind === "duration" ? formatMinutes(habit.goal.value) : `${habit.goal.value.toLocaleString()}${habit.unit ? ` ${habit.unit}` : ""}`;
+  const value = habit.kind === "duration" ? `${formatMinutes(habit.goal.value)} hrs` : `${habit.goal.value.toLocaleString()}${habit.unit ? ` ${habit.unit}` : ""}`;
   return `${habit.goal.op === "atLeast" ? "at least" : "at most"} ${value}`;
 }
 
-/** "≥ 7:30", "≤ 6:00": the goal, short, for tight places. */
+/** "≥ 7:30 hrs", "≤ 6:00 hrs", "≥ 8": the goal, short, for tight places. */
 export function goalShort(habit: Pick<Habit, "kind" | "goal" | "unit">): string {
   if (!habit.goal) return "";
-  const value = habit.kind === "duration" ? formatMinutes(habit.goal.value) : habit.goal.value.toLocaleString();
+  const value = habit.kind === "duration" ? `${formatMinutes(habit.goal.value)} hrs` : habit.goal.value.toLocaleString();
   return `${habit.goal.op === "atLeast" ? "≥" : "≤"} ${value}`;
 }
 

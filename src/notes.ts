@@ -26,9 +26,9 @@ export function searchTerms(query: string): string[] {
 }
 
 /**
- * Text folded for comparing (lower case, accents dropped, Greek's final ς as σ, and any run of spaces
+ * Text folded for comparing (lower case, accents dropped, Greek's final ς as σ, ß as ss, and any run of spaces
  * or line breaks as one space), with, for each folded character, where it came from in the original:
- * folding can change the length ("ﬁ" is one character, and so is a run of spaces once folded).
+ * folding can change the length ("ﬁ" and "ß" are one character each, and so is a run of spaces once folded).
  */
 function fold(text: string): { text: string; from: number[] } {
   let out = "";
@@ -39,7 +39,7 @@ function fold(text: string): { text: string; from: number[] } {
       i += ch.length;
       continue;
     }
-    const folded = /\s/.test(ch) ? " " : ch.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/ς/g, "σ");
+    const folded = /\s/.test(ch) ? " " : ch.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/ς/g, "σ").replace(/ß/g, "ss");
     for (let k = 0; k < folded.length; k++) from.push(i);
     out += folded;
     i += ch.length;
@@ -120,7 +120,8 @@ export interface NoteLink {
  */
 export function findLinks(note: string): NoteLink[] {
   const links: NoteLink[] = [];
-  for (const m of note.matchAll(/(?<![\w@.\/-])(?:https?:\/\/|www\.)[^\s<>"]+/gi)) {
+  // An address ends at a space, or at a comma that starts another one ("http://a.com,http://b.com").
+  for (const m of note.matchAll(/(?<![\w@.\/-])(?:https?:\/\/|www\.)[^\s<>"]+?(?=,(?:https?:\/\/|www\.)|[\s<>"]|$)/gi)) {
     let url = m[0];
     for (;;) {
       const last = url.slice(-1);
@@ -129,7 +130,8 @@ export function findLinks(note: string): NoteLink[] {
       else if (last === "]" && count(url, "[") < count(url, "]")) url = url.slice(0, -1);
       else break;
     }
-    if (/^(https?:\/\/|www\.)$/i.test(url)) continue;
+    // Nothing but the prefix, once its trailing dots are gone ("www.", "www...", "https://").
+    if (!/^(?:https?:\/\/|www\.)[\p{L}\p{N}]/iu.test(url)) continue;
     links.push({ start: m.index, end: m.index + url.length, href: /^www\./i.test(url) ? `https://${url}` : url });
   }
   return links;

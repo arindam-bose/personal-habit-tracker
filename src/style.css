@@ -880,11 +880,13 @@ button.icon-action.icon-export {
 
 .today-badge {
   vertical-align: 3px;
-}
-
-.today-badge {
   background: color-mix(in srgb, var(--accent) 15%, var(--surface));
   color: var(--accent);
+}
+
+/* Only groups the day with its Today on a phone. */
+.day-head {
+  display: contents;
 }
 
 /* Beside the day on a wide screen; its own line on a phone. */
@@ -2010,9 +2012,19 @@ button.notes-day {
 @media (max-width: 600px) {
   /* The day, Today and the arrows fill the first line; the date box and Day / Week always take the
      second. Should the day ever outgrow its room (a long date in another language), it ends in "…"
-     rather than running under Today or the arrow. */
-  .day-title {
+     rather than running under Today or the arrow. Today, badge or chip, sits right after the day, and
+     the two are centred together. */
+  .day-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex: 1 1 0;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .day-title {
+    flex: 0 1 auto;
     font-size: 16px;
     min-width: 0;
     margin: 0;
@@ -2193,9 +2205,11 @@ button.notes-day {
   max-width: 11ch;
 }
 
+/* "≥ 7:30 hrs" stays whole on one line. */
 .month-table thead .goal {
   display: block;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 /* Overall, the year so far, sits under December. */

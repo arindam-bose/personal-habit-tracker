@@ -67,15 +67,18 @@ export function TodayView() {
         <button type="button" class="icon-action" aria-label={mode.value === "day" ? "The day before" : "The seven days before"}
           disabled={!inYear(addDays(mode.value === "day" ? date : week, -1))}
           onClick={() => go(addDays(date, mode.value === "day" ? -1 : -7))}><Icon name="left" /></button>
-        <h2 class="day-title">
-          {mode.value === "day" ? longDate(date) : `${shortDate(first)} – ${shortDate(last)}`}
-          {date === today.value && mode.value === "day" && <span class="badge today-badge">Today</span>}
-        </h2>
-        {/* On a phone, Today sits here, beside the day where the badge would be, so the date box keeps its
-            room. Outside the heading, so the heading reads as the day alone. */}
-        {offToday && (
-          <button type="button" class="badge today-badge today-chip" onClick={() => go(today.value)}>Today</button>
-        )}
+        {/* On a phone the day and its Today, badge or chip, are centred together between the arrows. */}
+        <div class="day-head">
+          <h2 class="day-title">
+            {mode.value === "day" ? longDate(date) : `${shortDate(first)} – ${shortDate(last)}`}
+            {date === today.value && mode.value === "day" && <span class="badge today-badge">Today</span>}
+          </h2>
+          {/* On a phone, Today sits here, right beside the day where the badge would be, so the date box keeps
+              its room. Outside the heading, so the heading reads as the day alone. */}
+          {offToday && (
+            <button type="button" class="badge today-badge today-chip" onClick={() => go(today.value)}>Today</button>
+          )}
+        </div>
         <button type="button" class="icon-action" aria-label={mode.value === "day" ? "The day after" : "The seven days after"}
           disabled={!inYear(addDays(mode.value === "day" ? date : weekEnd, 1))}
           onClick={() => go(addDays(date, mode.value === "day" ? 1 : 7))}><Icon name="right" /></button>
