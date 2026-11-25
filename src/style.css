@@ -1129,8 +1129,13 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
-.week-table tr.is-today th button {
-  font-weight: 700;
+/* Today's date gets the Today badge's soft accent behind it; the rest of the row is as any other.
+   The negative margin keeps the column as wide as the other days need. */
+.week-table tr.is-today th button.link {
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: -1px -4px;
 }
 
 .week-table td.met {
